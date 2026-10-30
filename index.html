@@ -102,6 +102,9 @@
   .switch.on .tog::after{left:21px;background:var(--gold)}
   .adv{display:none}
   .adv.show{display:block}
+  .warn{display:none;margin:0 0 12px;border:1px solid rgba(248,113,113,.38);background:rgba(248,113,113,.08);
+    color:#F6D2D2;border-radius:12px;padding:11px 12px;font-size:12px;line-height:1.5}
+  .warn b{color:#fff;font-weight:700}
   .note{font-size:11.5px;color:var(--mut);background:rgba(125,211,252,.05);border:1px solid rgba(125,211,252,.14);
     border-radius:10px;padding:8px 10px;margin:2px 0 12px}
   .accordion{border-top:1px solid var(--line);margin-top:6px;padding-top:10px}
@@ -442,6 +445,7 @@
     <div class="card" id="resultsCard">
       <h3>2 · The numbers</h3>
       <p class="hint" id="modeHint">Quick look — market averages behind the scenes.</p>
+      <div class="warn" id="warnBox"></div>
 
       <div class="kpis">
         <div class="kpi gold"><div class="k">Net profit</div><div class="v" id="kProfit">—</div><div class="s" id="kProfitS">after financing + selling</div></div>
@@ -916,6 +920,23 @@
     $('kIrr').className = 'v ' + ((r.irr||0) >= 25 ? 'pos' : (r.irr||0) >= 12 ? '' : 'neg');
     $('kAllIn').textContent = fmtM(r.allInCost);
     $('kAllInS').textContent = fmtM(r.allInPerSqft) + '/sf all-in vs ' + fmtM(r.salePerSqft) + '/sf sale';
+
+    // ---- sanity checks: catch typos that make the model lie
+    var warns = [];
+    var arvNow = r.lines.arv;
+    if (calcInput.dealType === 'lot' && arvNow > 0 && calcInput.purchasePrice < arvNow * 0.01) {
+      warns.push('<b>Lot price looks like a typo.</b> The model is pricing ' + fmtM(calcInput.purchasePrice) +
+        ' for the dirt against a ' + fmtM(arvNow) + ' sale. The math below is correct — but it is underwriting a free lot.');
+    }
+    if (r.margin > 55) {
+      warns.push('<b>' + pct(r.margin, 0) + ' margin is not a real-world number.</b> Recheck your build cost per foot and your sale comps before you believe it.');
+    }
+    if ((r.irr || 0) > 300) {
+      warns.push('<b>' + (r.irr || 0).toFixed(0) + '% annualized is a red flag.</b> Returns this high almost always mean one of the inputs is off.');
+    }
+    var wb = $('warnBox');
+    if (warns.length) { wb.innerHTML = warns.join('<br><br>'); wb.style.display = 'block'; }
+    else { wb.style.display = 'none'; wb.innerHTML = ''; }
 
     // max land solver
     var maxLand = E.maxLandForMargin(calcInput, calcInput.targetMarginPct);
