@@ -1143,8 +1143,21 @@
   }
   $('btnCopy').addEventListener('click', function(){
     var txt = summaryText();
-    if (navigator.clipboard) navigator.clipboard.writeText(txt).then(function(){ toast('Summary copied'); }, function(){ alert(txt); });
-    else alert(txt);
+    function manualCopy(){                       // no alert(): it blocks the page on some browsers
+      var ta = document.createElement('textarea');
+      ta.value = txt;
+      ta.style.position = 'fixed'; ta.style.top = '-1000px';
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); } catch(e){}
+      ta.remove();
+      toast('Summary selected and copied — paste it anywhere');
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(txt).then(function(){ toast('Summary copied'); }, manualCopy);
+    } else {
+      manualCopy();
+    }
   });
   $('btnExport').addEventListener('click', function(){
     var blob = new Blob([JSON.stringify({name: state._name || 'deal', inputs: readForm(), exported: new Date().toISOString()}, null, 2)], {type:'application/json'});
