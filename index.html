@@ -667,7 +667,7 @@
     var loan = i.useLoan ? Math.max(0, Math.min(byLtc, byLtv)) : 0;
     var binding = !i.useLoan ? 'cash' : (byLtv < byLtc ? 'ltv' : 'ltc');
     var points = loan * i.pointsPct / 100;
-    var fee = i.useLoan ? i.lenderFee : 0;
+    var fee = (i.useLoan && loan > 0) ? i.lenderFee : 0;   // no loan, no lender fee
 
     // ---- draws + interest
     var t0Draw = 0, drawPerMonth = 0, interestByMonth = [], interestTotal = 0;
@@ -970,6 +970,12 @@
     if (unreachable) {
       warns.push('<b>Your profit target is above what the deal can produce.</b> At a ' + pct(calcInput.targetMarginPct,0) +
         ' target there is no lot price that works — a free lot only gets you ' + pct(ceiling) + '.');
+    }
+    if (arvNow <= 0) {
+      warns.push('<b>Sale price is zero.</b> Put a $/sqft sale price in before you read anything below.');
+    }
+    if (calcInput.buildableSqft < 200) {
+      warns.push('<b>Home size looks wrong.</b> ' + Math.round(calcInput.buildableSqft) + ' sqft is not a house. Check the buildable square feet field.');
     }
     if (r.margin > 60) {
       warns.push('<b>' + pct(r.margin, 0) + ' margin is not a real-world number.</b> Recheck your build cost per foot and your sale comps before you believe it.');
