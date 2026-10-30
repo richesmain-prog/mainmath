@@ -547,10 +547,16 @@
 
 <script>
 /* ============================================================
-   MainMath — underwriting engine
-   Reverse-engineered from deal.builderaccelerator.com, rebuilt
-   with draw-based interest, partner-aware returns, IRR, and
-   max-land-price solving.
+   MainMath — underwriting engine (v2)
+   Rebuilt after the independent review. Changes that matter:
+   - stable IRR (Horner NPV + widening bracket): no more 8-figure
+     returns on losing deals, and long projects resolve correctly
+   - partner IRR now honours the profit split, not just cash share
+   - cash required and peak equity are measured BEFORE the sale lands
+   - break-even is solved numerically, because the loan moves with ARV
+   - the land solvers return null when the target is unreachable
+   - zero revenue is "no number", never a fake 0% margin
+   - every cost line is clamped non-negative
    Pure functions. No DOM. No network.
    ============================================================ */
 (function (root) {
@@ -576,7 +582,7 @@
     pointsPct: 2,
     lenderFee: 4500,
     includeCarryInBasis: false, // lender also funds carrying costs (rare)
-    interestMethod: 'draw',     // 'draw' (accurate) | 'flat' (their method)
+    interestMethod: 'draw',     // 'draw' (accurate) | 'flat' (legacy method)
     salePerSqft: 900,
     sellingCostPct: 6,
     hasPartner: true,
@@ -593,18 +599,27 @@
     var i = {}, k;
     for (k in DEFAULTS) if (Object.prototype.hasOwnProperty.call(DEFAULTS, k)) i[k] = DEFAULTS[k];
     if (raw) for (k in raw) if (Object.prototype.hasOwnProperty.call(raw, k) && raw[k] !== undefined && raw[k] !== null && raw[k] !== '') i[k] = raw[k];
-    // numeric coercion (radios / text inputs arrive as strings)
+
     ['purchasePrice','buildableSqft','buildCostPerSqft','softCostPct','contingencyPct','permitFees',
      'buyClosingPct','demoCost','buildMonths','sellMonths','monthlyCarry','ltcPct','maxLtvPct',
      'ratePct','pointsPct','lenderFee','salePerSqft','sellingCostPct','myProfitShare','myCashShare',
      'targetMarginPct','targetIrrPct'].forEach(function (f) { i[f] = num(i[f]); });
+
     i.buildMonths = clamp(Math.round(i.buildMonths), 1, 60);
     i.sellMonths = clamp(Math.round(i.sellMonths), 0, 24);
     i.buildableSqft = Math.max(1, i.buildableSqft);
     i.purchasePrice = Math.max(0, i.purchasePrice);
+
+    // no cost line may be negative: it breaks the solvers and the sanity checks
     i.buildCostPerSqft = Math.max(0, i.buildCostPerSqft);
+    i.softCostPct = clamp(i.softCostPct, 0, 100);
+    i.contingencyPct = clamp(i.contingencyPct, 0, 100);
     i.permitFees = Math.max(0, i.permitFees);
+    i.buyClosingPct = clamp(i.buyClosingPct, 0, 20);
+    i.demoCost = Math.max(0, i.demoCost);
     i.monthlyCarry = Math.max(0, i.monthlyCarry);
+    i.lenderFee = Math.max(0, i.lenderFee);
+
     i.salePerSqft = Math.max(0, i.salePerSqft);
     i.sellingCostPct = clamp(i.sellingCostPct, 0, 20);
     i.ltcPct = clamp(i.ltcPct, 0, 100);
@@ -613,6 +628,8 @@
     i.pointsPct = clamp(i.pointsPct, 0, 10);
     i.myProfitShare = clamp(i.myProfitShare, 0, 100);
     i.myCashShare = clamp(i.myCashShare, 0, 100);
+    i.targetMarginPct = clamp(i.targetMarginPct, -100, 100);
+    i.targetIrrPct = clamp(i.targetIrrPct, -100, 1000);
     if (i.dealType !== 'teardown') i.dealType = 'lot';
     if (i.interestMethod !== 'flat') i.interestMethod = 'draw';
     i.useLoan = !!i.useLoan;
@@ -621,31 +638,66 @@
     return i;
   }
 
-  /* ---------- monthly IRR (bisection on monthly rate) ---------- */
+  /* ---------- stable NPV / IRR ----------
+     Horner form: s = s/(1+r) + flow[t], walked backwards. This avoids
+     (1+r)^84 underflowing to zero on long projects, which used to turn
+     NPV into Infinity and push the bisection to its ceiling.            */
   function npv(rate, flows) {
     var s = 0;
-    for (var t = 0; t < flows.length; t++) s += flows[t] / Math.pow(1 + rate, t);
+    for (var t = flows.length - 1; t >= 0; t--) s = s / (1 + rate) + flows[t];
     return s;
   }
+  function sign(x) { return x > 0 ? 1 : x < 0 ? -1 : 0; }
+
   function monthlyIrr(flows) {
-    var hasPos = flows.some(function (f) { return f > 0; });
-    var hasNeg = flows.some(function (f) { return f < 0; });
+    var hasPos = false, hasNeg = false;
+    for (var k = 0; k < flows.length; k++) { if (flows[k] > 0) hasPos = true; if (flows[k] < 0) hasNeg = true; }
     if (!hasPos || !hasNeg) return null;
-    var lo = -0.9999, hi = 2.0;
-    var fLo = npv(lo, flows), fHi = npv(hi, flows), mid, fMid, guard = 0;
-    if (fLo * fHi > 0) return null;             // no sign change in range
-    while (hi - lo > 1e-10 && guard++ < 300) {
-      mid = (lo + hi) / 2;
-      fMid = npv(mid, flows);
-      if (fLo * fMid <= 0) { hi = mid; fHi = fMid; } else { lo = mid; fLo = fMid; }
+
+    var lo = -0.9999, hi = 1.0, guard = 0;
+    var sLo = sign(npv(lo, flows)), sHi = sign(npv(hi, flows));
+    while (sLo === sHi && guard++ < 60) {       // widen the bracket until it straddles zero
+      hi = hi * 2 + 1;
+      if (!isFinite(hi)) return null;
+      sHi = sign(npv(hi, flows));
+    }
+    if (sLo === sHi) return null;
+
+    for (var it = 0; it < 200; it++) {
+      var mid = (lo + hi) / 2;
+      var sMid = sign(npv(mid, flows));
+      if (sMid === 0) return mid;
+      if (sMid === sLo) { lo = mid; sLo = sMid; } else { hi = mid; }
+      if (hi - lo < 1e-12) break;
     }
     return (lo + hi) / 2;
   }
-  function annualize(m) { return m === null ? null : (Math.pow(1 + m, 12) - 1) * 100; }
+  function annualize(m) { return (m === null || m === undefined || !isFinite(m)) ? null : (Math.pow(1 + m, 12) - 1) * 100; }
 
-  /* ---------- core model ---------- */
-  function run(raw) {
-    var i = normalize(raw);
+  function verdictFor(margin, i) {
+    if (margin === null) return { key: 'dead', label: 'No Sale Price', note: 'Add a sale price before reading anything here.' };
+    if (margin <= 0) return { key: 'dead', label: 'Loses Money', note: 'This deal does not pencil at these inputs. Something has to move a long way.' };
+    if (margin >= i.targetMarginPct) return { key: 'strong', label: 'Strong Deal', note: 'Clears your ' + i.targetMarginPct + '% net margin target.' };
+    if (margin >= i.targetMarginPct - 8) return { key: 'workable', label: 'Tight', note: 'Below target. Negotiate the dirt, trim the build, or walk.' };
+    return { key: 'thin', label: 'Thin', note: 'This is not a deal at these numbers. Do not spend money on diligence until the price moves.' };
+  }
+
+  function scoreDeal(margin, irr, i, landPct, ltv, months) {
+    var m = margin === null ? 0 : margin;
+    var s = 0;
+    s += clamp(m / 30, 0, 1) * 40;
+    s += clamp((irr || 0) / 60, 0, 1) * 20;
+    s += clamp(1 - ((landPct || 0) - 15) / 25, 0, 1) * 12;
+    s += clamp(1 - Math.max(0, (ltv || 0) - 60) / 15, 0, 1) * 8;
+    s += clamp(1 - (months - 12) / 12, 0, 1) * 10;
+    s += clamp(1 - i.buildCostPerSqft / Math.max(1, i.salePerSqft), 0, 1) * 10;
+    s = Math.round(clamp(s, 0, 100));
+    var grade = s >= 85 ? 'A' : s >= 75 ? 'B+' : s >= 65 ? 'B' : s >= 55 ? 'C+' : s >= 45 ? 'C' : s >= 35 ? 'D' : 'F';
+    return { points: s, grade: grade };
+  }
+
+  /* ---------- core model (no solvers inside, so they can call it) ---------- */
+  function core(i) {
     var sqft = i.buildableSqft;
     var hard = sqft * i.buildCostPerSqft;
     var soft = hard * i.softCostPct / 100;
@@ -656,10 +708,8 @@
     var arv = sqft * i.salePerSqft;
     var sellCosts = arv * i.sellingCostPct / 100;
     var months = i.buildMonths + i.sellMonths;
-    // carrying costs run the closing month plus every month of build and sell
-    var carryTotal = i.monthlyCarry * (months + 1);
+    var carryTotal = i.monthlyCarry * (months + 1);      // closing month + every month held
 
-    // ---- loan sizing
     var basis = i.purchasePrice + demo + hard + soft + contingency + i.permitFees +
                 (i.includeCarryInBasis ? carryTotal : 0);
     var byLtc = basis * i.ltcPct / 100;
@@ -667,145 +717,159 @@
     var loan = i.useLoan ? Math.max(0, Math.min(byLtc, byLtv)) : 0;
     var binding = !i.useLoan ? 'cash' : (byLtv < byLtc ? 'ltv' : 'ltc');
     var points = loan * i.pointsPct / 100;
-    var fee = (i.useLoan && loan > 0) ? i.lenderFee : 0;   // no loan, no lender fee
+    var fee = (i.useLoan && loan > 0) ? i.lenderFee : 0;  // no loan, no lender fee
 
-    // ---- draws + interest
-    var t0Draw = 0, drawPerMonth = 0, interestByMonth = [], interestTotal = 0;
-    var bal = 0;
+    var t0Draw = 0, drawPerMonth = 0, interestByMonth = [], interestTotal = 0, bal = 0;
     if (loan > 0) {
       t0Draw = Math.min(loan, i.ltcPct / 100 * (i.purchasePrice + demo));
       drawPerMonth = (loan - t0Draw) / i.buildMonths;
       bal = t0Draw;
     }
     var constructionPerMonth = buildTotal / i.buildMonths;
+
     if (i.interestMethod === 'flat') {
       interestTotal = loan * i.ratePct / 100 * (months / 12);
-      for (var m0 = 0; m0 <= months; m0++) interestByMonth.push(0);
-      interestByMonth[months] = interestTotal; // shown as a single lump in the schedule
+      for (var m0 = 1; m0 <= months; m0++) interestByMonth.push(0);
+      interestByMonth[months - 1] = interestTotal;        // one lump, billed at the end
     } else {
       for (var m = 1; m <= months; m++) {
         if (m <= i.buildMonths) bal += drawPerMonth;
         var int = bal * i.ratePct / 100 / 12;
-        interestByMonth.push(int);
+        interestByMonth.push(int);                        // index 0 == month 1
         interestTotal += int;
       }
     }
 
-    // ---- monthly equity cash flows
-    var flows = [], cumulative = [], running = 0, cashInvested = 0, peakCash = 0, firstNeg = null, lastNeg = null;
-    var c0 = -(i.purchasePrice + buyClosing + demo + points + fee + i.monthlyCarry - t0Draw);
-    flows.push(c0);
+    /* operating flows: everything funded BEFORE the sale. Index 0 = closing. */
+    var opFlows = [];
+    opFlows.push(-(i.purchasePrice + buyClosing + demo + points + fee + i.monthlyCarry - t0Draw));
     for (var t = 1; t <= months; t++) {
-      var out = i.monthlyCarry + (i.interestMethod === 'flat' ? (t === months ? interestTotal : 0) : interestByMonth[t - 1]);
+      var out = i.monthlyCarry + interestByMonth[t - 1];
       var cin = 0;
       if (t <= i.buildMonths) { out += constructionPerMonth; cin += drawPerMonth; }
-      flows.push(cin - out);
+      opFlows.push(cin - out);
     }
-    flows[months] += arv - sellCosts - loan; // sale at close of final month
 
-    for (var x = 0; x < flows.length; x++) {
-      running += flows[x];
-      cumulative.push(running);
-      if (flows[x] < 0) { cashInvested += -flows[x]; if (firstNeg === null) firstNeg = x; lastNeg = x; }
-      if (running < peakCash) peakCash = running;   // most negative cumulative = peak equity need
+    var invested = 0, running = 0, peak = 0;
+    for (var x = 0; x < opFlows.length; x++) {
+      if (opFlows[x] < 0) invested += -opFlows[x];
+      running += opFlows[x];
+      if (running < peak) peak = running;
     }
-    var peakEquity = -peakCash;
+    var peakEquity = -peak;
+
+    var flows = opFlows.slice();
+    flows[months] += arv - sellCosts - loan;              // sale closes at the end of the last month
 
     var allInCost = i.purchasePrice + buyClosing + demo + buildTotal + points + fee + interestTotal + carryTotal;
     var totalCost = allInCost + sellCosts;
     var profit = arv - totalCost;
-    var margin = arv > 0 ? profit / arv * 100 : 0;
+    var margin = arv > 0 ? profit / arv * 100 : null;      // no revenue is not 0%
     var grossSpread = arv - allInCost;
 
-    var invested = Math.max(cashInvested, 1);
-    var coc = profit / invested * 100;
+    var coc = invested > 0 ? profit / invested * 100 : null;
     var irrM = monthlyIrr(flows);
     var irr = annualize(irrM);
 
-    // ---- partner split (pro-rata cash, split profit)
-    var myProfit = i.hasPartner ? profit * i.myProfitShare / 100 : profit;
-    var myCash = i.hasPartner ? invested * i.myCashShare / 100 : invested;
-    var myFlows = flows.map(function (f) { return i.hasPartner ? f * i.myCashShare / 100 : f; });
-    var myIrr = annualize(monthlyIrr(myFlows));
-    var myCoc = myCash > 0 ? myProfit / myCash * 100 : 0;
-    var multiple = myCash > 0 ? (myCash + myProfit) / myCash : 0;
-
-    var allInPerSqft = allInCost / sqft;
-    var breakEvenSale = (allInCost / (1 - i.sellingCostPct / 100)) / sqft;
-    var landPctOfArv = arv > 0 ? i.purchasePrice / arv * 100 : 0;
+    /* partner: cash goes in pro-rata, but profit splits by the agreed share.
+       The terminal flow carries the difference, so the IRR is the partner's. */
+    var myProfit, myCash, myFlows, myIrr, myCoc, multiple;
+    if (i.hasPartner) {
+      myProfit = profit * i.myProfitShare / 100;
+      myCash = peakEquity * i.myCashShare / 100;
+      myFlows = flows.map(function (f) { return f * i.myCashShare / 100; });
+      myFlows[months] += (i.myProfitShare - i.myCashShare) / 100 * profit;
+      myIrr = annualize(monthlyIrr(myFlows));
+      myCoc = myCash > 0 ? myProfit / myCash * 100 : null;
+      multiple = myCash > 0 ? (myCash + myProfit) / myCash : null;
+    } else {
+      myProfit = profit; myCash = peakEquity; myFlows = flows.slice(); myIrr = irr;
+      myCoc = coc; multiple = invested > 0 ? (invested + profit) / invested : null;
+    }
 
     return {
       inputs: i,
       lines: { hard: hard, soft: soft, contingency: contingency, buildTotal: buildTotal, demo: demo,
                buyClosing: buyClosing, arv: arv, sellCosts: sellCosts, carryTotal: carryTotal,
                points: points, fee: fee, interestTotal: interestTotal },
-      loan: loan, loanBasis: basis, bindingCap: binding, loanToArv: arv > 0 ? loan / arv * 100 : 0,
+      loan: loan, loanBasis: basis, bindingCap: binding, loanToArv: arv > 0 ? loan / arv * 100 : null,
       t0Draw: t0Draw, drawPerMonth: drawPerMonth, interestByMonth: interestByMonth,
-      flows: flows, cumulative: cumulative,
+      flows: flows, opFlows: opFlows,
       months: months, buildMonths: i.buildMonths, sellMonths: i.sellMonths,
       allInCost: allInCost, totalCost: totalCost, profit: profit, margin: margin,
       grossSpread: grossSpread, cashInvested: invested, peakEquity: peakEquity,
       coc: coc, irr: irr, monthlyIrr: irrM,
       myProfit: myProfit, myCash: myCash, myCoc: myCoc, myIrr: myIrr, multiple: multiple,
-      allInPerSqft: allInPerSqft, salePerSqft: i.salePerSqft, spreadPerSqft: i.salePerSqft - allInPerSqft,
-      breakEvenSalePerSqft: breakEvenSale, landPctOfArv: landPctOfArv,
-      profitPerMonth: profit / months,
-      verdict: verdictFor(margin, irr, i),
-      score: scoreDeal(margin, irr, i, landPctOfArv, arv > 0 ? loan / arv * 100 : 0, months)
+      allInPerSqft: allInCost / sqft, salePerSqft: i.salePerSqft, spreadPerSqft: i.salePerSqft - allInCost / sqft,
+      breakEvenSalePerSqft: null,
+      landPctOfArv: arv > 0 ? i.purchasePrice / arv * 100 : null,
+      profitPerMonth: months > 0 ? profit / months : null,
+      verdict: verdictFor(margin, i),
+      score: scoreDeal(margin, irr, i, arv > 0 ? i.purchasePrice / arv * 100 : 0,
+                       arv > 0 ? loan / arv * 100 : 0, months)
     };
   }
 
-  function verdictFor(margin, irr, i) {
-    if (margin <= 0) return { key: 'dead', label: 'Loses Money', note: 'This deal does not pencil at these inputs. Something has to move a long way.' };
-    if (margin >= i.targetMarginPct + 5) return { key: 'strong', label: 'Strong Deal', note: 'Clears the target with room to absorb a cost overrun.' };
-    if (margin >= i.targetMarginPct) return { key: 'strong', label: 'Strong Deal', note: 'Clears your ' + i.targetMarginPct + '% net margin target.' };
-    if (margin >= i.targetMarginPct - 8) return { key: 'workable', label: 'Tight', note: 'Below target. Negotiate the dirt, trim the build, or walk.' };
-    return { key: 'thin', label: 'Thin', note: 'This is not a deal at these numbers. Do not spend money on diligence until the price moves.' };
+  /* ---------- break-even: solved, not divided ---------- */
+  function breakEven(i) {
+    if (!(i.salePerSqft > 0)) return null;
+    var lo = 0, hi = Math.max(i.salePerSqft * 2, i.buildCostPerSqft * 2, 100), guard = 0;
+    while (core(Object.assign({}, i, { salePerSqft: hi })).profit <= 0) {
+      hi *= 2;
+      if (++guard > 40 || hi > 1e9) return null;
+    }
+    for (var k = 0; k < 80; k++) {
+      var mid = (lo + hi) / 2;
+      if (core(Object.assign({}, i, { salePerSqft: mid })).profit < 0) lo = mid; else hi = mid;
+    }
+    return (lo + hi) / 2;
   }
 
-  /* 0-100 heuristic. Not a bank rating — a gut-check ranking across deals. */
-  function scoreDeal(margin, irr, i, landPct, ltv, months) {
-    var s = 0;
-    s += clamp(margin / 30, 0, 1) * 40;                       // 40 pts: margin
-    s += clamp((irr || 0) / 60, 0, 1) * 20;                   // 20 pts: annualized return
-    s += clamp(1 - (landPct - 15) / 25, 0, 1) * 12;           // 12 pts: land share of ARV
-    s += clamp(1 - Math.max(0, ltv - 60) / 15, 0, 1) * 8;     // 8 pts: lender cushion
-    s += clamp(1 - (months - 12) / 12, 0, 1) * 10;            // 10 pts: speed
-    s += clamp(1 - i.buildCostPerSqft / Math.max(1, i.salePerSqft), 0, 1) * 10; // 10 pts: build/sale ratio
-    s = Math.round(clamp(s, 0, 100));
-    var grade = s >= 85 ? 'A' : s >= 75 ? 'B+' : s >= 65 ? 'B' : s >= 55 ? 'C+' : s >= 45 ? 'C' : s >= 35 ? 'D' : 'F';
-    return { points: s, grade: grade };
+  function run(raw) {
+    var i = normalize(raw);
+    var r = core(i);
+    r.breakEvenSalePerSqft = breakEven(i);
+    return r;
   }
 
-  /* ---------- solvers ---------- */
-  // Max land price that still hits a target net margin.
+  /* ---------- solvers: null = no price reaches that target ---------- */
   function maxLandForMargin(raw, targetMarginPct) {
     var i = normalize(raw);
-    var target = targetMarginPct === undefined ? i.targetMarginPct : num(targetMarginPct);
-    var lo = 0, hi = Math.max(i.salePerSqft * i.buildableSqft * 2, 1000000);
-    for (var k = 0; k < 60; k++) {
-      var mid = (lo + hi) / 2;
-      var r = run(Object.assign({}, i, { purchasePrice: mid }));
-      if (r.margin >= target) lo = mid; else hi = mid;
+    var t = targetMarginPct === undefined ? i.targetMarginPct : num(targetMarginPct);
+    var zero = core(Object.assign({}, i, { purchasePrice: 0 }));
+    if (zero.margin === null || zero.margin < t) return null;   // impossible even with free dirt
+
+    var lo = 0, hi = Math.max(i.salePerSqft * i.buildableSqft, 1000000), guard = 0;
+    while (core(Object.assign({}, i, { purchasePrice: hi })).margin >= t) {
+      hi *= 2;
+      if (++guard > 40) break;
     }
-    return (lo + hi) / 2;
-  }
-  // Max land price that still hits a target annualized IRR on MY cash.
-  function maxLandForIrr(raw, targetIrrPct) {
-    var i = normalize(raw);
-    var target = targetIrrPct === undefined ? i.targetIrrPct : num(targetIrrPct);
-    var lo = 0, hi = Math.max(i.salePerSqft * i.buildableSqft * 2, 1000000);
-    var hiR = run(Object.assign({}, i, { purchasePrice: hi }));
-    if ((hiR.irr || -999) >= target) return hi;
-    for (var k = 0; k < 60; k++) {
+    for (var k = 0; k < 80; k++) {
       var mid = (lo + hi) / 2;
-      var r = run(Object.assign({}, i, { purchasePrice: mid }));
-      if ((r.irr || -999) >= target) lo = mid; else hi = mid;
+      if (core(Object.assign({}, i, { purchasePrice: mid })).margin >= t) lo = mid; else hi = mid;
     }
     return (lo + hi) / 2;
   }
 
-  // 5x5 net-margin grid: sale $/sf across columns, build $/sf down rows.
+  function maxLandForIrr(raw, targetIrrPct) {
+    var i = normalize(raw);
+    var t = targetIrrPct === undefined ? i.targetIrrPct : num(targetIrrPct);
+    var zero = core(Object.assign({}, i, { purchasePrice: 0 }));
+    if (zero.myIrr === null || zero.myIrr < t) return null;
+
+    var lo = 0, hi = Math.max(i.salePerSqft * i.buildableSqft, 1000000), guard = 0;
+    while (((core(Object.assign({}, i, { purchasePrice: hi })).myIrr) || -1e9) >= t) {
+      hi *= 2;
+      if (++guard > 40) break;
+    }
+    for (var k = 0; k < 80; k++) {
+      var mid = (lo + hi) / 2;
+      var r = core(Object.assign({}, i, { purchasePrice: mid }));
+      if ((r.myIrr === null ? -1e9 : r.myIrr) >= t) lo = mid; else hi = mid;
+    }
+    return (lo + hi) / 2;
+  }
+
   function sensitivity(raw, spanPct) {
     var i = normalize(raw);
     var span = spanPct === undefined ? 10 : spanPct;
@@ -813,19 +877,17 @@
     var sales = steps.map(function (s) { return i.salePerSqft * (1 + s * span / 100); });
     var builds = steps.map(function (s) { return i.buildCostPerSqft * (1 + s * span / 100); });
     var rows = builds.map(function (b) {
-      return {
-        build: b,
-        cells: sales.map(function (sv) {
-          var r = run(Object.assign({}, i, { salePerSqft: sv, buildCostPerSqft: b }));
-          return r.margin;
-        })
-      };
+      return { build: b, cells: sales.map(function (sv) {
+        var r = core(Object.assign({}, i, { salePerSqft: sv, buildCostPerSqft: b }));
+        return r.margin === null ? null : r.margin;
+      }) };
     });
     return { sales: sales, rows: rows };
   }
 
-  var API = { DEFAULTS: DEFAULTS, normalize: normalize, run: run, monthlyIrr: monthlyIrr,
-              annualize: annualize, maxLandForMargin: maxLandForMargin, maxLandForIrr: maxLandForIrr,
+  var API = { DEFAULTS: DEFAULTS, normalize: normalize, run: run, core: core,
+              monthlyIrr: monthlyIrr, annualize: annualize, npv: npv,
+              maxLandForMargin: maxLandForMargin, maxLandForIrr: maxLandForIrr,
               sensitivity: sensitivity, verdictFor: verdictFor, scoreDeal: scoreDeal };
 
   if (typeof module !== 'undefined' && module.exports) module.exports = API;
@@ -934,7 +996,8 @@
     // best possible margin with free dirt — drives the solver and the verdict
     var zeroLand = E.run(Object.assign({}, calcInput, { purchasePrice: 0 }));
     var ceiling = zeroLand.margin;
-    var unreachable = calcInput.targetMarginPct >= ceiling - 0.05;
+    var maxLand = E.maxLandForMargin(calcInput, calcInput.targetMarginPct);
+    var unreachable = (maxLand === null);
 
     // hero
     $('heroMargin').innerHTML = pct(r.margin) + ' <small>net margin · ' + fmtM(r.profit) + ' profit</small>';
@@ -953,10 +1016,13 @@
     $('kProfit').textContent = fmtM(r.profit);
     $('kProfit').className = 'v ' + (r.profit >= 0 ? 'pos' : 'neg');
     $('kProfit').closest('.kpi').className = 'kpi ' + (r.profit >= 0 ? 'gold' : 'bad');
-    $('kCash').textContent = fmtM(r.peakEquity);
-    $('kIrr').textContent = r.irr === null ? '—' : pct(r.irr, 0);
-    $('kIrrS').textContent = r.myCoc ? pct(r.myCoc,0)+' cash-on-cash over '+r.months+' mo' : 'on your cash';
-    $('kIrr').className = 'v ' + ((r.irr||0) >= 25 ? 'pos' : (r.irr||0) >= 12 ? '' : 'neg');
+    var retPct = calcInput.hasPartner ? r.myIrr : r.irr;
+    $('kCash').textContent = fmtM(calcInput.hasPartner ? r.myCash : r.peakEquity);
+    $('kCash').closest('.kpi').querySelector('.k').textContent = calcInput.hasPartner ? 'Your cash in' : 'Cash you need';
+    $('kCash').nextElementSibling.textContent = calcInput.hasPartner ? 'your ' + pct(calcInput.myCashShare,0) + ' share of peak equity' : 'peak equity, incl. interest';
+    $('kIrr').textContent = retPct === null ? '—' : pct(retPct, 0);
+    $('kIrrS').textContent = r.myCoc === null ? 'on your cash' : pct(r.myCoc,0)+' cash-on-cash over '+r.months+' mo';
+    $('kIrr').className = 'v ' + ((retPct||0) >= 25 ? 'pos' : (retPct||0) >= 12 ? '' : 'neg');
     $('kAllIn').textContent = fmtM(r.allInCost);
     $('kAllInS').textContent = fmtM(r.allInPerSqft) + '/sf all-in vs ' + fmtM(r.salePerSqft) + '/sf sale';
 
@@ -985,18 +1051,26 @@
     else { wb.style.display = 'none'; wb.innerHTML = ''; }
 
     // max land solver
-    var maxLand = E.maxLandForMargin(calcInput, calcInput.targetMarginPct);
-    var delta = calcInput.purchasePrice - maxLand;
+    var delta = unreachable ? 0 : calcInput.purchasePrice - maxLand;
     if (unreachable) {
       $('solveLand').textContent = 'No price works';
-      $('solveLandS').innerHTML = 'A ' + pct(calcInput.targetMarginPct, 0) + ' target is not reachable on this deal. ' +
-        'Even with a <b>free lot</b> it only reaches ' + pct(ceiling) + '. ' +
-        'Drop the target to ' + pct(Math.floor(ceiling), 0) + ' or lower, or change the build cost or sale price.';
+      $('solveLandS').innerHTML = ceiling === null
+        ? 'Add a sale price before the solver can answer.'
+        : 'A ' + pct(calcInput.targetMarginPct, 0) + ' target is not reachable on this deal. ' +
+          'Even with a <b>free lot</b> it only reaches ' + pct(ceiling) + '. ' +
+          'Drop the target to ' + pct(Math.floor(ceiling), 0) + ' or lower, or change the build cost or sale price.';
     } else {
       $('solveLand').textContent = fmtM(maxLand);
       $('solveLandS').innerHTML = (delta > 0
         ? 'Asking price is ' + fmtM(delta) + ' <b>above</b> the price that still hits ' + pct(calcInput.targetMarginPct,0) + '. You need the dirt at ' + fmtM(maxLand) + ' or less.'
         : 'You have ' + fmtM(-delta) + ' of room at ' + pct(calcInput.targetMarginPct,0) + ' target. Offer below ' + fmtM(maxLand) + ' and you are protected.');
+    }
+
+    // second ceiling: the same deal measured on annual return instead of margin
+    if (!unreachable) {
+      var mli = E.maxLandForIrr(calcInput, calcInput.targetIrrPct);
+      if (mli !== null) $('solveLandS').innerHTML += '<br>At a ' + pct(calcInput.targetIrrPct, 0) +
+        ' annual return the ceiling is <b>' + fmtM(mli) + '</b>.';
     }
 
     // keep the inline profit-target control in sync
@@ -1042,6 +1116,7 @@
     s.rows.forEach(function(rowv){
       html += '<tr><td>'+fmtM(rowv.build)+'</td>';
       rowv.cells.forEach(function(m){
+        if (m === null || m === undefined) { html += '<td class="cell-r">—</td>'; return; }
         var cls = m >= calcInput.targetMarginPct ? 'cell-g' : m >= calcInput.targetMarginPct-8 ? 'cell-a' : 'cell-r';
         html += '<td class="'+cls+'">'+m.toFixed(1)+'%</td>';
       });
@@ -1056,7 +1131,7 @@
       var phase = t === 0 ? 'Close' : t <= r.buildMonths ? 'Build' : 'Sell';
       var draw = (t >= 1 && t <= r.buildMonths) ? r.drawPerMonth : 0;
       var buildSpend = (t >= 1 && t <= r.buildMonths) ? L.buildTotal / r.buildMonths : 0;
-      var interest = r.interestByMonth[t] || 0;
+      var interest = (t >= 1 ? (r.interestByMonth[t - 1] || 0) : 0);
       if (r.interestMethod === 'flat') interest = (t === r.months ? L.interestTotal : 0);
       var eq = r.flows[t];
       if (t === r.months) eq -= (L.arv - L.sellCosts - r.loan); // show operating equity, not the sale
@@ -1078,7 +1153,12 @@
     el.addEventListener('change', render);
     el.addEventListener('blur', function(){
       var n = cleanNum(el.value);
-      if (n !== null) el.value = prettyNum(n);
+      if (n === null) return;
+      state[f] = n;
+      var norm = E.normalize(state);      // show the value the engine will actually use
+      el.value = prettyNum(norm[f]);
+      state[f] = norm[f];
+      render();
     });
   });
 
@@ -1144,7 +1224,7 @@
       'Land ' + fmtM(r.inputs.purchasePrice) + ' · Build ' + fmtM(r.lines.buildTotal) + ' · All-in ' + fmtM(r.allInCost),
       'Net profit ' + fmtM(r.profit) + ' (' + pct(r.margin) + ')',
       'Cash needed ' + fmtM(r.peakEquity) + ' · Return ' + (r.irr===null?'—':pct(r.irr,0)) + ' annualized',
-      'Max lot price at ' + pct(r.inputs.targetMarginPct,0) + ' target: ' + fmtM(d.maxLand),
+      'Max lot price at ' + pct(r.inputs.targetMarginPct,0) + ' target: ' + (d.maxLand === null ? 'no price works' : fmtM(d.maxLand)),
       'Score ' + r.score.points + '/100 (' + r.score.grade + ') · ' + r.months + ' months'
     ].join('\n');
   }
@@ -1167,7 +1247,8 @@
     }
   });
   $('btnExport').addEventListener('click', function(){
-    var blob = new Blob([JSON.stringify({name: state._name || 'deal', inputs: readForm(), exported: new Date().toISOString()}, null, 2)], {type:'application/json'});
+    var eff = window._last && window._last.input ? window._last.input : readForm();
+    var blob = new Blob([JSON.stringify({name: state._name || 'deal', mode: mode, inputs: eff, exported: new Date().toISOString()}, null, 2)], {type:'application/json'});
     var a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = (state._name || 'mainmath').replace(/[^a-z0-9\-_ ]/gi,'').replace(/\s+/g,'-').toLowerCase() + '.json';
