@@ -1097,6 +1097,12 @@
     if (r.margin > 60) {
       warns.push('<b>' + pct(r.margin, 0) + ' margin is not a real-world number.</b> Recheck your build cost per foot and your sale comps before you believe it.');
     }
+    // the exact mistake a total price typed into the $/sf box makes
+    if (arvNow > 0 && calcInput.salePerSqft > Math.max(5000, calcInput.buildCostPerSqft * 25)) {
+      warns.push('<b>Sale $/sf looks like a total.</b> ' + fmtM(calcInput.salePerSqft) + '/sf on ' +
+        Math.round(calcInput.buildableSqft) + ' sf is a <b>' + fmtM(arvNow) + ' sale</b>. If you meant a total price, ' +
+        'divide it by the square feet: ' + fmtM(arvNow / calcInput.buildableSqft) + '/sf.');
+    }
     var wb = $('warnBox');
     if (warns.length) { wb.innerHTML = warns.join('<br><br>'); wb.style.display = 'block'; }
     else { wb.style.display = 'none'; wb.innerHTML = ''; }
