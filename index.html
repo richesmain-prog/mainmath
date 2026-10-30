@@ -950,12 +950,21 @@
     $('kAllIn').textContent = fmtM(r.allInCost);
     $('kAllInS').textContent = fmtM(r.allInPerSqft) + '/sf all-in vs ' + fmtM(r.salePerSqft) + '/sf sale';
 
+    // ---- best possible margin with free dirt (used by the solver + warnings)
+    var zeroLand = E.run(Object.assign({}, calcInput, { purchasePrice: 0 }));
+    var ceiling = zeroLand.margin;
+    var unreachable = calcInput.targetMarginPct >= ceiling - 0.05;
+
     // ---- sanity checks: catch typos that make the model lie
     var warns = [];
     var arvNow = r.lines.arv;
     if (calcInput.dealType === 'lot' && arvNow > 0 && calcInput.purchasePrice < arvNow * 0.01) {
       warns.push('<b>Lot price looks like a typo.</b> The model is pricing ' + fmtM(calcInput.purchasePrice) +
         ' for the dirt against a ' + fmtM(arvNow) + ' sale. The math below is correct — but it is underwriting a free lot.');
+    }
+    if (unreachable) {
+      warns.push('<b>Your profit target is above what the deal can produce.</b> At a ' + pct(calcInput.targetMarginPct,0) +
+        ' target there is no lot price that works — a free lot only gets you ' + pct(ceiling) + '.');
     }
     if (r.margin > 60) {
       warns.push('<b>' + pct(r.margin, 0) + ' margin is not a real-world number.</b> Recheck your build cost per foot and your sale comps before you believe it.');
@@ -967,10 +976,17 @@
     // max land solver
     var maxLand = E.maxLandForMargin(calcInput, calcInput.targetMarginPct);
     var delta = calcInput.purchasePrice - maxLand;
-    $('solveLand').textContent = fmtM(maxLand);
-    $('solveLandS').innerHTML = (delta > 0
-      ? 'Asking price is ' + fmtM(delta) + ' <b>above</b> the price that still hits ' + pct(calcInput.targetMarginPct,0) + '. You need the dirt at ' + fmtM(maxLand) + ' or less.'
-      : 'You have ' + fmtM(-delta) + ' of room at ' + pct(calcInput.targetMarginPct,0) + ' target. Offer below ' + fmtM(maxLand) + ' and you are protected.');
+    if (unreachable) {
+      $('solveLand').textContent = 'No price works';
+      $('solveLandS').innerHTML = 'A ' + pct(calcInput.targetMarginPct, 0) + ' target is not reachable on this deal. ' +
+        'Even with a <b>free lot</b> it only reaches ' + pct(ceiling) + '. ' +
+        'Drop the target to ' + pct(Math.floor(ceiling), 0) + ' or lower, or change the build cost or sale price.';
+    } else {
+      $('solveLand').textContent = fmtM(maxLand);
+      $('solveLandS').innerHTML = (delta > 0
+        ? 'Asking price is ' + fmtM(delta) + ' <b>above</b> the price that still hits ' + pct(calcInput.targetMarginPct,0) + '. You need the dirt at ' + fmtM(maxLand) + ' or less.'
+        : 'You have ' + fmtM(-delta) + ' of room at ' + pct(calcInput.targetMarginPct,0) + ' target. Offer below ' + fmtM(maxLand) + ' and you are protected.');
+    }
 
     // keep the inline profit-target control in sync
     var ti = $('targetInline');
