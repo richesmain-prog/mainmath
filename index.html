@@ -935,7 +935,7 @@
 
   // numbers arrive with commas, dollar signs, spaces — strip them before parsing
   function cleanNum(raw){
-    var t = String(raw == null ? '' : raw).trim().replace(/[$,\s]/g, '');
+    var t = String(raw == null ? '' : raw).trim().replace(/[$,\s]/g, '').replace(/%$/, '');
     if (t === '') return null;
     // accepts 1200000, 1,200,000, $1.2m, 850k, 1.5e6 — anything else keeps the previous value
     var m = t.match(/^(-?\d*\.?\d+)([eE][-+]?\d+)?([mMkK])?$/);
@@ -993,7 +993,7 @@
     ['swLoan','swPartner','swMethod'].forEach(function(id){ var e = $(id); if (e) e.setAttribute('aria-checked', e.classList.contains('on') ? 'true' : 'false'); });
     $('demoField').style.display = state.dealType === 'teardown' ? 'block' : 'none';
     $('lblLand').textContent = state.dealType === 'teardown' ? 'House + lot price' : 'Lot purchase price';
-    $('modeHint').textContent = full ? 'Full underwrite — every assumption is yours to set.' : 'Quick look — market averages fill the rest (soft 8%, contingency 6%, lender 80% LTC at 10.5% + 2 pts). Switch to Full underwrite to change them.';
+    $('modeHint').textContent = full ? 'Full underwrite — every assumption is yours to set.' : 'Quick look — the rest are market averages: soft 8%, contingency 6%, lender 80% LTC at 10.5% + 2 pts, no partner, $60k demo on a tear-down. Switch to Full underwrite to change them.';
     // these controls are ignored in Quick look, so do not show values that the math is not using
     $('advDetails').style.display = full ? '' : 'none';
   }
@@ -1016,9 +1016,8 @@
         salePerSqft: input.salePerSqft,
         buildMonths: input.buildMonths,
         sellMonths: input.sellMonths,
-        hasPartner: input.hasPartner,
-        myProfitShare: input.myProfitShare,
-        myCashShare: input.myCashShare,
+        demoCost: E.DEFAULTS.demoCost,
+        hasPartner: false,
         targetMarginPct: input.targetMarginPct,
         targetIrrPct: input.targetIrrPct,
         interestMethod: 'draw'
@@ -1054,8 +1053,11 @@
     $('kCash').textContent = fmtM(calcInput.hasPartner ? r.myCash : r.peakEquity);
     $('kCash').closest('.kpi').querySelector('.k').textContent = calcInput.hasPartner ? 'Your cash in' : 'Cash you need';
     $('kCash').nextElementSibling.textContent = calcInput.hasPartner ? 'your ' + pct(calcInput.myCashShare,0) + ' share of peak equity' : 'peak equity, incl. interest';
-    $('kIrr').textContent = retPct === null ? '—' : pct(retPct, 0);
-    $('kIrrS').textContent = r.myCoc === null ? 'on your cash' : pct(r.myCoc,0)+' cash-on-cash over '+r.months+' mo';
+    var irrSilly = retPct !== null && Math.abs(retPct) > 999;
+    $('kIrr').textContent = retPct === null ? '—' : irrSilly ? (retPct > 0 ? '>999%' : '<-99%') : pct(retPct, 0);
+    $('kIrrS').textContent = irrSilly
+      ? 'annualized over ' + r.months + ' mo — too short to read'
+      : (r.myCoc === null ? 'on your cash' : pct(r.myCoc,0)+' cash-on-cash over '+r.months+' mo');
     $('kIrr').className = 'v ' + ((retPct||0) >= 25 ? 'pos' : (retPct||0) >= 12 ? '' : 'neg');
     $('kAllIn').textContent = fmtM(r.allInCost);
     $('kAllInS').textContent = fmtM(r.allInPerSqft) + '/sf all-in vs ' + fmtM(r.salePerSqft) + '/sf sale';
@@ -1179,7 +1181,7 @@
 
     window._last = { input: calcInput, r: r, maxLand: maxLand };
     try {
-      var snap = Object.assign({}, mode === 'full' ? calcInput : state);
+      var snap = E.normalize(Object.assign({}, mode === 'full' ? calcInput : state));
       snap._name = ($('dealName').value || '').trim();
       localStorage.setItem('dmp_last_v1', JSON.stringify(snap));
     } catch(e){}
@@ -1292,7 +1294,8 @@
       'Sale ' + fmtM(r.lines.arv) + ' (' + fmtM(r.salePerSqft) + '/sf \u00d7 ' + Math.round(r.inputs.buildableSqft) + ' sf)',
       'Land ' + fmtM(r.inputs.purchasePrice) + ' \u00b7 Build ' + fmtM(r.lines.buildTotal) + ' \u00b7 All-in ' + fmtM(r.allInCost),
       (p ? 'My profit ' : 'Net profit ') + fmtM(profit) + ' (' + pct(p ? (r.myCash > 0 ? r.myProfit / r.myCash * 100 : null) : r.margin) + (p ? ' on my cash' : ' margin') + ')',
-      'Cash ' + fmtM(cash) + ' \u00b7 Return ' + (ret === null ? '\u2014' : pct(ret, 0)) + ' annualized',
+      'Cash ' + fmtM(cash) + ' \u00b7 Return ' + (ret === null ? '\u2014'
+        : Math.abs(ret) > 999 ? (ret > 0 ? '>999%' : '<-99%') : pct(ret, 0)) + ' annualized',
       'Max lot price at ' + tpct(r.inputs.targetMarginPct) + ' target: ' + (d.maxLand === null ? 'no price works' : fmtM(d.maxLand)),
       'Score ' + r.score.points + '/100 (' + r.score.grade + ') \u00b7 ' + r.months + ' months'
     ].join('\n');
