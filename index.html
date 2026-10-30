@@ -976,8 +976,9 @@
     $('advC').classList.toggle('show', state.hasPartner);
     $('demoField').style.display = state.dealType === 'teardown' ? 'block' : 'none';
     $('lblLand').textContent = state.dealType === 'teardown' ? 'House + lot price' : 'Lot purchase price';
-    $('modeHint').textContent = full ? 'Full underwrite — every assumption is yours to set.' : 'Quick look — market averages fill the rest (soft 8%, contingency 6%, lender 80% LTC at 10.5% + 2 pts).';
-    if (!full) $('advDetails').open = $('advDetails').open; // leave user choice alone
+    $('modeHint').textContent = full ? 'Full underwrite — every assumption is yours to set.' : 'Quick look — market averages fill the rest (soft 8%, contingency 6%, lender 80% LTC at 10.5% + 2 pts). Switch to Full underwrite to change them.';
+    // these controls are ignored in Quick look, so do not show values that the math is not using
+    $('advDetails').style.display = full ? '' : 'none';
   }
 
   function row(label, value, cls, sub){
