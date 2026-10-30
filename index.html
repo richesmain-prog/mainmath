@@ -136,7 +136,7 @@
     border-top:1px solid rgba(242,182,50,.22)}
   .trow .lab{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--gold);margin-right:2px}
   .trow .chip{background:rgba(242,182,50,.08);border:1px solid rgba(242,182,50,.28);color:#E8C57A;
-    border-radius:999px;padding:5px 10px;font-size:11.5px;font-weight:700;cursor:pointer}
+    border-radius:999px;padding:5px 10px;font-size:11.5px;font-weight:700;cursor:pointer;min-height:40px;min-width:52px}
   .trow .chip.on{background:var(--gold);color:#100D05;border-color:var(--gold)}
   .trow .inp{width:78px}
   .trow input{padding:7px 10px;font-size:13.5px;border-radius:9px}
@@ -172,6 +172,7 @@
     border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px}
   .deal .n{font-size:13px;font-weight:700}
   .deal .m{font-size:11px;color:var(--mut)}
+  .printonly{display:none}
 
   /* ---- community page ---- */
   .chero{padding:34px 0 6px;max-width:780px}
@@ -216,6 +217,8 @@
     border-radius:12px;padding:11px;font-size:13.5px;font-weight:600;margin-top:8px;cursor:pointer}
   .gate .err{color:#F0A0A0;font-size:11.5px;margin:0 0 8px;display:none}
   @media print{
+    .chero,.how,.hero,.printonly{display:none!important}
+    .printonly{display:block!important;font-size:16px;font-weight:800;margin:0 0 10px}
     header,.btn,.seg,.modal,.toast,#inputsCard{display:none!important}
     body{background:#fff;color:#000}
     .card{break-inside:avoid;border-color:#ddd}
@@ -274,6 +277,7 @@
 
 <div class="wrap">
 
+  <div class="printonly" id="printHead"></div>
   <div class="hero">
     <div>
       <div class="lbl">Net margin</div>
@@ -430,7 +434,7 @@
                 <div class="inp has-suf"><input type="text" inputmode="decimal" autocomplete="off" id="myCashShare" step="1" /><span class="suf">%</span></div>
               </div>
             </div>
-            <div class="note">Their tool showed your return on the <b>whole</b> profit even when you only keep 20% of it. This splits both sides, so the return you see is actually yours.</div>
+            
           </div>
 
           <div class="two">
@@ -450,6 +454,8 @@
         <button class="btn gold" id="btnSave">Save deal</button>
         <button class="btn" id="btnCopy">Copy summary</button>
         <button class="btn" id="btnExport">Export JSON</button>
+        <button class="btn" id="btnImport">Import</button>
+        <input type="file" id="importFile" accept="application/json,.json" style="display:none" />
         <button class="btn ghost" id="btnReset">Reset</button>
       </div>
     </div>
@@ -514,40 +520,14 @@
 </div>
 
 <!-- SAVED -->
-<div class="modal" id="modalSaved"><div class="sheet">
+<div class="modal" id="modalSaved" role="dialog" aria-modal="true" aria-label="Saved deals"><div class="sheet">
   <h2>Saved deals</h2>
   <p>Stored on this device only. Export JSON to move them.</p>
   <div id="savedList" style="margin-top:12px"></div>
   <button class="btn" id="closeSaved" style="margin-top:10px">Close</button>
 </div></div>
 
-
-<div class="gate" id="gate">
-  <div class="box">
-    <h2>Get the calculator</h2>
-    <p>This tool is free. Put your name and email in and it opens. I'll send deal notes and new tools — no spam, and I never sell your details.</p>
-    <form id="gateForm" novalidate>
-      <label for="gName">Your name</label>
-      <input id="gName" name="name" autocomplete="given-name" placeholder="Rich" />
-      <label for="gEmail">Email</label>
-      <input id="gEmail" name="email" type="email" inputmode="email" autocomplete="email" placeholder="you@company.com" />
-      <div class="err" id="gErr">Add your name and a real email.</div>
-      <button type="submit">Show me the numbers</button>
-    </form>
-    <p class="fine">Your details stay with Rich Main. Nothing is sold or shared.<br>
-      Prefer email? <a href="mailto:rich@themainbuild.com" style="color:#B9B4A6">rich@themainbuild.com</a></p>
-  </div>
-</div>
-<iframe name="lead_sink" id="lead_sink" style="display:none;width:0;height:0;border:0" title="lead"></iframe>
-<form id="leadRelay" method="POST"
-      action="https://docs.google.com/forms/d/e/1FAIpQLSfxLUhlAtO-GgRuLUBJytS20Zcj5Sq3-tmNhHQ-AQpZwS-BCQ/formResponse"
-      target="lead_sink" style="display:none">
-  <input type="hidden" name="entry.2063287317" id="relaySource" value="MainMath website" />
-  <input type="hidden" name="entry.525677922" id="relayName" />
-  <input type="hidden" name="entry.940776747" id="relayEmail" />
-</form>
-
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
 /* ============================================================
@@ -589,7 +569,7 @@
     interestMethod: 'draw',     // 'draw' (accurate) | 'flat' (legacy method)
     salePerSqft: 900,
     sellingCostPct: 6,
-    hasPartner: true,
+    hasPartner: false,
     myProfitShare: 20,          // % of profit I keep
     myCashShare: 20,            // % of cash I put in
     targetMarginPct: 20,
@@ -956,7 +936,9 @@
 
   // numbers arrive with commas, dollar signs, spaces — strip them before parsing
   function cleanNum(raw){
-    var t = String(raw == null ? '' : raw).trim().replace(/[$,\s]/g, '').replace(/%$/, '');
+    var t = String(raw == null ? '' : raw).trim().replace(/[$%\s]/g, '');
+    if (/^-?\d+,\d{1,2}$/.test(t)) t = t.replace(',', '.');   // decimal comma
+    else t = t.replace(/,/g, '');                              // thousands separator
     if (t === '') return null;
     // accepts 1200000, 1,200,000, $1.2m, 850k, 1.5e6 — anything else keeps the previous value
     var m = t.match(/^(-?\d*\.?\d+)([eE][-+]?\d+)?([mMkK])?$/);
@@ -1014,7 +996,10 @@
     ['swLoan','swPartner','swMethod'].forEach(function(id){ var e = $(id); if (e) e.setAttribute('aria-checked', e.classList.contains('on') ? 'true' : 'false'); });
     $('demoField').style.display = state.dealType === 'teardown' ? 'block' : 'none';
     $('lblLand').textContent = state.dealType === 'teardown' ? 'House + lot price' : 'Lot purchase price';
-    $('modeHint').textContent = full ? 'Full underwrite — every assumption is yours to set.' : 'Quick look — the rest are market averages: soft 8%, contingency 6%, permits $25k, buy closing 1.5%, carry $1,200/mo, lender 80% LTC / 72% LTV at 10.5% + 2 pts + $4,500 fee, selling 6%, no partner, $60k demo on a tear-down. Switch to Full underwrite to change them.';
+    $('modeHint').textContent = full ? 'Full underwrite — every assumption is yours to set.'
+      : 'Quick look — market averages for soft 8%, contingency 6%, permits $25k, buy closing 1.5%, carry $1,200/mo, lender 80% LTC / 72% LTV at 10.5% + 2 pts + $4,500 fee, selling 6%, $60k demo on a tear-down'
+        + (state.hasPartner ? '. Partner on: ' + state.myProfitShare + '% profit / ' + state.myCashShare + '% cash.' : ', no partner.')
+        + ' Switch to Full underwrite to change them.';
     // these controls are ignored in Quick look, so do not show values that the math is not using
     $('advDetails').style.display = full ? '' : 'none';
   }
@@ -1038,7 +1023,9 @@
         buildMonths: input.buildMonths,
         sellMonths: input.sellMonths,
         demoCost: E.DEFAULTS.demoCost,
-        hasPartner: false,
+        hasPartner: input.hasPartner,
+        myProfitShare: input.myProfitShare,
+        myCashShare: input.myCashShare,
         targetMarginPct: input.targetMarginPct,
         targetIrrPct: input.targetIrrPct,
         interestMethod: 'draw'
@@ -1054,9 +1041,13 @@
     var unreachable = (maxLand === null);
 
     // hero
-    $('heroMargin').innerHTML = pct(r.margin) + ' <small>net margin · ' + fmtM(r.profit) + ' profit</small>';
+    $('heroMargin').innerHTML = pct(r.margin) + ' <small>net margin</small>';
+    if ($('heroProfit')) { $('heroProfit').textContent = fmtM(r.profit) + ' profit at your ' + fmtM(calcInput.purchasePrice) + ' land'; }
     var pill = $('heroPill');
-    if (unreachable) {
+    if (r.margin !== null && r.margin <= 0) {
+      pill.className = 'pill p-dead';
+      pill.textContent = r.verdict.label + ' — ' + r.verdict.note;
+    } else if (unreachable) {
       pill.className = 'pill p-thin';
       pill.textContent = 'Target too high — this deal tops out at ' + pct(ceiling, 0) + '.';
     } else {
@@ -1142,6 +1133,8 @@
     [].forEach.call(document.querySelectorAll('.trow .chip'), function(c){
       c.classList.toggle('on', Number(c.dataset.t) === Number(calcInput.targetMarginPct));
     });
+    paintPressed();
+    if ($('printHead')) $('printHead').textContent = 'MainMath — ' + (($('dealName').value || '').trim() || 'Deal') + ' · ' + new Date().toLocaleDateString();
 
     // breakdown
     var bd = '';
@@ -1150,7 +1143,7 @@
     if (L.buyClosing) bd += row('Buy closing costs', '−'+fmtM(L.buyClosing), 'neg', calcInput.buyClosingPct+'%');
     if (L.demo) bd += row('Demolition', '−'+fmtM(L.demo), 'neg');
     bd += row('Construction (hard + soft + cont.)', '−'+fmtM(L.buildTotal), 'neg', fmtM(L.hard)+' hard · '+fmtM(L.soft)+' soft · '+fmtM(L.contingency)+' cont · '+fmtM(calcInput.permitFees)+' permits');
-    bd += row('Carrying costs', '−'+fmtM(L.carryTotal), 'neg', calcInput.monthlyCarry+'/mo × '+(r.months+1));
+    bd += row('Carrying costs', '−'+fmtM(L.carryTotal), 'neg', fmtM(calcInput.monthlyCarry)+'/mo × '+(r.months+1));
     if (r.loan > 0) {
       bd += row('Loan points + fees', '−'+fmtM(L.points + L.fee), 'neg', fmtM(r.loan)+' loan');
       bd += row('Interest', '−'+fmtM(L.interestTotal), 'neg',
@@ -1180,7 +1173,8 @@
       html += '<tr><td>'+fmtM(rowv.build)+'</td>';
       rowv.cells.forEach(function(m){
         if (m === null || m === undefined) { html += '<td class="cell-r">—</td>'; return; }
-        var cls = m >= calcInput.targetMarginPct ? 'cell-g' : m >= calcInput.targetMarginPct-8 ? 'cell-a' : 'cell-r';
+        var m1 = Math.round(m * 10) / 10;
+        var cls = m1 >= calcInput.targetMarginPct ? 'cell-g' : m1 >= calcInput.targetMarginPct-8 ? 'cell-a' : 'cell-r';
         html += '<td class="'+cls+'">'+m.toFixed(1)+'%</td>';
       });
       html += '</tr>';
@@ -1212,6 +1206,19 @@
       snap._name = ($('dealName').value || '').trim();
       localStorage.setItem('dmp_last_v1', JSON.stringify(snap));
     } catch(e){}
+  }
+
+  /* accessibility: associate every input with its label, and expose toggle state */
+  FIELDS.concat(['dealName']).forEach(function(f){
+    var el = $(f); if (!el || !el.closest) return;
+    var field = el.closest('.field');
+    var lab = field ? field.querySelector('label') : null;
+    if (lab && !lab.getAttribute('for')) lab.setAttribute('for', f);
+  });
+  function paintPressed(){
+    [].forEach.call(document.querySelectorAll('#segMode button,#segType button,.trow .chip'), function(b){
+      b.setAttribute('aria-pressed', b.classList.contains('on') ? 'true' : 'false');
+    });
   }
 
   /* ---------- events ---------- */
@@ -1303,6 +1310,25 @@
     el.addEventListener('keydown', function(e){
       if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); el.click(); }
     });
+  });
+  if ($('btnImport')) $('btnImport').addEventListener('click', function(){ $('importFile').click(); });
+  if ($('importFile')) $('importFile').addEventListener('change', function(e){
+    var f = e.target.files && e.target.files[0]; if (!f) return;
+    var rd = new FileReader();
+    rd.onload = function(){
+      try {
+        var d = JSON.parse(String(rd.result));
+        var inp = d && d.inputs ? d.inputs : d;
+        state = E.normalize(inp || {});
+        state._name = (d && d.name) || '';
+        mode = d && d.mode === 'full' ? 'full' : 'quick';
+        try { localStorage.setItem('dmp_mode_v1', mode); } catch(e3){}
+        [].forEach.call($('segMode').children, function(c){ c.classList.toggle('on', c.dataset.mode === mode); });
+        syncType(); writeForm(); render(); toast('Imported');
+      } catch(err) { toast('That file is not a MainMath export'); }
+    };
+    rd.readAsText(f);
+    e.target.value = '';
   });
   $('btnPrint').addEventListener('click', function(){ window.print(); });
   $('btnReset').addEventListener('click', function(){
@@ -1476,6 +1502,7 @@
     if(e.key!=='Tab'||!gate.classList.contains('show'))return;
     var f=[].slice.call(gate.querySelectorAll('input,button,a[href]')).filter(function(el){return !el.disabled;});
     if(!f.length)return;
+    if(!gate.contains(document.activeElement)){e.preventDefault();f[0].focus();return;}
     var first=f[0],last=f[f.length-1];
     if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}
     else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
