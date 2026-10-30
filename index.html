@@ -1431,10 +1431,24 @@
   function openGate(){gate.classList.add('show');document.body.style.overflow='hidden';setTimeout(function(){$('gName').focus();},120);}
   function closeGate(){gate.classList.remove('show');document.body.style.overflow='';}
   var saved=null;try{saved=JSON.parse(localStorage.getItem(KEY)||'null');}catch(e){}
+  // free week: first visit starts the clock, no name or email required
+  var TRIAL_KEY='mm_trial_v1', WEEK=7*24*60*60*1000;
+  var trialStart=0;
+  try{trialStart=Number(localStorage.getItem(TRIAL_KEY)||0)||0;}catch(e){}
+  if(!trialStart){trialStart=Date.now();try{localStorage.setItem(TRIAL_KEY,String(trialStart));}catch(e){}}
+  function trialLeft(){return WEEK-(Date.now()-trialStart);}
+  function unlocked(){return !!saved||trialLeft()>0;}
+  function paintTrial(){
+    var eb=document.querySelector('.eyebrow'); if(!eb) return;
+    var d=Math.ceil(trialLeft()/86400000);
+    eb.textContent = saved ? 'Free tool · by Rich Main'
+      : trialLeft()>0 ? 'Free for your first ' + d + ' day' + (d===1?'':'s') + ' · no account'
+      : 'Your free week is over — enter your name and email to keep using it';
+  }
   var heroBtn=$('heroOpen');
   if(heroBtn)heroBtn.addEventListener('click',function(){
     try{var st=localStorage.getItem(KEY); if(st) saved=JSON.parse(st);}catch(e){}
-    if(saved){$('resultsCard').scrollIntoView({behavior:'smooth',block:'start'});}
+    if(unlocked()){$('resultsCard').scrollIntoView({behavior:'smooth',block:'start'});}
     else openGate();
   });
   $('gateForm').addEventListener('submit',function(e){
@@ -1453,6 +1467,7 @@
     if(dn && dn.value.trim()){ $('relaySource').value='MainMath — ' + dn.value.trim(); }
     try{$('leadRelay').submit();}catch(e3){}
     closeGate();
+    paintTrial();
     $('resultsCard').scrollIntoView({behavior:'smooth',block:'start'});
     var t=$('toast');t.textContent='You are in. Your numbers are live below.';
     t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2800);
@@ -1466,7 +1481,10 @@
     else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
   });
   // hard gate: no access until name + email are in (remembered on this device)
-  if(!saved) openGate();
+  paintTrial();
+  if(!unlocked()) openGate();
+  // a week can run out while the page is open
+  setInterval(function(){ if(!unlocked() && !gate.classList.contains('show')){ paintTrial(); openGate(); } }, 60000);
 })();
 </script>
 
