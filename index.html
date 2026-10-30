@@ -295,7 +295,7 @@
       <p class="hint">Numbers you know from the listing. Everything else is an assumption you can change.</p>
 
       <div class="seg" id="segMode">
-        <button data-mode="quick" class="on"><b>Quick Look</b>4 inputs, market averages</button>
+        <button data-mode="quick" class="on"><b>Quick Look</b>6 inputs, market averages</button>
         <button data-mode="full"><b>Full Underwrite</b>Every assumption editable</button>
       </div>
 
@@ -365,6 +365,10 @@
           <div class="field">
             <label>Monthly carry <span class="tag">tax, ins, utils</span></label>
             <div class="inp has-pre"><span class="pre">$</span><input type="text" inputmode="decimal" autocomplete="off" id="monthlyCarry" step="100" /></div>
+          </div>
+          <div class="field">
+            <label>Selling costs <span class="tag">% of sale</span></label>
+            <div class="inp has-suf"><input type="text" inputmode="decimal" autocomplete="off" id="sellingCostPct" step="0.5" /><span class="suf">%</span></div>
           </div>
         </div>
         <div class="field" id="demoField" style="display:none">
@@ -677,7 +681,10 @@
   function verdictFor(margin, i) {
     if (margin === null) return { key: 'dead', label: 'No Sale Price', note: 'Add a sale price before reading anything here.' };
     if (margin <= 0) return { key: 'dead', label: 'Loses Money', note: 'This deal does not pencil at these inputs. Something has to move a long way.' };
-    if (margin >= i.targetMarginPct) return { key: 'strong', label: 'Strong Deal', note: 'Clears your ' + i.targetMarginPct + '% net margin target.' };
+    // compare the number we display: a 20.0% deal must not read as "below target"
+    var m = Math.round(margin * 10) / 10;
+    margin = m;
+    if (m >= i.targetMarginPct - 0.001) return { key: 'strong', label: 'Strong Deal', note: 'Clears your ' + i.targetMarginPct + '% net margin target.' };
     if (margin >= i.targetMarginPct - 8) return { key: 'workable', label: 'Tight', note: 'Below target. Negotiate the dirt, trim the build, or walk.' };
     return { key: 'thin', label: 'Thin', note: 'This is not a deal at these numbers. Do not spend money on diligence until the price moves.' };
   }
@@ -828,7 +835,8 @@
       var mid = (lo + hi) / 2;
       if (core(Object.assign({}, i, { salePerSqft: mid })).profit < 0) lo = mid; else hi = mid;
     }
-    return (lo + hi) / 2;
+    var be = (lo + hi) / 2;
+    return be > 1e6 ? null : be;                          // above the legal sale price = no answer
   }
 
   function run(raw) {
@@ -866,33 +874,46 @@
     return Math.min((lo + hi) / 2, MAX_LAND);
   }
 
+  /* IRR as a function of land price, with the undefined cases resolved:
+     no cash out at all = infinite return; no money back = total loss.
+     Returns a finite number so the scan can compare it. */
+  function irrProbe(price, i) {
+    var r = core(Object.assign({}, i, { purchasePrice: price }));
+    if (!(r.peakEquity > 1)) return -1e9;   // no cash at risk = no IRR to compare against a target
+    var v = i.hasPartner ? r.myIrr : r.irr;
+    if (v !== null && v !== undefined && isFinite(v)) return v;
+    var hasNeg = false, hasPos = false;
+    for (var k = 0; k < r.flows.length; k++) {
+      if (r.flows[k] < -1e-9) hasNeg = true;
+      if (r.flows[k] > 1e-9) hasPos = true;
+    }
+    if (!hasNeg) return 1e9;        // nothing invested: effectively infinite
+    if (!hasPos) return -100;       // everything lost
+    return r.profit >= 0 ? 1e9 : -100;
+  }
+
+  /* Scan for the highest land price that still clears the target.
+     A scan, not a bisection, because personal IRR is not guaranteed monotone
+     once the profit and cash shares differ. */
   function maxLandForIrr(raw, targetIrrPct) {
     var i = normalize(raw);
     var t = targetIrrPct === undefined ? i.targetIrrPct : num(targetIrrPct);
-    var zero = core(Object.assign({}, i, { purchasePrice: 0 }));
-    var zIrr = i.hasPartner ? zero.myIrr : zero.irr;
-    var noOutlay = true;
-    for (var q = 0; q < zero.opFlows.length; q++) if (zero.opFlows[q] < -1e-9) { noOutlay = false; break; }
-    if (zIrr === null) {
-      // no cash out at all => infinite return, so every finite target is reachable from here
-      if (!noOutlay) return null;
-    } else if (zIrr < t - 1e-6) return null;
-
-    var lo = 0, hi = Math.max(i.salePerSqft * i.buildableSqft, 1000000), guard = 0;
-    while (irrOf(core(Object.assign({}, i, { purchasePrice: hi })), i) >= t - 1e-6) {
-      hi *= 2;
-      if (++guard > 60 || !isFinite(hi)) return null;   // no finite ceiling exists
+    var N = 60, lastGood = null, lastBad = null, bracket = null;
+    for (var k = 0; k <= N; k++) {
+      var price = MAX_LAND * Math.pow(k / N, 3);        // dense near zero, coarse near the cap
+      var v = irrProbe(price, i);
+      if (v >= t - 1e-6) { lastGood = price; }
+      else if (lastGood !== null) { lastBad = price; bracket = [lastGood, price]; break; }
     }
-    if (hi > MAX_LAND) {
-      hi = MAX_LAND;
-      if (irrOf(core(Object.assign({}, i, { purchasePrice: hi })), i) >= t - 1e-6) return MAX_LAND;
-    }
-    for (var k = 0; k < 80; k++) {
+    if (lastGood === null) return null;                  // never clears the target
+    if (!bracket) return MAX_LAND;                       // still clearing at the cap
+    var lo = bracket[0], hi = bracket[1];
+    for (var j = 0; j < 60; j++) {
       var mid = (lo + hi) / 2;
-      var r = core(Object.assign({}, i, { purchasePrice: mid }));
-      if (irrOf(r, i) >= t - 1e-6) lo = mid; else hi = mid;
+      if (irrProbe(mid, i) >= t - 1e-6) lo = mid; else hi = mid;
     }
-    return Math.min((lo + hi) / 2, MAX_LAND);
+    var answer = (lo + hi) / 2;
+    return answer < 1000 ? null : answer;                // under $1k = no meaningful ceiling
   }
 
   function sensitivity(raw, spanPct) {
@@ -903,7 +924,7 @@
     var builds = steps.map(function (s) { return i.buildCostPerSqft * (1 + s * span / 100); });
     var rows = builds.map(function (b) {
       return { build: b, cells: sales.map(function (sv) {
-        var r = core(Object.assign({}, i, { salePerSqft: sv, buildCostPerSqft: b }));
+        var r = core(normalize(Object.assign({}, i, { salePerSqft: sv, buildCostPerSqft: b })));
         return r.margin === null ? null : r.margin;
       }) };
     });
@@ -993,7 +1014,7 @@
     ['swLoan','swPartner','swMethod'].forEach(function(id){ var e = $(id); if (e) e.setAttribute('aria-checked', e.classList.contains('on') ? 'true' : 'false'); });
     $('demoField').style.display = state.dealType === 'teardown' ? 'block' : 'none';
     $('lblLand').textContent = state.dealType === 'teardown' ? 'House + lot price' : 'Lot purchase price';
-    $('modeHint').textContent = full ? 'Full underwrite — every assumption is yours to set.' : 'Quick look — the rest are market averages: soft 8%, contingency 6%, lender 80% LTC at 10.5% + 2 pts, no partner, $60k demo on a tear-down. Switch to Full underwrite to change them.';
+    $('modeHint').textContent = full ? 'Full underwrite — every assumption is yours to set.' : 'Quick look — the rest are market averages: soft 8%, contingency 6%, permits $25k, buy closing 1.5%, carry $1,200/mo, lender 80% LTC / 72% LTV at 10.5% + 2 pts + $4,500 fee, selling 6%, no partner, $60k demo on a tear-down. Switch to Full underwrite to change them.';
     // these controls are ignored in Quick look, so do not show values that the math is not using
     $('advDetails').style.display = full ? '' : 'none';
   }
@@ -1104,14 +1125,15 @@
       $('solveLandS').innerHTML = (delta > 0
         ? 'Asking price is ' + fmtM(delta) + ' <b>above</b> the price that still hits ' + tpct(calcInput.targetMarginPct) + '. You need the dirt at ' + fmtM(maxLand) + ' or less.'
         : 'You have ' + fmtM(-delta) + ' of room at ' + tpct(calcInput.targetMarginPct) + ' target. Offer below ' + fmtM(maxLand) + ' and you are protected.')
-        + '<br>Pay ' + fmtM(maxLand) + ' and you make <b>' + fmtM(atTarget.profit) + '</b> (' + pct(atTarget.margin, 1) + ' margin).';
+        + '<br>Pay ' + fmtM(maxLand) + ' and the deal makes <b>' + fmtM(atTarget.profit) + '</b> (' + pct(atTarget.margin, 1) + ' margin)'
+        + (calcInput.hasPartner ? ', your share <b>' + fmtM(atTarget.profit * calcInput.myProfitShare / 100) + '</b>.' : '.');
     }
 
     // second ceiling: the same deal measured on annual return instead of margin
     if (!unreachable && maxLand >= E.MAX_LAND) $('solveLandS').innerHTML += '<br><b>Above the $1B cap</b> — any land price up to $1B still clears this target.';
     var mli = E.maxLandForIrr(calcInput, calcInput.targetIrrPct);
     $('solveLandS').innerHTML += '<br>' + (mli !== null
-      ? 'At a ' + pct(calcInput.targetIrrPct, 0) + ' annual return the ceiling is <b>' + fmtM(mli) + '</b>.'
+      ? 'At a ' + pct(calcInput.targetIrrPct, 0) + ' annual return the ceiling is <b>' + fmtM(mli) + '</b>' + (mli >= E.MAX_LAND ? ' — still clearing at the $1B cap.' : '.')
       : 'A ' + pct(calcInput.targetIrrPct, 0) + ' annual return is not reachable on this deal at any land price.');
 
     // keep the inline profit-target control in sync
@@ -1169,7 +1191,9 @@
     // schedule
     var sch = '<table class="sched"><thead><tr><th>Mo</th><th>Phase</th><th>Build draw</th><th>Interest</th><th>Carry</th><th>Equity</th><th>Cumulative</th></tr></thead><tbody>';
     for (var t = 0; t <= r.months; t++){
-      var phase = t === 0 ? 'Close' : t <= r.buildMonths ? 'Build' : (t === r.months ? 'Sell + close' : 'Sell');
+      var phase = t === 0 ? 'Close'
+        : t === r.months ? (r.months <= r.buildMonths ? 'Build + sale' : 'Sell + close')
+        : t <= r.buildMonths ? 'Build' : 'Sell';
       var draw = (t >= 1 && t <= r.buildMonths) ? r.drawPerMonth : 0;
       var buildSpend = (t >= 1 && t <= r.buildMonths) ? L.buildTotal / r.buildMonths : 0;
       var interest = (t >= 1 ? (r.interestByMonth[t - 1] || 0) : 0);
@@ -1197,7 +1221,7 @@
     el.addEventListener('change', render);
     el.addEventListener('blur', function(){
       var n = cleanNum(el.value);
-      if (n === null) { el.value = prettyNum(state[f]); return; }   // never underwrite an invisible number
+      if (n === null) { el.value = prettyNum(E.normalize(state)[f]); state[f] = E.normalize(state)[f]; return; }   // never underwrite an invisible number
       state[f] = n;
       var norm = E.normalize(state);      // show the value the engine will actually use
       el.value = prettyNum(norm[f]);
@@ -1218,7 +1242,9 @@
     if (ti) ti.addEventListener('blur', function(){
       var n = cleanNum(ti.value);
       var v = E.normalize(Object.assign({}, state, { targetMarginPct: n === null ? state.targetMarginPct : n })).targetMarginPct;
+      v = Math.round(v * 10000) / 10000;
       ti.value = prettyNum(v);
+      state.targetMarginPct = v;
       $('targetMarginPct').value = v;
       render();
     });
@@ -1314,9 +1340,10 @@
       ta.style.position = 'fixed'; ta.style.top = '-1000px';
       document.body.appendChild(ta);
       ta.select();
-      try { document.execCommand('copy'); } catch(e){}
-      ta.remove();
-      toast('Summary selected and copied — paste it anywhere');
+      var ok = false;
+      try { ok = document.execCommand('copy'); } catch(e){ ok = false; }
+      if (ok) ta.remove();
+      toast(ok ? 'Summary copied' : 'Copy was blocked — the text is selected, press Ctrl+C');
     }
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(txt).then(function(){ toast('Summary copied'); }, manualCopy);
@@ -1335,7 +1362,10 @@
 
   var KEY = 'dmp_deals_v1';
   function deals(){ try { return JSON.parse(localStorage.getItem(KEY) || '[]'); } catch(e){ return []; } }
-  function saveDeals(list){ localStorage.setItem(KEY, JSON.stringify(list)); }
+  function saveDeals(list){
+    try { localStorage.setItem(KEY, JSON.stringify(list)); return true; }
+    catch(e) { toast('Could not save on this device — storage is full or blocked'); return false; }
+  }
   $('btnSave').addEventListener('click', function(){
     var name = $('dealName').value.trim() || ('Deal ' + new Date().toLocaleDateString());
     state._name = name;
