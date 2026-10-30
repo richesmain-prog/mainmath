@@ -1078,7 +1078,7 @@
     // ---- sanity checks: catch typos that make the model lie
     var warns = [];
     var arvNow = r.lines.arv;
-    if (calcInput.dealType === 'lot' && arvNow > 0 && calcInput.purchasePrice < arvNow * 0.01) {
+    if (calcInput.dealType === 'lot' && arvNow > 0 && calcInput.purchasePrice < 10000) {
       warns.push('<b>Lot price looks like a typo.</b> The model is pricing ' + fmtM(calcInput.purchasePrice) +
         ' for the dirt against a ' + fmtM(arvNow) + ' sale. The math below is correct — but it is underwriting a free lot.');
     }
@@ -1101,7 +1101,7 @@
     if (arvNow > 0 && calcInput.salePerSqft > Math.max(5000, calcInput.buildCostPerSqft * 25)) {
       warns.push('<b>Sale $/sf looks like a total.</b> ' + fmtM(calcInput.salePerSqft) + '/sf on ' +
         Math.round(calcInput.buildableSqft) + ' sf is a <b>' + fmtM(arvNow) + ' sale</b>. If you meant a total price, ' +
-        'divide it by the square feet: ' + fmtM(arvNow / calcInput.buildableSqft) + '/sf.');
+        'divide it by the square feet: <b>' + fmtM(calcInput.salePerSqft / calcInput.buildableSqft) + '/sf</b>.');
     }
     var wb = $('warnBox');
     if (warns.length) { wb.innerHTML = warns.join('<br><br>'); wb.style.display = 'block'; }
