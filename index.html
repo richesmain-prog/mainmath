@@ -931,11 +931,21 @@
     var r = E.run(calcInput);
     var L = r.lines;
 
+    // best possible margin with free dirt — drives the solver and the verdict
+    var zeroLand = E.run(Object.assign({}, calcInput, { purchasePrice: 0 }));
+    var ceiling = zeroLand.margin;
+    var unreachable = calcInput.targetMarginPct >= ceiling - 0.05;
+
     // hero
     $('heroMargin').innerHTML = pct(r.margin) + ' <small>net margin · ' + fmtM(r.profit) + ' profit</small>';
     var pill = $('heroPill');
-    pill.className = 'pill p-' + r.verdict.key;
-    pill.textContent = r.verdict.label + ' — ' + r.verdict.note;
+    if (unreachable) {
+      pill.className = 'pill p-thin';
+      pill.textContent = 'Target too high — this deal tops out at ' + pct(ceiling, 0) + '.';
+    } else {
+      pill.className = 'pill p-' + r.verdict.key;
+      pill.textContent = r.verdict.label + ' — ' + r.verdict.note;
+    }
     $('heroScore').textContent = r.score.points;
     $('heroGrade').textContent = 'grade ' + r.score.grade + ' · ' + r.months + ' months';
 
@@ -949,11 +959,6 @@
     $('kIrr').className = 'v ' + ((r.irr||0) >= 25 ? 'pos' : (r.irr||0) >= 12 ? '' : 'neg');
     $('kAllIn').textContent = fmtM(r.allInCost);
     $('kAllInS').textContent = fmtM(r.allInPerSqft) + '/sf all-in vs ' + fmtM(r.salePerSqft) + '/sf sale';
-
-    // ---- best possible margin with free dirt (used by the solver + warnings)
-    var zeroLand = E.run(Object.assign({}, calcInput, { purchasePrice: 0 }));
-    var ceiling = zeroLand.margin;
-    var unreachable = calcInput.targetMarginPct >= ceiling - 0.05;
 
     // ---- sanity checks: catch typos that make the model lie
     var warns = [];
@@ -1089,11 +1094,16 @@
     });
   })();
 
+  function setMode(m, fromClick){
+    mode = m;
+    [].forEach.call($('segMode').children, function(c){ c.classList.toggle('on', c.dataset.mode === m); });
+    readForm();
+    syncVisibility();
+    render();
+  }
   $('segMode').addEventListener('click', function(e){
     var b = e.target.closest('button'); if (!b) return;
-    mode = b.dataset.mode;
-    [].forEach.call(this.children, function(c){ c.classList.toggle('on', c === b); });
-    render();
+    setMode(b.dataset.mode, true);
   });
   $('segType').addEventListener('click', function(e){
     var b = e.target.closest('button'); if (!b) return;
@@ -1102,7 +1112,13 @@
     syncVisibility(); render();
   });
   ['swLoan','swPartner','swMethod'].forEach(function(id){
-    $(id).addEventListener('click', function(){ this.classList.toggle('on'); syncVisibility(); render(); });
+    $(id).addEventListener('click', function(){
+      this.classList.toggle('on');
+      if (mode === 'quick') { setMode('full'); return; }   // an edit here only counts in full underwrite
+      readForm();
+      syncVisibility();
+      render();
+    });
   });
 
   $('btnPrint').addEventListener('click', function(){ window.print(); });
