@@ -1097,13 +1097,13 @@
           'Drop the target to ' + pct(Math.floor(ceiling), 0) + ' or lower, or change the build cost or sale price.';
     } else {
       $('solveLand').textContent = fmtM(maxLand);
-      if (maxLand >= E.MAX_LAND) { $('solveLandS').innerHTML += '<br><b>Above the $1B cap</b> — any land price up to $1B still clears this target.'; }
       $('solveLandS').innerHTML = (delta > 0
         ? 'Asking price is ' + fmtM(delta) + ' <b>above</b> the price that still hits ' + tpct(calcInput.targetMarginPct) + '. You need the dirt at ' + fmtM(maxLand) + ' or less.'
         : 'You have ' + fmtM(-delta) + ' of room at ' + tpct(calcInput.targetMarginPct) + ' target. Offer below ' + fmtM(maxLand) + ' and you are protected.');
     }
 
     // second ceiling: the same deal measured on annual return instead of margin
+    if (!unreachable && maxLand >= E.MAX_LAND) $('solveLandS').innerHTML += '<br><b>Above the $1B cap</b> — any land price up to $1B still clears this target.';
     var mli = E.maxLandForIrr(calcInput, calcInput.targetIrrPct);
     $('solveLandS').innerHTML += '<br>' + (mli !== null
       ? 'At a ' + pct(calcInput.targetIrrPct, 0) + ' annual return the ceiling is <b>' + fmtM(mli) + '</b>.'
