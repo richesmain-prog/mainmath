@@ -527,6 +527,32 @@
   <button class="btn" id="closeSaved" style="margin-top:10px">Close</button>
 </div></div>
 
+
+<div class="gate" id="gate">
+  <div class="box">
+    <h2>Get the calculator</h2>
+    <p>This tool is free. Put your name and email in and it opens. I'll send deal notes and new tools — no spam, and I never sell your details.</p>
+    <form id="gateForm" novalidate>
+      <label for="gName">Your name</label>
+      <input id="gName" name="name" autocomplete="given-name" placeholder="Rich" />
+      <label for="gEmail">Email</label>
+      <input id="gEmail" name="email" type="email" inputmode="email" autocomplete="email" placeholder="you@company.com" />
+      <div class="err" id="gErr">Add your name and a real email.</div>
+      <button type="submit">Show me the numbers</button>
+    </form>
+    <p class="fine">Your details stay with Rich Main. Nothing is sold or shared.<br>
+      Prefer email? <a href="mailto:rich@themainbuild.com" style="color:#B9B4A6">rich@themainbuild.com</a></p>
+  </div>
+</div>
+<iframe name="lead_sink" id="lead_sink" style="display:none;width:0;height:0;border:0" title="lead"></iframe>
+<form id="leadRelay" method="POST"
+      action="https://docs.google.com/forms/d/e/1FAIpQLSfxLUhlAtO-GgRuLUBJytS20Zcj5Sq3-tmNhHQ-AQpZwS-BCQ/formResponse"
+      target="lead_sink" style="display:none">
+  <input type="hidden" name="entry.2063287317" id="relaySource" value="MainMath website" />
+  <input type="hidden" name="entry.525677922" id="relayName" />
+  <input type="hidden" name="entry.940776747" id="relayEmail" />
+</form>
+
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
