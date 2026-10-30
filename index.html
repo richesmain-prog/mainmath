@@ -303,33 +303,33 @@
       <div class="two">
         <div class="field">
           <label id="lblLand">Lot purchase price</label>
-          <div class="inp has-pre"><span class="pre">$</span><input type="number" id="purchasePrice" step="1000" /></div>
+          <div class="inp has-pre"><span class="pre">$</span><input type="text" inputmode="decimal" autocomplete="off" id="purchasePrice" step="1000" /></div>
         </div>
         <div class="field">
           <label>Buildable sqft</label>
-          <div class="inp"><input type="number" id="buildableSqft" step="50" /></div>
+          <div class="inp"><input type="text" inputmode="decimal" autocomplete="off" id="buildableSqft" step="50" /></div>
         </div>
       </div>
 
       <div class="two">
         <div class="field">
           <label>Build cost / sqft <span class="tag">hard cost</span></label>
-          <div class="inp has-pre"><span class="pre">$</span><input type="number" id="buildCostPerSqft" step="5" /></div>
+          <div class="inp has-pre"><span class="pre">$</span><input type="text" inputmode="decimal" autocomplete="off" id="buildCostPerSqft" step="5" /></div>
         </div>
         <div class="field">
           <label>Sale price / sqft <span class="tag">comps</span></label>
-          <div class="inp has-pre"><span class="pre">$</span><input type="number" id="salePerSqft" step="10" /></div>
+          <div class="inp has-pre"><span class="pre">$</span><input type="text" inputmode="decimal" autocomplete="off" id="salePerSqft" step="10" /></div>
         </div>
       </div>
 
       <div class="two">
         <div class="field">
           <label>Build months</label>
-          <div class="inp has-suf"><input type="number" id="buildMonths" step="1" /><span class="suf">mo</span></div>
+          <div class="inp has-suf"><input type="text" inputmode="decimal" autocomplete="off" id="buildMonths" step="1" /><span class="suf">mo</span></div>
         </div>
         <div class="field">
           <label>Months to sell after finish</label>
-          <div class="inp has-suf"><input type="number" id="sellMonths" step="1" /><span class="suf">mo</span></div>
+          <div class="inp has-suf"><input type="text" inputmode="decimal" autocomplete="off" id="sellMonths" step="1" /><span class="suf">mo</span></div>
         </div>
       </div>
 
@@ -337,30 +337,30 @@
         <div class="three">
           <div class="field">
             <label>Soft costs <span class="tag">% of hard</span></label>
-            <div class="inp has-suf"><input type="number" id="softCostPct" step="0.5" /><span class="suf">%</span></div>
+            <div class="inp has-suf"><input type="text" inputmode="decimal" autocomplete="off" id="softCostPct" step="0.5" /><span class="suf">%</span></div>
           </div>
           <div class="field">
             <label>Contingency</label>
-            <div class="inp has-suf"><input type="number" id="contingencyPct" step="0.5" /><span class="suf">%</span></div>
+            <div class="inp has-suf"><input type="text" inputmode="decimal" autocomplete="off" id="contingencyPct" step="0.5" /><span class="suf">%</span></div>
           </div>
           <div class="field">
             <label>Permits &amp; fees</label>
-            <div class="inp has-pre"><span class="pre">$</span><input type="number" id="permitFees" step="1000" /></div>
+            <div class="inp has-pre"><span class="pre">$</span><input type="text" inputmode="decimal" autocomplete="off" id="permitFees" step="1000" /></div>
           </div>
         </div>
         <div class="two">
           <div class="field">
             <label>Buy closing costs <span class="tag">% of price</span></label>
-            <div class="inp has-suf"><input type="number" id="buyClosingPct" step="0.25" /><span class="suf">%</span></div>
+            <div class="inp has-suf"><input type="text" inputmode="decimal" autocomplete="off" id="buyClosingPct" step="0.25" /><span class="suf">%</span></div>
           </div>
           <div class="field">
             <label>Monthly carry <span class="tag">tax, ins, utils</span></label>
-            <div class="inp has-pre"><span class="pre">$</span><input type="number" id="monthlyCarry" step="100" /></div>
+            <div class="inp has-pre"><span class="pre">$</span><input type="text" inputmode="decimal" autocomplete="off" id="monthlyCarry" step="100" /></div>
           </div>
         </div>
         <div class="field" id="demoField" style="display:none">
           <label>Demolition cost</label>
-          <div class="inp has-pre"><span class="pre">$</span><input type="number" id="demoCost" step="5000" /></div>
+          <div class="inp has-pre"><span class="pre">$</span><input type="text" inputmode="decimal" autocomplete="off" id="demoCost" step="5000" /></div>
         </div>
       </div>
 
@@ -375,25 +375,25 @@
             <div class="three">
               <div class="field">
                 <label>Loan to cost</label>
-                <div class="inp has-suf"><input type="number" id="ltcPct" step="1" /><span class="suf">%</span></div>
+                <div class="inp has-suf"><input type="text" inputmode="decimal" autocomplete="off" id="ltcPct" step="1" /><span class="suf">%</span></div>
               </div>
               <div class="field">
                 <label>Max loan to ARV</label>
-                <div class="inp has-suf"><input type="number" id="maxLtvPct" step="1" /><span class="suf">%</span></div>
+                <div class="inp has-suf"><input type="text" inputmode="decimal" autocomplete="off" id="maxLtvPct" step="1" /><span class="suf">%</span></div>
               </div>
               <div class="field">
                 <label>Interest rate</label>
-                <div class="inp has-suf"><input type="number" id="ratePct" step="0.25" /><span class="suf">%</span></div>
+                <div class="inp has-suf"><input type="text" inputmode="decimal" autocomplete="off" id="ratePct" step="0.25" /><span class="suf">%</span></div>
               </div>
             </div>
             <div class="two">
               <div class="field">
                 <label>Points</label>
-                <div class="inp has-suf"><input type="number" id="pointsPct" step="0.25" /><span class="suf">%</span></div>
+                <div class="inp has-suf"><input type="text" inputmode="decimal" autocomplete="off" id="pointsPct" step="0.25" /><span class="suf">%</span></div>
               </div>
               <div class="field">
                 <label>Lender fees</label>
-                <div class="inp has-pre"><span class="pre">$</span><input type="number" id="lenderFee" step="250" /></div>
+                <div class="inp has-pre"><span class="pre">$</span><input type="text" inputmode="decimal" autocomplete="off" id="lenderFee" step="250" /></div>
               </div>
             </div>
             <div class="switch" id="swMethod">
@@ -410,11 +410,11 @@
             <div class="two">
               <div class="field">
                 <label>My share of profit</label>
-                <div class="inp has-suf"><input type="number" id="myProfitShare" step="1" /><span class="suf">%</span></div>
+                <div class="inp has-suf"><input type="text" inputmode="decimal" autocomplete="off" id="myProfitShare" step="1" /><span class="suf">%</span></div>
               </div>
               <div class="field">
                 <label>My share of cash in</label>
-                <div class="inp has-suf"><input type="number" id="myCashShare" step="1" /><span class="suf">%</span></div>
+                <div class="inp has-suf"><input type="text" inputmode="decimal" autocomplete="off" id="myCashShare" step="1" /><span class="suf">%</span></div>
               </div>
             </div>
             <div class="note">Their tool showed your return on the <b>whole</b> profit even when you only keep 20% of it. This splits both sides, so the return you see is actually yours.</div>
@@ -423,11 +423,11 @@
           <div class="two">
             <div class="field">
               <label>Target net margin</label>
-              <div class="inp has-suf"><input type="number" id="targetMarginPct" step="1" /><span class="suf">%</span></div>
+              <div class="inp has-suf"><input type="text" inputmode="decimal" autocomplete="off" id="targetMarginPct" step="1" /><span class="suf">%</span></div>
             </div>
             <div class="field">
               <label>Target annual return</label>
-              <div class="inp has-suf"><input type="number" id="targetIrrPct" step="1" /><span class="suf">%</span></div>
+              <div class="inp has-suf"><input type="text" inputmode="decimal" autocomplete="off" id="targetIrrPct" step="1" /><span class="suf">%</span></div>
             </div>
           </div>
         </div>
@@ -829,6 +829,18 @@
   var pct = function(n,d){ return (n===null||n===undefined||!isFinite(n)) ? '—' : n.toFixed(d===undefined?1:d) + '%'; };
   var shortM = function(n){ return n>=1000000 ? '$'+(n/1000000).toFixed(2)+'M' : n>=1000 ? '$'+Math.round(n/1000)+'k' : '$'+Math.round(n); };
 
+  // numbers arrive with commas, dollar signs, spaces — strip them before parsing
+  function cleanNum(raw){
+    var t = String(raw == null ? '' : raw).replace(/[^0-9.\-]/g, '');
+    if (t === '' || t === '-' || t === '.') return null;
+    var n = Number(t);
+    return isFinite(n) ? n : null;
+  }
+  function prettyNum(n){
+    if (!isFinite(n)) return '';
+    return Number(n).toLocaleString('en-US', { maximumFractionDigits: 4 });
+  }
+
   var FIELDS = ['purchasePrice','buildableSqft','buildCostPerSqft','salePerSqft','buildMonths','sellMonths',
     'softCostPct','contingencyPct','permitFees','buyClosingPct','monthlyCarry','demoCost',
     'ltcPct','maxLtvPct','ratePct','pointsPct','lenderFee','myProfitShare','myCashShare',
@@ -842,8 +854,8 @@
   function readForm(){
     FIELDS.forEach(function(f){
       var el = $(f); if (!el) return;
-      var v = el.value.trim();
-      if (v !== '') state[f] = Number(v);
+      var cleaned = cleanNum(el.value);
+      if (cleaned !== null) state[f] = cleaned;
     });
     state.useLoan = $('swLoan').classList.contains('on');
     state.hasPartner = $('swPartner').classList.contains('on');
@@ -854,7 +866,7 @@
   }
 
   function writeForm(){
-    FIELDS.forEach(function(f){ if ($(f)) $(f).value = state[f]; });
+    FIELDS.forEach(function(f){ if ($(f)) $(f).value = prettyNum(state[f]); });
     $('swLoan').classList.toggle('on', state.useLoan);
     $('swPartner').classList.toggle('on', state.hasPartner);
     $('swMethod').classList.toggle('on', state.interestMethod !== 'flat');
@@ -1016,6 +1028,10 @@
     var el = $(f); if (!el) return;
     el.addEventListener('input', render);
     el.addEventListener('change', render);
+    el.addEventListener('blur', function(){
+      var n = cleanNum(el.value);
+      if (n !== null) el.value = prettyNum(n);
+    });
   });
 
   $('segMode').addEventListener('click', function(e){
