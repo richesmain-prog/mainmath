@@ -607,20 +607,20 @@
 
     i.buildMonths = clamp(Math.round(i.buildMonths), 1, 60);
     i.sellMonths = clamp(Math.round(i.sellMonths), 0, 24);
-    i.buildableSqft = Math.max(1, i.buildableSqft);
-    i.purchasePrice = Math.max(0, i.purchasePrice);
+    i.buildableSqft = clamp(i.buildableSqft, 1, 1e7);
+    i.purchasePrice = clamp(i.purchasePrice, 0, 1e9);
 
     // no cost line may be negative: it breaks the solvers and the sanity checks
-    i.buildCostPerSqft = Math.max(0, i.buildCostPerSqft);
+    i.buildCostPerSqft = clamp(i.buildCostPerSqft, 0, 1e6);
     i.softCostPct = clamp(i.softCostPct, 0, 100);
     i.contingencyPct = clamp(i.contingencyPct, 0, 100);
-    i.permitFees = Math.max(0, i.permitFees);
+    i.permitFees = clamp(i.permitFees, 0, 1e9);
     i.buyClosingPct = clamp(i.buyClosingPct, 0, 20);
-    i.demoCost = Math.max(0, i.demoCost);
-    i.monthlyCarry = Math.max(0, i.monthlyCarry);
-    i.lenderFee = Math.max(0, i.lenderFee);
+    i.demoCost = clamp(i.demoCost, 0, 1e9);
+    i.monthlyCarry = clamp(i.monthlyCarry, 0, 1e7);
+    i.lenderFee = clamp(i.lenderFee, 0, 1e8);
 
-    i.salePerSqft = Math.max(0, i.salePerSqft);
+    i.salePerSqft = clamp(i.salePerSqft, 0, 1e6);
     i.sellingCostPct = clamp(i.sellingCostPct, 0, 20);
     i.ltcPct = clamp(i.ltcPct, 0, 100);
     i.maxLtvPct = clamp(i.maxLtvPct, 0, 100);
@@ -654,11 +654,11 @@
     for (var k = 0; k < flows.length; k++) { if (flows[k] > 0) hasPos = true; if (flows[k] < 0) hasNeg = true; }
     if (!hasPos || !hasNeg) return null;
 
-    var lo = -0.9999, hi = 1.0, guard = 0;
+    var lo = -1 + 1e-12, hi = 1.0, guard = 0;
     var sLo = sign(npv(lo, flows)), sHi = sign(npv(hi, flows));
-    while (sLo === sHi && guard++ < 60) {       // widen the bracket until it straddles zero
+    while (sLo === sHi && guard++ < 40) {       // widen the bracket until it straddles zero
       hi = hi * 2 + 1;
-      if (!isFinite(hi)) return null;
+      if (!isFinite(hi) || hi > 1e6) return null;   // beyond a 100-million-% monthly return: report "no answer"
       sHi = sign(npv(hi, flows));
     }
     if (sLo === sHi) return null;
@@ -683,6 +683,9 @@
   }
 
   function scoreDeal(margin, irr, i, landPct, ltv, months) {
+    if (!isFinite(margin) || !isFinite(irr) || !isFinite(landPct) || !isFinite(ltv) || !isFinite(months)) {
+      return { points: 0, grade: 'F' };
+    }
     var m = margin === null ? 0 : margin;
     var s = 0;
     s += clamp(m / 30, 0, 1) * 40;
@@ -770,7 +773,7 @@
     var margin = arv > 0 ? profit / arv * 100 : null;      // no revenue is not 0%
     var grossSpread = arv - allInCost;
 
-    var coc = invested > 0 ? profit / invested * 100 : null;
+    var coc = peakEquity > 0 ? profit / peakEquity * 100 : null;
     var irrM = monthlyIrr(flows);
     var irr = annualize(irrM);
 
@@ -787,7 +790,7 @@
       multiple = myCash > 0 ? (myCash + myProfit) / myCash : null;
     } else {
       myProfit = profit; myCash = peakEquity; myFlows = flows.slice(); myIrr = irr;
-      myCoc = coc; multiple = invested > 0 ? (invested + profit) / invested : null;
+      myCoc = coc; multiple = peakEquity > 0 ? (peakEquity + profit) / peakEquity : null;
     }
 
     return {
@@ -819,7 +822,7 @@
     var lo = 0, hi = Math.max(i.salePerSqft * 2, i.buildCostPerSqft * 2, 100), guard = 0;
     while (core(Object.assign({}, i, { salePerSqft: hi })).profit <= 0) {
       hi *= 2;
-      if (++guard > 40 || hi > 1e9) return null;
+      if (++guard > 80 || !isFinite(hi)) return null;
     }
     for (var k = 0; k < 80; k++) {
       var mid = (lo + hi) / 2;
@@ -836,16 +839,20 @@
   }
 
   /* ---------- solvers: null = no price reaches that target ---------- */
+  function irrOf(r, i) {
+    var v = i.hasPartner ? r.myIrr : r.irr;
+    return v === null || v === undefined || !isFinite(v) ? -1e12 : v;
+  }
   function maxLandForMargin(raw, targetMarginPct) {
     var i = normalize(raw);
     var t = targetMarginPct === undefined ? i.targetMarginPct : num(targetMarginPct);
     var zero = core(Object.assign({}, i, { purchasePrice: 0 }));
-    if (zero.margin === null || zero.margin < t) return null;   // impossible even with free dirt
+    if (zero.margin === null || zero.margin < t - 1e-6) return null;   // impossible even with free dirt
 
     var lo = 0, hi = Math.max(i.salePerSqft * i.buildableSqft, 1000000), guard = 0;
-    while (core(Object.assign({}, i, { purchasePrice: hi })).margin >= t) {
+    while (core(Object.assign({}, i, { purchasePrice: hi })).margin >= t - 1e-6) {
       hi *= 2;
-      if (++guard > 40) break;
+      if (++guard > 60 || !isFinite(hi)) return null;   // no finite ceiling exists
     }
     for (var k = 0; k < 80; k++) {
       var mid = (lo + hi) / 2;
@@ -858,17 +865,23 @@
     var i = normalize(raw);
     var t = targetIrrPct === undefined ? i.targetIrrPct : num(targetIrrPct);
     var zero = core(Object.assign({}, i, { purchasePrice: 0 }));
-    if (zero.myIrr === null || zero.myIrr < t) return null;
+    var zIrr = i.hasPartner ? zero.myIrr : zero.irr;
+    var noOutlay = true;
+    for (var q = 0; q < zero.opFlows.length; q++) if (zero.opFlows[q] < -1e-9) { noOutlay = false; break; }
+    if (zIrr === null) {
+      // no cash out at all => infinite return, so every finite target is reachable from here
+      if (!noOutlay) return null;
+    } else if (zIrr < t - 1e-6) return null;
 
     var lo = 0, hi = Math.max(i.salePerSqft * i.buildableSqft, 1000000), guard = 0;
-    while (((core(Object.assign({}, i, { purchasePrice: hi })).myIrr) || -1e9) >= t) {
+    while (irrOf(core(Object.assign({}, i, { purchasePrice: hi })), i) >= t - 1e-6) {
       hi *= 2;
-      if (++guard > 40) break;
+      if (++guard > 60 || !isFinite(hi)) return null;   // no finite ceiling exists
     }
     for (var k = 0; k < 80; k++) {
       var mid = (lo + hi) / 2;
       var r = core(Object.assign({}, i, { purchasePrice: mid }));
-      if ((r.myIrr === null ? -1e9 : r.myIrr) >= t) lo = mid; else hi = mid;
+      if (irrOf(r, i) >= t - 1e-6) lo = mid; else hi = mid;
     }
     return (lo + hi) / 2;
   }
@@ -1070,11 +1083,10 @@
     }
 
     // second ceiling: the same deal measured on annual return instead of margin
-    if (!unreachable) {
-      var mli = E.maxLandForIrr(calcInput, calcInput.targetIrrPct);
-      if (mli !== null) $('solveLandS').innerHTML += '<br>At a ' + pct(calcInput.targetIrrPct, 0) +
-        ' annual return the ceiling is <b>' + fmtM(mli) + '</b>.';
-    }
+    var mli = E.maxLandForIrr(calcInput, calcInput.targetIrrPct);
+    $('solveLandS').innerHTML += '<br>' + (mli !== null
+      ? 'At a ' + pct(calcInput.targetIrrPct, 0) + ' annual return the ceiling is <b>' + fmtM(mli) + '</b>.'
+      : 'A ' + pct(calcInput.targetIrrPct, 0) + ' annual return is not reachable on this deal at any land price.');
 
     // keep the inline profit-target control in sync
     var ti = $('targetInline');
@@ -1107,7 +1119,7 @@
       $('kMyProfit').textContent = fmtM(r.myProfit);
       $('kMyProfitS').textContent = calcInput.myProfitShare + '% of ' + fmtM(r.profit);
       $('kMyCoc').textContent = pct(r.myCoc, 0);
-      $('kMyCocS').textContent = 'on ' + fmtM(r.myCash) + ' of my cash · ' + r.multiple.toFixed(2) + 'x';
+      $('kMyCocS').textContent = 'on ' + fmtM(r.myCash) + ' of my cash · ' + (r.multiple === null ? '—' : r.multiple.toFixed(2) + 'x');
       $('myProfitBoxTitle') && ($('myProfitBoxTitle').textContent = 'My profit');
     }
 
@@ -1146,7 +1158,7 @@
     $('schedule').innerHTML = sch;
 
     window._last = { input: calcInput, r: r, maxLand: maxLand };
-    try { localStorage.setItem('dmp_last_v1', JSON.stringify(calcInput)); } catch(e){}
+    try { localStorage.setItem('dmp_last_v1', JSON.stringify(mode === 'full' ? calcInput : state)); } catch(e){}
   }
 
   /* ---------- events ---------- */
@@ -1156,7 +1168,7 @@
     el.addEventListener('change', render);
     el.addEventListener('blur', function(){
       var n = cleanNum(el.value);
-      if (n === null) return;
+      if (n === null) { el.value = prettyNum(state[f]); return; }   // never underwrite an invisible number
       state[f] = n;
       var norm = E.normalize(state);      // show the value the engine will actually use
       el.value = prettyNum(norm[f]);
@@ -1165,12 +1177,20 @@
     });
   });
 
+  $('advDetails').addEventListener('focusin', function(){ if (mode === 'quick') setMode('full'); });
   (function(){
     var ti = $('targetInline');
     if (ti) ti.addEventListener('input', function(){
       var n = cleanNum(ti.value);
       if (n === null) return;
       $('targetMarginPct').value = n;
+      render();
+    });
+    if (ti) ti.addEventListener('blur', function(){
+      var n = cleanNum(ti.value);
+      var v = E.normalize(Object.assign({}, state, { targetMarginPct: n === null ? state.targetMarginPct : n })).targetMarginPct;
+      ti.value = prettyNum(v);
+      $('targetMarginPct').value = v;
       render();
     });
     [].forEach.call(document.querySelectorAll('.trow .chip'), function(c){
@@ -1183,6 +1203,10 @@
     });
   })();
 
+  function syncType(){
+    [].forEach.call($('segType').children, function(c){ c.classList.toggle('on', c.dataset.type === state.dealType); });
+  }
+  function esc(s){ return String(s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
   function setMode(m, fromClick){
     mode = m;
     try { localStorage.setItem('dmp_mode_v1', m); } catch(e) {}
@@ -1204,7 +1228,7 @@
   ['swLoan','swPartner','swMethod'].forEach(function(id){
     $(id).addEventListener('click', function(){
       this.classList.toggle('on');
-      if (mode === 'quick') { setMode('full'); return; }   // an edit here only counts in full underwrite
+      if (mode === 'quick') setMode('full');   // an edit here only counts in full underwrite
       readForm();
       syncVisibility();
       render();
@@ -1213,22 +1237,26 @@
 
   $('btnPrint').addEventListener('click', function(){ window.print(); });
   $('btnReset').addEventListener('click', function(){
-    state = E.normalize({}); mode = 'quick';
+    state = E.normalize({}); mode = 'quick'; try { localStorage.setItem('dmp_mode_v1','quick'); } catch(e){}
     [].forEach.call($('segMode').children, function(c){ c.classList.toggle('on', c.dataset.mode === 'quick'); });
     [].forEach.call($('segType').children, function(c){ c.classList.toggle('on', c.dataset.type === 'lot'); });
     writeForm(); render(); toast('Reset to the sample deal');
   });
 
   function summaryText(){
-    var d = window._last, r = d.r;
+    var d = window._last, r = d.r, p = r.inputs.hasPartner;
+    var nm = ($('dealName').value || '').trim() || 'Deal';
+    var ret = p ? r.myIrr : r.irr;
+    var cash = p ? r.myCash : r.peakEquity;
+    var profit = p ? r.myProfit : r.profit;
     return [
-      (state._name || 'Deal') + ' — MainMath',
-      'Sale ' + fmtM(r.lines.arv) + ' (' + fmtM(r.salePerSqft) + '/sf × ' + Math.round(r.inputs.buildableSqft) + ' sf)',
-      'Land ' + fmtM(r.inputs.purchasePrice) + ' · Build ' + fmtM(r.lines.buildTotal) + ' · All-in ' + fmtM(r.allInCost),
-      'Net profit ' + fmtM(r.profit) + ' (' + pct(r.margin) + ')',
-      'Cash needed ' + fmtM(r.peakEquity) + ' · Return ' + (r.irr===null?'—':pct(r.irr,0)) + ' annualized',
-      'Max lot price at ' + pct(r.inputs.targetMarginPct,0) + ' target: ' + (d.maxLand === null ? 'no price works' : fmtM(d.maxLand)),
-      'Score ' + r.score.points + '/100 (' + r.score.grade + ') · ' + r.months + ' months'
+      nm + ' \u2014 MainMath',
+      'Sale ' + fmtM(r.lines.arv) + ' (' + fmtM(r.salePerSqft) + '/sf \u00d7 ' + Math.round(r.inputs.buildableSqft) + ' sf)',
+      'Land ' + fmtM(r.inputs.purchasePrice) + ' \u00b7 Build ' + fmtM(r.lines.buildTotal) + ' \u00b7 All-in ' + fmtM(r.allInCost),
+      (p ? 'My profit ' : 'Net profit ') + fmtM(profit) + ' (' + pct(p ? (r.myCash > 0 ? r.myProfit / r.myCash * 100 : null) : r.margin) + (p ? ' on my cash' : ' margin') + ')',
+      'Cash ' + fmtM(cash) + ' \u00b7 Return ' + (ret === null ? '\u2014' : pct(ret, 0)) + ' annualized',
+      'Max lot price at ' + pct(r.inputs.targetMarginPct, 0) + ' target: ' + (d.maxLand === null ? 'no price works' : fmtM(d.maxLand)),
+      'Score ' + r.score.points + '/100 (' + r.score.grade + ') \u00b7 ' + r.months + ' months'
     ].join('\n');
   }
   $('btnCopy').addEventListener('click', function(){
@@ -1251,10 +1279,10 @@
   });
   $('btnExport').addEventListener('click', function(){
     var eff = window._last && window._last.input ? window._last.input : readForm();
-    var blob = new Blob([JSON.stringify({name: state._name || 'deal', mode: mode, inputs: eff, exported: new Date().toISOString()}, null, 2)], {type:'application/json'});
+    var blob = new Blob([JSON.stringify({name: (($('dealName').value || '').trim() || 'deal'), mode: mode, inputs: eff, exported: new Date().toISOString()}, null, 2)], {type:'application/json'});
     var a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = (state._name || 'mainmath').replace(/[^a-z0-9\-_ ]/gi,'').replace(/\s+/g,'-').toLowerCase() + '.json';
+    a.download = (($('dealName').value || '').trim() || 'mainmath').replace(/[^a-z0-9\-_ ]/gi,'').replace(/\s+/g,'-').toLowerCase() + '.json';
     a.click(); URL.revokeObjectURL(a.href); toast('Exported');
   });
 
@@ -1273,7 +1301,7 @@
     var list = deals(), html = '';
     if (!list.length) html = '<p style="color:#9C9A96">No saved deals yet.</p>';
     list.forEach(function(d, idx){
-      html += '<div class="deal"><div><div class="n">'+d.name+'</div><div class="m">'+
+      html += '<div class="deal"><div><div class="n">'+esc(d.name)+'</div><div class="m">'+
         pct(d.snap.margin)+' margin · '+fmtM(d.snap.profit)+' · score '+d.snap.score+'</div></div>'+
         '<div style="display:flex;gap:6px"><button class="btn" data-load="'+idx+'">Load</button>'+
         '<button class="btn ghost" data-del="'+idx+'">✕</button></div></div>';
@@ -1288,7 +1316,9 @@
       var d = list[Number(b.dataset.load)];
       state = E.normalize(d.inputs); state._name = d.name;
       mode = d.mode === 'full' ? 'full' : 'quick';
+      try { localStorage.setItem('dmp_mode_v1', mode); } catch(e){}
       [].forEach.call($('segMode').children, function(c){ c.classList.toggle('on', c.dataset.mode === mode); });
+      syncType();
       writeForm(); render(); $('modalSaved').classList.remove('show'); toast('Loaded "'+d.name+'"');
     } else if (b.dataset.del !== undefined){
       list.splice(Number(b.dataset.del), 1); saveDeals(list); $('btnSaved').click();
@@ -1309,7 +1339,7 @@
       [].forEach.call($('segMode').children, function(c){ c.classList.toggle('on', c.dataset.mode === 'full'); });
     }
   } catch(e){}
-  writeForm(); render();
+  syncType(); writeForm(); render();
 })();
 </script>
 
@@ -1323,6 +1353,7 @@
   var saved=null;try{saved=JSON.parse(localStorage.getItem(KEY)||'null');}catch(e){}
   var heroBtn=$('heroOpen');
   if(heroBtn)heroBtn.addEventListener('click',function(){
+    try{saved=JSON.parse(localStorage.getItem(KEY)||'null');}catch(e){}
     if(saved){$('resultsCard').scrollIntoView({behavior:'smooth',block:'start'});}
     else openGate();
   });
@@ -1333,7 +1364,9 @@
     var err=$('gErr');
     if(name.length<2||!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){err.style.display='block';return;}
     err.style.display='none';
-    try{localStorage.setItem(KEY,JSON.stringify({name:name,email:email,ts:new Date().toISOString()}));}catch(e2){}
+    var lead={name:name,email:email,ts:new Date().toISOString()};
+    saved=lead;
+    try{localStorage.setItem(KEY,JSON.stringify(lead));}catch(e2){}
     // posts straight into Rich's Google Form through a hidden iframe — no CORS, no third party
     $('relayName').value=name; $('relayEmail').value=email;
     var dn=document.getElementById('dealName');
