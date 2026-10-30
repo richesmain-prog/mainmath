@@ -515,14 +515,12 @@
   </div>
 </div>
 <iframe name="lead_sink" id="lead_sink" style="display:none;width:0;height:0;border:0" title="lead"></iframe>
-<form id="leadRelay" method="POST" action="https://formsubmit.co/richesmain@gmail.com" target="lead_sink" style="display:none">
-  <input type="hidden" name="_subject" value="MainMath — new signup" />
-  <input type="hidden" name="_captcha" value="true" />
-  <input type="hidden" name="_template" value="table" />
-  <input type="hidden" name="source" value="mainmath" />
-  <input type="hidden" name="name" id="relayName" />
-  <input type="hidden" name="email" id="relayEmail" />
-  <input type="hidden" name="deal" id="relayDeal" />
+<form id="leadRelay" method="POST"
+      action="https://docs.google.com/forms/d/e/1FAIpQLSfxLUhlAtO-GgRuLUBJytS20Zcj5Sq3-tmNhHQ-AQpZwS-BCQ/formResponse"
+      target="lead_sink" style="display:none">
+  <input type="hidden" name="entry.2063287317" id="relaySource" value="MainMath website" />
+  <input type="hidden" name="entry.525677922" id="relayName" />
+  <input type="hidden" name="entry.940776747" id="relayEmail" />
 </form>
 
 <div class="toast" id="toast"></div>
@@ -1119,10 +1117,11 @@
     var err=$('gErr');
     if(name.length<2||!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){err.style.display='block';return;}
     err.style.display='none';
-    var deal=document.getElementById('dealName').value.trim()||'-';
     try{localStorage.setItem(KEY,JSON.stringify({name:name,email:email,ts:new Date().toISOString()}));}catch(e2){}
-    // real form post through a hidden iframe — no CORS, works on any static host
-    $('relayName').value=name; $('relayEmail').value=email; $('relayDeal').value=deal;
+    // posts straight into Rich's Google Form through a hidden iframe — no CORS, no third party
+    $('relayName').value=name; $('relayEmail').value=email;
+    var dn=document.getElementById('dealName');
+    if(dn && dn.value.trim()){ $('relaySource').value='MainMath — ' + dn.value.trim(); }
     try{$('leadRelay').submit();}catch(e3){}
     closeGate();
     $('resultsCard').scrollIntoView({behavior:'smooth',block:'start'});
