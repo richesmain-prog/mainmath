@@ -1102,6 +1102,7 @@
 
   function setMode(m, fromClick){
     mode = m;
+    try { localStorage.setItem('dmp_mode_v1', m); } catch(e) {}
     [].forEach.call($('segMode').children, function(c){ c.classList.toggle('on', c.dataset.mode === m); });
     readForm();
     syncVisibility();
@@ -1180,7 +1181,7 @@
     var name = $('dealName').value.trim() || ('Deal ' + new Date().toLocaleDateString());
     var list = deals().filter(function(d){ return d.name !== name; });
     var r = window._last.r;
-    list.unshift({ name: name, ts: Date.now(), inputs: readForm(),
+    list.unshift({ name: name, ts: Date.now(), mode: mode, inputs: readForm(),
       snap: { margin: r.margin, profit: r.profit, cash: r.peakEquity, score: r.score.points } });
     saveDeals(list); toast('Saved "' + name + '"');
   });
@@ -1202,6 +1203,8 @@
     if (b.dataset.load !== undefined){
       var d = list[Number(b.dataset.load)];
       state = E.normalize(d.inputs); state._name = d.name;
+      mode = d.mode === 'full' ? 'full' : 'quick';
+      [].forEach.call($('segMode').children, function(c){ c.classList.toggle('on', c.dataset.mode === mode); });
       writeForm(); render(); $('modalSaved').classList.remove('show'); toast('Loaded "'+d.name+'"');
     } else if (b.dataset.del !== undefined){
       list.splice(Number(b.dataset.del), 1); saveDeals(list); $('btnSaved').click();
@@ -1216,6 +1219,12 @@
   var lastRaw = null;
   try { lastRaw = JSON.parse(localStorage.getItem('dmp_last_v1') || 'null'); } catch(e){}
   if (lastRaw) state = E.normalize(lastRaw);
+  try {
+    if (localStorage.getItem('dmp_mode_v1') === 'full') {
+      mode = 'full';
+      [].forEach.call($('segMode').children, function(c){ c.classList.toggle('on', c.dataset.mode === 'full'); });
+    }
+  } catch(e){}
   writeForm(); render();
 })();
 </script>
