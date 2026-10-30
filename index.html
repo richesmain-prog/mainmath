@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>MainMath by Rich Main — spec build deal calculator</title>
+<style>
+  :root{
+    --bg:#0A0A0B; --panel:#131316; --panel2:#18181C; --line:rgba(255,255,255,.075);
+    --txt:#EDEBE8; --mut:#9C9A96; --gold:#F2B632; --green:#34D399; --amber:#FBBF24;
+    --red:#F87171; --blue:#7DD3FC; --r:18px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{
+    background:
+      radial-gradient(900px 420px at 15% -10%, rgba(242,182,50,.09), transparent 70%),
+      radial-gradient(700px 380px at 105% 0%, rgba(125,211,252,.06), transparent 70%),
+      var(--bg);
+    color:var(--txt);
+    font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif;
+    padding-bottom:40px;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:0 14px}
+  header{position:sticky;top:0;z-index:30;backdrop-filter:blur(14px);
+    background:rgba(10,10,11,.82);border-bottom:1px solid var(--line)}
+  .hd{display:flex;align-items:center;gap:10px;padding:11px 0}
+  .brand{font-weight:800;letter-spacing:-.4px;font-size:17px}
+  .brand span{color:var(--gold)}
+  .sub{font-size:11px;color:var(--mut);margin-top:1px}
+  .spacer{flex:1}
+  .btn{background:var(--panel2);color:var(--txt);border:1px solid var(--line);border-radius:10px;
+    padding:8px 11px;font-size:12.5px;font-weight:600;cursor:pointer}
+  .btn:hover{border-color:rgba(242,182,50,.45)}
+  .btn.gold{background:var(--gold);color:#100D05;border-color:var(--gold)}
+  .btn.ghost{background:transparent}
+
+  /* hero */
+  .hero{margin:14px 0 0;border:1px solid var(--line);border-radius:var(--r);
+    background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.012));
+    padding:14px 16px;display:grid;gap:12px;grid-template-columns:1fr auto;align-items:center}
+  .hero .lbl{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--mut)}
+  .hero .big{font-size:31px;font-weight:800;letter-spacing:-1px;line-height:1.1;margin-top:2px}
+  .hero .big small{font-size:14px;font-weight:600;color:var(--mut);letter-spacing:0}
+  .pill{display:inline-flex;align-items:center;gap:6px;padding:4px 9px;border-radius:999px;
+    font-size:11.5px;font-weight:700;border:1px solid}
+  .p-strong{color:var(--green);border-color:rgba(52,211,153,.35);background:rgba(52,211,153,.1)}
+  .p-work{color:var(--amber);border-color:rgba(251,191,36,.35);background:rgba(251,191,36,.1)}
+  .p-thin{color:var(--red);border-color:rgba(248,113,113,.35);background:rgba(248,113,113,.1)}
+  .p-dead{color:var(--red);border-color:rgba(248,113,113,.45);background:rgba(248,113,113,.16)}
+  .score{text-align:right}
+  .score .n{font-size:26px;font-weight:800;letter-spacing:-1px}
+  .score .g{font-size:11px;color:var(--mut)}
+
+  /* layout */
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px;align-items:start}
+  @media (max-width:920px){ .cols{grid-template-columns:1fr} .hero{grid-template-columns:1fr} .score{text-align:left} }
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:15px}
+  .card h3{margin:0 0 3px;font-size:13.5px;letter-spacing:.02em}
+  .card .hint{font-size:11.5px;color:var(--mut);margin:0 0 12px}
+
+  .seg{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+  .seg button{background:var(--panel2);border:1px solid var(--line);color:var(--mut);
+    border-radius:12px;padding:10px 8px;font-size:12.5px;font-weight:600;cursor:pointer;text-align:left}
+  .seg button b{display:block;color:var(--txt);font-size:13px;margin-bottom:1px}
+  .seg button.on{border-color:rgba(242,182,50,.6);background:rgba(242,182,50,.08)}
+  .seg button.on b{color:var(--gold)}
+
+  .field{margin-bottom:11px}
+  .field label{display:flex;justify-content:space-between;align-items:baseline;
+    font-size:12px;color:var(--mut);margin-bottom:4px;gap:8px}
+  .field label .tag{font-size:10.5px;color:#6f6e6a}
+  .inp{position:relative;display:flex;align-items:center}
+  .inp .pre,.inp .suf{position:absolute;font-size:13px;color:#6f6e6a;pointer-events:none}
+  .inp .pre{left:11px} .inp .suf{right:11px}
+  input[type=number],input[type=text],select{
+    width:100%;background:#0E0E11;border:1px solid var(--line);border-radius:11px;
+    color:var(--txt);padding:11px 12px;font-size:15px;font-weight:600;font-variant-numeric:tabular-nums;
+    outline:none;-moz-appearance:textfield}
+  input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  input:focus,select:focus{border-color:rgba(242,182,50,.55);box-shadow:0 0 0 3px rgba(242,182,50,.1)}
+  .inp.has-pre input{padding-left:24px}.inp.has-suf input{padding-right:30px}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+  .three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px}
+  @media (max-width:520px){ .three{grid-template-columns:1fr 1fr} }
+  .switch{display:flex;align-items:center;justify-content:space-between;gap:10px;
+    background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:11px 12px;margin-bottom:11px;cursor:pointer}
+  .switch .t{font-size:13px;font-weight:600}
+  .switch .d{font-size:11px;color:var(--mut)}
+  .tog{width:42px;height:24px;border-radius:999px;background:#2a2a2f;position:relative;flex:0 0 auto;transition:.15s}
+  .tog::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;
+    background:#8b8a86;transition:.15s}
+  .switch.on .tog{background:rgba(242,182,50,.32)}
+  .switch.on .tog::after{left:21px;background:var(--gold)}
+  .adv{display:none}
+  .adv.show{display:block}
+  .note{font-size:11.5px;color:var(--mut);background:rgba(125,211,252,.05);border:1px solid rgba(125,211,252,.14);
+    border-radius:10px;padding:8px 10px;margin:2px 0 12px}
+  .accordion{border-top:1px solid var(--line);margin-top:6px;padding-top:10px}
+  .accordion summary{cursor:pointer;font-size:12px;font-weight:700;color:var(--gold);list-style:none}
+  .accordion summary::-webkit-details-marker{display:none}
+
+  /* results */
+  .kpis{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:12px}
+  .kpi{background:var(--panel2);border:1px solid var(--line);border-radius:13px;padding:11px}
+  .kpi .k{font-size:10.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--mut)}
+  .kpi .v{font-size:19px;font-weight:800;letter-spacing:-.6px;margin-top:2px}
+  .kpi .s{font-size:10.5px;color:#77756f;margin-top:1px}
+  .kpi.good .v{color:var(--green)} .kpi.bad .v{color:var(--red)} .kpi.gold .v{color:var(--gold)}
+  .row{display:flex;justify-content:space-between;gap:10px;padding:6px 0;font-size:13px;border-bottom:1px solid rgba(255,255,255,.04)}
+  .row:last-child{border-bottom:0}
+  .row .l{color:#C9C6C0} .row .v{font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap}
+  .row .v.neg{color:#F0A0A0} .row .v.pos{color:var(--green)}
+  .row.total{border-top:1px solid var(--line);margin-top:5px;padding-top:9px;font-weight:800}
+  .row.total .l{color:var(--txt)}
+  .mini{font-size:11px;color:#77756f;margin-left:6px;font-weight:500}
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:10px}
+  .split .kpi .v{font-size:17px}
+
+  .solver{border:1px solid rgba(242,182,50,.3);background:rgba(242,182,50,.06);border-radius:14px;padding:12px;margin-top:12px}
+  .solver .k{font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--gold)}
+  .solver .v{font-size:24px;font-weight:800;letter-spacing:-.7px;margin-top:2px}
+  .solver .s{font-size:11.5px;color:#B9B4A6;margin-top:3px}
+
+  table.grid{width:100%;border-collapse:collapse;font-size:11.5px;font-variant-numeric:tabular-nums}
+  table.grid th,table.grid td{padding:6px 4px;text-align:right;border-bottom:1px solid rgba(255,255,255,.05)}
+  table.grid th:first-child,table.grid td:first-child{text-align:left;color:var(--mut)}
+  table.grid thead th{color:var(--mut);font-weight:600}
+  .cell-g{color:var(--green)} .cell-a{color:var(--amber)} .cell-r{color:var(--red)}
+
+  .sched{width:100%;border-collapse:collapse;font-size:11px;font-variant-numeric:tabular-nums}
+  .sched th,.sched td{padding:5px 4px;text-align:right;border-bottom:1px solid rgba(255,255,255,.05)}
+  .sched th:first-child,.sched td:first-child{text-align:left}
+  .sched thead th{color:var(--mut);font-weight:600;position:sticky;top:0;background:var(--panel)}
+
+  .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(20px);opacity:0;
+    background:#1D1D21;border:1px solid var(--line);color:var(--txt);padding:10px 14px;border-radius:12px;
+    font-size:13px;transition:.2s;z-index:99;pointer-events:none;max-width:90vw;text-align:center}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .foot{font-size:10.5px;color:#6b6a66;margin-top:16px;line-height:1.5}
+
+  /* modal */
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:60;display:none;align-items:flex-end;justify-content:center;padding:0}
+  .modal.show{display:flex}
+  .sheet{background:var(--panel);border:1px solid var(--line);border-radius:20px 20px 0 0;width:100%;max-width:560px;
+    max-height:82vh;overflow:auto;padding:18px}
+  @media(min-width:700px){ .modal{align-items:center;padding:20px} .sheet{border-radius:20px} }
+  .sheet h2{margin:0 0 4px;font-size:16px}
+  .sheet p, .sheet li{font-size:13px;color:#C9C6C0}
+  .sheet ul{padding-left:18px;margin:8px 0}
+  .deal{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--panel2);
+    border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px}
+  .deal .n{font-size:13px;font-weight:700}
+  .deal .m{font-size:11px;color:var(--mut)}
+
+  /* ---- community page ---- */
+  .chero{padding:34px 0 6px;max-width:780px}
+  .chero .eyebrow{display:inline-flex;align-items:center;gap:7px;font-size:11px;font-weight:700;
+    letter-spacing:.1em;text-transform:uppercase;color:var(--gold);
+    background:rgba(242,182,50,.08);border:1px solid rgba(242,182,50,.25);padding:5px 10px;border-radius:999px}
+  .chero h1{font-size:clamp(26px,4.4vw,42px);line-height:1.08;letter-spacing:-1.2px;margin:14px 0 10px;font-weight:800}
+  .chero h1 em{color:var(--gold);font-style:normal}
+  .chero p{font-size:15px;color:#B8B5AE;margin:0 0 16px;max-width:620px}
+  .chero .cta{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+  .chero .tiny{font-size:11.5px;color:#77756f;margin-top:9px}
+  .how{margin:22px 0 4px;border:1px solid var(--line);border-radius:var(--r);padding:16px;
+    background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.01))}
+  .how h2{margin:0 0 3px;font-size:14px}
+  .how .sub2{font-size:12px;color:var(--mut);margin:0 0 14px}
+  .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  @media (max-width:760px){ .steps{grid-template-columns:1fr 1fr} }
+  .step{background:var(--panel2);border:1px solid var(--line);border-radius:13px;padding:11px}
+  .step .n{width:22px;height:22px;border-radius:50%;background:rgba(242,182,50,.14);color:var(--gold);
+    font-size:11.5px;font-weight:800;display:flex;align-items:center;justify-content:center;margin-bottom:7px}
+  .step b{display:block;font-size:12.5px;margin-bottom:2px}
+  .step span{font-size:11.5px;color:var(--mut);line-height:1.4}
+  .faq{margin-top:10px;font-size:12px;color:var(--mut)}
+  .faq summary{cursor:pointer;color:var(--gold);font-weight:700;font-size:12px}
+  .faq p{margin:7px 0 0;line-height:1.55}
+  /* gate */
+  .gate{position:fixed;inset:0;z-index:80;display:none;align-items:center;justify-content:center;padding:16px;
+    background:rgba(6,6,7,.86);backdrop-filter:blur(6px)}
+  .gate.show{display:flex}
+  .gate .box{width:100%;max-width:420px;background:var(--panel);border:1px solid rgba(242,182,50,.25);
+    border-radius:20px;padding:22px}
+  .gate h2{margin:0 0 6px;font-size:19px;letter-spacing:-.3px}
+  .gate p{margin:0 0 16px;font-size:13px;color:#B8B5AE;line-height:1.5}
+  .gate label{display:block;font-size:11.5px;color:var(--mut);margin:0 0 4px}
+  .gate input{width:100%;background:#0E0E11;border:1px solid var(--line);border-radius:11px;color:var(--txt);
+    padding:12px;font-size:15px;margin-bottom:10px;outline:none}
+  .gate input:focus{border-color:rgba(242,182,50,.55);box-shadow:0 0 0 3px rgba(242,182,50,.1)}
+  .gate button{width:100%;background:var(--gold);color:#100D05;border:0;border-radius:12px;padding:13px;
+    font-size:15px;font-weight:800;cursor:pointer;margin-top:4px}
+  .gate .fine{font-size:10.5px;color:#6f6e6a;margin:10px 0 0;text-align:center}
+  .gate .skip{display:block;width:100%;background:none;border:0;color:#77756f;font-size:11.5px;
+    margin-top:8px;cursor:pointer;text-decoration:underline}
+  .gate .err{color:#F0A0A0;font-size:11.5px;margin:0 0 8px;display:none}
+  @media print{
+    header,.btn,.seg,.modal,.toast,#inputsCard{display:none!important}
+    body{background:#fff;color:#000}
+    .card{break-inside:avoid;border-color:#ddd}
+    .cols{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap hd">
+    <div>
+      <div class="brand">Main<span>Math</span></div>
+      <div class="sub">spec-build underwriting · by Rich Main</div>
+    </div>
+    <div class="spacer"></div>
+    <button class="btn ghost" id="btnSaved">Saved</button>
+    <button class="btn" id="btnPrint">Print</button>
+  </div>
+</header>
+
+<div class="wrap">
+  <section class="chero">
+    <span class="eyebrow">Free tool · no account · by Rich Main</span>
+    <h1>Know if a lot is worth building on <em>before you spend a dollar.</em></h1>
+    <p>Type four numbers. You get the profit, the cash you need, and — the part most calculators skip —
+    the <b>most you can pay for the dirt</b> and still hit your margin.</p>
+    <div class="cta">
+      <button class="btn gold" id="heroOpen" style="padding:11px 16px;font-size:14px">Open the calculator</button>
+      <span class="tiny">Runs in your browser. Nothing to install.</span>
+    </div>
+  </section>
+
+  <section class="how">
+    <h2>How to use it</h2>
+    <p class="sub2">Five boxes. Thirty seconds. Built for a gut check, not a bank package.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><b>Lot price</b><span>What they are asking for the dirt. House + lot if it is a tear-down.</span></div>
+      <div class="step"><div class="n">2</div><b>Home size</b><span>The square feet you would actually build.</span></div>
+      <div class="step"><div class="n">3</div><b>Build $/sqft</b><span>Your all-in hard cost. Use a real bid, not a wish.</span></div>
+      <div class="step"><div class="n">4</div><b>Sale $/sqft</b><span>What finished homes sell for nearby, from sold comps.</span></div>
+      <div class="step"><div class="n">5</div><b>Read the gold box</b><span>Max lot price is your ceiling. Offer below it, never above.</span></div>
+      <div class="step"><div class="n">+</div><b>Full Underwrite</b><span>Open it to change soft costs, contingency, permits, loan terms, partner split.</span></div>
+      <div class="step"><div class="n">+</div><b>Save</b><span>Name the deal and save it on your device. Print it or export JSON.</span></div>
+      <div class="step"><div class="n">!</div><b>Check it</b><span>Every number is an assumption you control. Verify costs and comps before you commit.</span></div>
+    </div>
+    <details class="faq" style="margin-top:12px">
+      <summary>What the numbers mean ▾</summary>
+      <p><b>Net margin</b> — profit divided by sale price. Under 20% on a spec build is thin.<br>
+      <b>Cash you need</b> — the most money that has to leave your pocket at any point, interest included.<br>
+      <b>Max lot price</b> — the highest offer that still hits your target margin. This is the negotiation number.<br>
+      <b>All-in $/sf</b> — every cost divided by finished square feet. Compare it to the sale $/sf. That spread is the deal.</p>
+    </details>
+  </section>
+</div>
+
+<div class="wrap">
+
+  <div class="hero">
+    <div>
+      <div class="lbl">Net margin</div>
+      <div class="big" id="heroMargin">— <small id="heroProfit"></small></div>
+      <div style="margin-top:8px"><span class="pill p-thin" id="heroPill">—</span></div>
+    </div>
+    <div class="score">
+      <div class="lbl">Deal score</div>
+      <div class="n" id="heroScore">—</div>
+      <div class="g" id="heroGrade">—</div>
+    </div>
+  </div>
+
+  <div class="cols">
+
+    <!-- ============ INPUTS ============ -->
+    <div class="card" id="inputsCard">
+      <h3>1 · The deal</h3>
+      <p class="hint">Numbers you know from the listing. Everything else is an assumption you can change.</p>
+
+      <div class="seg" id="segMode">
+        <button data-mode="quick" class="on"><b>Quick Look</b>4 inputs, market averages</button>
+        <button data-mode="full"><b>Full Underwrite</b>Every assumption editable</button>
+      </div>
+
+      <div class="seg" id="segType">
+        <button data-type="lot" class="on"><b>Empty Lot</b>Ground-up build</button>
+        <button data-type="teardown"><b>Tear-Down</b>Demo + rebuild</button>
+      </div>
+
+      <div class="field">
+        <label>Deal name <span class="tag">for saving</span></label>
+        <input type="text" id="dealName" placeholder="e.g. Via De Oro spec" />
+      </div>
+
+      <div class="two">
+        <div class="field">
+          <label id="lblLand">Lot purchase price</label>
+          <div class="inp has-pre"><span class="pre">$</span><input type="number" id="purchasePrice" step="1000" /></div>
+        </div>
+        <div class="field">
+          <label>Buildable sqft</label>
+          <div class="inp"><input type="number" id="buildableSqft" step="50" /></div>
+        </div>
+      </div>
+
+      <div class="two">
+        <div class="field">
+          <label>Build cost / sqft <span class="tag">hard cost</span></label>
+          <div class="inp has-pre"><span class="pre">$</span><input type="number" id="buildCostPerSqft" step="5" /></div>
+        </div>
+        <div class="field">
+          <label>Sale price / sqft <span class="tag">comps</span></label>
+          <div class="inp has-pre"><span class="pre">$</span><input type="number" id="salePerSqft" step="10" /></div>
+        </div>
+      </div>
+
+      <div class="two">
+        <div class="field">
+          <label>Build months</label>
+          <div class="inp has-suf"><input type="number" id="buildMonths" step="1" /><span class="suf">mo</span></div>
+        </div>
+        <div class="field">
+          <label>Months to sell after finish</label>
+          <div class="inp has-suf"><input type="number" id="sellMonths" step="1" /><span class="suf">mo</span></div>
+        </div>
+      </div>
+
+      <div class="adv" id="advA">
+        <div class="three">
+          <div class="field">
+            <label>Soft costs <span class="tag">% of hard</span></label>
+            <div class="inp has-suf"><input type="number" id="softCostPct" step="0.5" /><span class="suf">%</span></div>
+          </div>
+          <div class="field">
+            <label>Contingency</label>
+            <div class="inp has-suf"><input type="number" id="contingencyPct" step="0.5" /><span class="suf">%</span></div>
+          </div>
+          <div class="field">
+            <label>Permits &amp; fees</label>
+            <div class="inp has-pre"><span class="pre">$</span><input type="number" id="permitFees" step="1000" /></div>
+          </div>
+        </div>
+        <div class="two">
+          <div class="field">
+            <label>Buy closing costs <span class="tag">% of price</span></label>
+            <div class="inp has-suf"><input type="number" id="buyClosingPct" step="0.25" /><span class="suf">%</span></div>
+          </div>
+          <div class="field">
+            <label>Monthly carry <span class="tag">tax, ins, utils</span></label>
+            <div class="inp has-pre"><span class="pre">$</span><input type="number" id="monthlyCarry" step="100" /></div>
+          </div>
+        </div>
+        <div class="field" id="demoField" style="display:none">
+          <label>Demolition cost</label>
+          <div class="inp has-pre"><span class="pre">$</span><input type="number" id="demoCost" step="5000" /></div>
+        </div>
+      </div>
+
+      <details class="accordion" id="advDetails">
+        <summary>Financing &amp; partnership ▾</summary>
+        <div style="margin-top:12px">
+          <div class="switch" id="swLoan">
+            <div><div class="t">Hard money loan</div><div class="d">Off = all cash, no points or interest</div></div>
+            <div class="tog"></div>
+          </div>
+          <div class="adv" id="advB">
+            <div class="three">
+              <div class="field">
+                <label>Loan to cost</label>
+                <div class="inp has-suf"><input type="number" id="ltcPct" step="1" /><span class="suf">%</span></div>
+              </div>
+              <div class="field">
+                <label>Max loan to ARV</label>
+                <div class="inp has-suf"><input type="number" id="maxLtvPct" step="1" /><span class="suf">%</span></div>
+              </div>
+              <div class="field">
+                <label>Interest rate</label>
+                <div class="inp has-suf"><input type="number" id="ratePct" step="0.25" /><span class="suf">%</span></div>
+              </div>
+            </div>
+            <div class="two">
+              <div class="field">
+                <label>Points</label>
+                <div class="inp has-suf"><input type="number" id="pointsPct" step="0.25" /><span class="suf">%</span></div>
+              </div>
+              <div class="field">
+                <label>Lender fees</label>
+                <div class="inp has-pre"><span class="pre">$</span><input type="number" id="lenderFee" step="250" /></div>
+              </div>
+            </div>
+            <div class="switch" id="swMethod">
+              <div><div class="t">Draw-based interest</div><div class="d">Off = charge interest on the whole loan from day one (their method)</div></div>
+              <div class="tog"></div>
+            </div>
+          </div>
+
+          <div class="switch" id="swPartner">
+            <div><div class="t">Partner on the deal</div><div class="d">Off = you keep 100% of profit and cash</div></div>
+            <div class="tog"></div>
+          </div>
+          <div class="adv" id="advC">
+            <div class="two">
+              <div class="field">
+                <label>My share of profit</label>
+                <div class="inp has-suf"><input type="number" id="myProfitShare" step="1" /><span class="suf">%</span></div>
+              </div>
+              <div class="field">
+                <label>My share of cash in</label>
+                <div class="inp has-suf"><input type="number" id="myCashShare" step="1" /><span class="suf">%</span></div>
+              </div>
+            </div>
+            <div class="note">Their tool showed your return on the <b>whole</b> profit even when you only keep 20% of it. This splits both sides, so the return you see is actually yours.</div>
+          </div>
+
+          <div class="two">
+            <div class="field">
+              <label>Target net margin</label>
+              <div class="inp has-suf"><input type="number" id="targetMarginPct" step="1" /><span class="suf">%</span></div>
+            </div>
+            <div class="field">
+              <label>Target annual return</label>
+              <div class="inp has-suf"><input type="number" id="targetIrrPct" step="1" /><span class="suf">%</span></div>
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
+        <button class="btn gold" id="btnSave">Save deal</button>
+        <button class="btn" id="btnCopy">Copy summary</button>
+        <button class="btn" id="btnExport">Export JSON</button>
+        <button class="btn ghost" id="btnReset">Reset</button>
+      </div>
+    </div>
+
+    <!-- ============ RESULTS ============ -->
+    <div class="card" id="resultsCard">
+      <h3>2 · The numbers</h3>
+      <p class="hint" id="modeHint">Quick look — market averages behind the scenes.</p>
+
+      <div class="kpis">
+        <div class="kpi gold"><div class="k">Net profit</div><div class="v" id="kProfit">—</div><div class="s" id="kProfitS">after financing + selling</div></div>
+        <div class="kpi"><div class="k">Cash you need</div><div class="v" id="kCash">—</div><div class="s">peak equity, incl. interest</div></div>
+        <div class="kpi"><div class="k">Annualized return</div><div class="v" id="kIrr">—</div><div class="s" id="kIrrS">on your cash</div></div>
+        <div class="kpi"><div class="k">All-in cost</div><div class="v" id="kAllIn">—</div><div class="s" id="kAllInS">—</div></div>
+      </div>
+
+      <div class="solver">
+        <div class="k">Max lot price at target margin</div>
+        <div class="v" id="solveLand">—</div>
+        <div class="s" id="solveLandS">—</div>
+      </div>
+
+      <div style="margin-top:16px">
+        <div style="font-size:12px;font-weight:700;margin-bottom:6px">Underwriting breakdown</div>
+        <div id="breakdown"></div>
+      </div>
+
+      <div class="split" id="partnerBox">
+        <div class="kpi"><div class="k">My profit</div><div class="v" id="kMyProfit">—</div><div class="s" id="kMyProfitS">—</div></div>
+        <div class="kpi"><div class="k">My cash-on-cash</div><div class="v" id="kMyCoc">—</div><div class="s" id="kMyCocS">—</div></div>
+      </div>
+
+      <div class="accordion" style="margin-top:14px">
+        <details>
+          <summary>Sensitivity — margin % by build cost × sale price ▾</summary>
+          <div style="overflow:auto;margin-top:8px" id="sensTable"></div>
+        </details>
+      </div>
+
+      <div class="accordion">
+        <details>
+          <summary>Monthly cash schedule ▾</summary>
+          <div style="max-height:320px;overflow:auto;margin-top:8px" id="schedule"></div>
+        </details>
+      </div>
+
+      <div class="foot" id="disclaimer">
+        Estimates only. Not lending, tax, legal, or investment advice. Every number here is an input you control —
+        verify costs with bids, comps with sold data, and loan terms with a lender before you commit money.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SAVED -->
+<div class="modal" id="modalSaved"><div class="sheet">
+  <h2>Saved deals</h2>
+  <p>Stored on this device only. Export JSON to move them.</p>
+  <div id="savedList" style="margin-top:12px"></div>
+  <button class="btn" id="closeSaved" style="margin-top:10px">Close</button>
+</div></div>
+
+
+<div class="gate" id="gate">
+  <div class="box">
+    <h2>Get the calculator</h2>
+    <p>Tell me who you are and I'll send deal notes and new tools. No spam — and the tool is free either way.</p>
+    <form id="gateForm" novalidate>
+      <label for="gName">Your name</label>
+      <input id="gName" name="name" autocomplete="given-name" placeholder="Rich" />
+      <label for="gEmail">Email</label>
+      <input id="gEmail" name="email" type="email" inputmode="email" autocomplete="email" placeholder="you@company.com" />
+      <div class="err" id="gErr">Add your name and a real email.</div>
+      <button type="submit">Show me the numbers</button>
+      <button type="button" class="skip" id="gSkip">Skip for now</button>
+    </form>
+    <p class="fine">Your details stay with Rich Main. Nothing is sold or shared.<br>
+      Prefer email? <a href="mailto:rich@themainbuild.com" style="color:#B9B4A6">rich@themainbuild.com</a></p>
+  </div>
+</div>
+<iframe name="lead_sink" id="lead_sink" style="display:none;width:0;height:0;border:0" title="lead"></iframe>
+<form id="leadRelay" method="POST" action="https://formsubmit.co/richesmain@gmail.com" target="lead_sink" style="display:none">
+  <input type="hidden" name="_subject" value="MainMath — new signup" />
+  <input type="hidden" name="_captcha" value="true" />
+  <input type="hidden" name="_template" value="table" />
+  <input type="hidden" name="source" value="mainmath" />
+  <input type="hidden" name="name" id="relayName" />
+  <input type="hidden" name="email" id="relayEmail" />
+  <input type="hidden" name="deal" id="relayDeal" />
+</form>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   MainMath — underwriting engine
+   Reverse-engineered from deal.builderaccelerator.com, rebuilt
+   with draw-based interest, partner-aware returns, IRR, and
+   max-land-price solving.
+   Pure functions. No DOM. No network.
+   ============================================================ */
+(function (root) {
+  'use strict';
+
+  var DEFAULTS = {
+    dealType: 'lot',            // 'lot' | 'teardown'
+    purchasePrice: 1200000,     // land, or house+lot for a teardown
+    buildableSqft: 5000,
+    buildCostPerSqft: 285,      // HARD construction cost
+    softCostPct: 8,             // architect, engineering, design — % of hard
+    contingencyPct: 6,          // % of hard+soft
+    permitFees: 25000,          // permits, impact/utility tap fees ($)
+    buyClosingPct: 1.5,         // title, escrow, recording on the buy
+    demoCost: 60000,
+    buildMonths: 12,
+    sellMonths: 2,              // months of carrying AFTER completion, before close
+    monthlyCarry: 1200,         // taxes + insurance + utilities, per month
+    useLoan: true,
+    ltcPct: 80,                 // loan-to-cost on eligible basis
+    maxLtvPct: 72,              // hard cap: loan / ARV
+    ratePct: 10.5,
+    pointsPct: 2,
+    lenderFee: 4500,
+    includeCarryInBasis: false, // lender also funds carrying costs (rare)
+    interestMethod: 'draw',     // 'draw' (accurate) | 'flat' (their method)
+    salePerSqft: 900,
+    sellingCostPct: 6,
+    hasPartner: true,
+    myProfitShare: 20,          // % of profit I keep
+    myCashShare: 20,            // % of cash I put in
+    targetMarginPct: 20,
+    targetIrrPct: 25
+  };
+
+  var num = function (v) { var n = Number(v); return Number.isFinite(n) ? n : 0; };
+  var clamp = function (v, lo, hi) { return Math.min(hi, Math.max(lo, v)); };
+
+  function normalize(raw) {
+    var i = {}, k;
+    for (k in DEFAULTS) if (Object.prototype.hasOwnProperty.call(DEFAULTS, k)) i[k] = DEFAULTS[k];
+    if (raw) for (k in raw) if (Object.prototype.hasOwnProperty.call(raw, k) && raw[k] !== undefined && raw[k] !== null && raw[k] !== '') i[k] = raw[k];
+    // numeric coercion (radios / text inputs arrive as strings)
+    ['purchasePrice','buildableSqft','buildCostPerSqft','softCostPct','contingencyPct','permitFees',
+     'buyClosingPct','demoCost','buildMonths','sellMonths','monthlyCarry','ltcPct','maxLtvPct',
+     'ratePct','pointsPct','lenderFee','salePerSqft','sellingCostPct','myProfitShare','myCashShare',
+     'targetMarginPct','targetIrrPct'].forEach(function (f) { i[f] = num(i[f]); });
+    i.buildMonths = clamp(Math.round(i.buildMonths), 1, 60);
+    i.sellMonths = clamp(Math.round(i.sellMonths), 0, 24);
+    i.buildableSqft = Math.max(1, i.buildableSqft);
+    i.purchasePrice = Math.max(0, i.purchasePrice);
+    i.buildCostPerSqft = Math.max(0, i.buildCostPerSqft);
+    i.permitFees = Math.max(0, i.permitFees);
+    i.monthlyCarry = Math.max(0, i.monthlyCarry);
+    i.salePerSqft = Math.max(0, i.salePerSqft);
+    i.sellingCostPct = clamp(i.sellingCostPct, 0, 20);
+    i.ltcPct = clamp(i.ltcPct, 0, 100);
+    i.maxLtvPct = clamp(i.maxLtvPct, 0, 100);
+    i.ratePct = clamp(i.ratePct, 0, 30);
+    i.pointsPct = clamp(i.pointsPct, 0, 10);
+    i.myProfitShare = clamp(i.myProfitShare, 0, 100);
+    i.myCashShare = clamp(i.myCashShare, 0, 100);
+    if (i.dealType !== 'teardown') i.dealType = 'lot';
+    if (i.interestMethod !== 'flat') i.interestMethod = 'draw';
+    i.useLoan = !!i.useLoan;
+    i.hasPartner = !!i.hasPartner;
+    i.includeCarryInBasis = !!i.includeCarryInBasis;
+    return i;
+  }
+
+  /* ---------- monthly IRR (bisection on monthly rate) ---------- */
+  function npv(rate, flows) {
+    var s = 0;
+    for (var t = 0; t < flows.length; t++) s += flows[t] / Math.pow(1 + rate, t);
+    return s;
+  }
+  function monthlyIrr(flows) {
+    var hasPos = flows.some(function (f) { return f > 0; });
+    var hasNeg = flows.some(function (f) { return f < 0; });
+    if (!hasPos || !hasNeg) return null;
+    var lo = -0.9999, hi = 2.0;
+    var fLo = npv(lo, flows), fHi = npv(hi, flows), mid, fMid, guard = 0;
+    if (fLo * fHi > 0) return null;             // no sign change in range
+    while (hi - lo > 1e-10 && guard++ < 300) {
+      mid = (lo + hi) / 2;
+      fMid = npv(mid, flows);
+      if (fLo * fMid <= 0) { hi = mid; fHi = fMid; } else { lo = mid; fLo = fMid; }
+    }
+    return (lo + hi) / 2;
+  }
+  function annualize(m) { return m === null ? null : (Math.pow(1 + m, 12) - 1) * 100; }
+
+  /* ---------- core model ---------- */
+  function run(raw) {
+    var i = normalize(raw);
+    var sqft = i.buildableSqft;
+    var hard = sqft * i.buildCostPerSqft;
+    var soft = hard * i.softCostPct / 100;
+    var contingency = (hard + soft) * i.contingencyPct / 100;
+    var buildTotal = hard + soft + contingency + i.permitFees;
+    var demo = i.dealType === 'teardown' ? i.demoCost : 0;
+    var buyClosing = i.purchasePrice * i.buyClosingPct / 100;
+    var arv = sqft * i.salePerSqft;
+    var sellCosts = arv * i.sellingCostPct / 100;
+    var months = i.buildMonths + i.sellMonths;
+    // carrying costs run the closing month plus every month of build and sell
+    var carryTotal = i.monthlyCarry * (months + 1);
+
+    // ---- loan sizing
+    var basis = i.purchasePrice + demo + hard + soft + contingency + i.permitFees +
+                (i.includeCarryInBasis ? carryTotal : 0);
+    var byLtc = basis * i.ltcPct / 100;
+    var byLtv = arv * i.maxLtvPct / 100;
+    var loan = i.useLoan ? Math.max(0, Math.min(byLtc, byLtv)) : 0;
+    var binding = !i.useLoan ? 'cash' : (byLtv < byLtc ? 'ltv' : 'ltc');
+    var points = loan * i.pointsPct / 100;
+    var fee = i.useLoan ? i.lenderFee : 0;
+
+    // ---- draws + interest
+    var t0Draw = 0, drawPerMonth = 0, interestByMonth = [], interestTotal = 0;
+    var bal = 0;
+    if (loan > 0) {
+      t0Draw = Math.min(loan, i.ltcPct / 100 * (i.purchasePrice + demo));
+      drawPerMonth = (loan - t0Draw) / i.buildMonths;
+      bal = t0Draw;
+    }
+    var constructionPerMonth = buildTotal / i.buildMonths;
+    if (i.interestMethod === 'flat') {
+      interestTotal = loan * i.ratePct / 100 * (months / 12);
+      for (var m0 = 0; m0 <= months; m0++) interestByMonth.push(0);
+      interestByMonth[months] = interestTotal; // shown as a single lump in the schedule
+    } else {
+      for (var m = 1; m <= months; m++) {
+        if (m <= i.buildMonths) bal += drawPerMonth;
+        var int = bal * i.ratePct / 100 / 12;
+        interestByMonth.push(int);
+        interestTotal += int;
+      }
+    }
+
+    // ---- monthly equity cash flows
+    var flows = [], cumulative = [], running = 0, cashInvested = 0, peakCash = 0, firstNeg = null, lastNeg = null;
+    var c0 = -(i.purchasePrice + buyClosing + demo + points + fee + i.monthlyCarry - t0Draw);
+    flows.push(c0);
+    for (var t = 1; t <= months; t++) {
+      var out = i.monthlyCarry + (i.interestMethod === 'flat' ? (t === months ? interestTotal : 0) : interestByMonth[t - 1]);
+      var cin = 0;
+      if (t <= i.buildMonths) { out += constructionPerMonth; cin += drawPerMonth; }
+      flows.push(cin - out);
+    }
+    flows[months] += arv - sellCosts - loan; // sale at close of final month
+
+    for (var x = 0; x < flows.length; x++) {
+      running += flows[x];
+      cumulative.push(running);
+      if (flows[x] < 0) { cashInvested += -flows[x]; if (firstNeg === null) firstNeg = x; lastNeg = x; }
+      if (running < peakCash) peakCash = running;   // most negative cumulative = peak equity need
+    }
+    var peakEquity = -peakCash;
+
+    var allInCost = i.purchasePrice + buyClosing + demo + buildTotal + points + fee + interestTotal + carryTotal;
+    var totalCost = allInCost + sellCosts;
+    var profit = arv - totalCost;
+    var margin = arv > 0 ? profit / arv * 100 : 0;
+    var grossSpread = arv - allInCost;
+
+    var invested = Math.max(cashInvested, 1);
+    var coc = profit / invested * 100;
+    var irrM = monthlyIrr(flows);
+    var irr = annualize(irrM);
+
+    // ---- partner split (pro-rata cash, split profit)
+    var myProfit = i.hasPartner ? profit * i.myProfitShare / 100 : profit;
+    var myCash = i.hasPartner ? invested * i.myCashShare / 100 : invested;
+    var myFlows = flows.map(function (f) { return i.hasPartner ? f * i.myCashShare / 100 : f; });
+    var myIrr = annualize(monthlyIrr(myFlows));
+    var myCoc = myCash > 0 ? myProfit / myCash * 100 : 0;
+    var multiple = myCash > 0 ? (myCash + myProfit) / myCash : 0;
+
+    var allInPerSqft = allInCost / sqft;
+    var breakEvenSale = (allInCost / (1 - i.sellingCostPct / 100)) / sqft;
+    var landPctOfArv = arv > 0 ? i.purchasePrice / arv * 100 : 0;
+
+    return {
+      inputs: i,
+      lines: { hard: hard, soft: soft, contingency: contingency, buildTotal: buildTotal, demo: demo,
+               buyClosing: buyClosing, arv: arv, sellCosts: sellCosts, carryTotal: carryTotal,
+               points: points, fee: fee, interestTotal: interestTotal },
+      loan: loan, loanBasis: basis, bindingCap: binding, loanToArv: arv > 0 ? loan / arv * 100 : 0,
+      t0Draw: t0Draw, drawPerMonth: drawPerMonth, interestByMonth: interestByMonth,
+      flows: flows, cumulative: cumulative,
+      months: months, buildMonths: i.buildMonths, sellMonths: i.sellMonths,
+      allInCost: allInCost, totalCost: totalCost, profit: profit, margin: margin,
+      grossSpread: grossSpread, cashInvested: invested, peakEquity: peakEquity,
+      coc: coc, irr: irr, monthlyIrr: irrM,
+      myProfit: myProfit, myCash: myCash, myCoc: myCoc, myIrr: myIrr, multiple: multiple,
+      allInPerSqft: allInPerSqft, salePerSqft: i.salePerSqft, spreadPerSqft: i.salePerSqft - allInPerSqft,
+      breakEvenSalePerSqft: breakEvenSale, landPctOfArv: landPctOfArv,
+      profitPerMonth: profit / months,
+      verdict: verdictFor(margin, irr, i),
+      score: scoreDeal(margin, irr, i, landPctOfArv, arv > 0 ? loan / arv * 100 : 0, months)
+    };
+  }
+
+  function verdictFor(margin, irr, i) {
+    if (margin <= 0) return { key: 'dead', label: 'Loses Money', note: 'This deal does not pencil at these inputs. Something has to move a long way.' };
+    if (margin >= i.targetMarginPct + 5) return { key: 'strong', label: 'Strong Deal', note: 'Clears the target with room to absorb a cost overrun.' };
+    if (margin >= i.targetMarginPct) return { key: 'strong', label: 'Strong Deal', note: 'Clears your ' + i.targetMarginPct + '% net margin target.' };
+    if (margin >= i.targetMarginPct - 8) return { key: 'workable', label: 'Tight', note: 'Below target. Negotiate the dirt, trim the build, or walk.' };
+    return { key: 'thin', label: 'Thin', note: 'This is not a deal at these numbers. Do not spend money on diligence until the price moves.' };
+  }
+
+  /* 0-100 heuristic. Not a bank rating — a gut-check ranking across deals. */
+  function scoreDeal(margin, irr, i, landPct, ltv, months) {
+    var s = 0;
+    s += clamp(margin / 30, 0, 1) * 40;                       // 40 pts: margin
+    s += clamp((irr || 0) / 60, 0, 1) * 20;                   // 20 pts: annualized return
+    s += clamp(1 - (landPct - 15) / 25, 0, 1) * 12;           // 12 pts: land share of ARV
+    s += clamp(1 - Math.max(0, ltv - 60) / 15, 0, 1) * 8;     // 8 pts: lender cushion
+    s += clamp(1 - (months - 12) / 12, 0, 1) * 10;            // 10 pts: speed
+    s += clamp(1 - i.buildCostPerSqft / Math.max(1, i.salePerSqft), 0, 1) * 10; // 10 pts: build/sale ratio
+    s = Math.round(clamp(s, 0, 100));
+    var grade = s >= 85 ? 'A' : s >= 75 ? 'B+' : s >= 65 ? 'B' : s >= 55 ? 'C+' : s >= 45 ? 'C' : s >= 35 ? 'D' : 'F';
+    return { points: s, grade: grade };
+  }
+
+  /* ---------- solvers ---------- */
+  // Max land price that still hits a target net margin.
+  function maxLandForMargin(raw, targetMarginPct) {
+    var i = normalize(raw);
+    var target = targetMarginPct === undefined ? i.targetMarginPct : num(targetMarginPct);
+    var lo = 0, hi = Math.max(i.salePerSqft * i.buildableSqft * 2, 1000000);
+    for (var k = 0; k < 60; k++) {
+      var mid = (lo + hi) / 2;
+      var r = run(Object.assign({}, i, { purchasePrice: mid }));
+      if (r.margin >= target) lo = mid; else hi = mid;
+    }
+    return (lo + hi) / 2;
+  }
+  // Max land price that still hits a target annualized IRR on MY cash.
+  function maxLandForIrr(raw, targetIrrPct) {
+    var i = normalize(raw);
+    var target = targetIrrPct === undefined ? i.targetIrrPct : num(targetIrrPct);
+    var lo = 0, hi = Math.max(i.salePerSqft * i.buildableSqft * 2, 1000000);
+    var hiR = run(Object.assign({}, i, { purchasePrice: hi }));
+    if ((hiR.irr || -999) >= target) return hi;
+    for (var k = 0; k < 60; k++) {
+      var mid = (lo + hi) / 2;
+      var r = run(Object.assign({}, i, { purchasePrice: mid }));
+      if ((r.irr || -999) >= target) lo = mid; else hi = mid;
+    }
+    return (lo + hi) / 2;
+  }
+
+  // 5x5 net-margin grid: sale $/sf across columns, build $/sf down rows.
+  function sensitivity(raw, spanPct) {
+    var i = normalize(raw);
+    var span = spanPct === undefined ? 10 : spanPct;
+    var steps = [-1, -0.5, 0, 0.5, 1];
+    var sales = steps.map(function (s) { return i.salePerSqft * (1 + s * span / 100); });
+    var builds = steps.map(function (s) { return i.buildCostPerSqft * (1 + s * span / 100); });
+    var rows = builds.map(function (b) {
+      return {
+        build: b,
+        cells: sales.map(function (sv) {
+          var r = run(Object.assign({}, i, { salePerSqft: sv, buildCostPerSqft: b }));
+          return r.margin;
+        })
+      };
+    });
+    return { sales: sales, rows: rows };
+  }
+
+  var API = { DEFAULTS: DEFAULTS, normalize: normalize, run: run, monthlyIrr: monthlyIrr,
+              annualize: annualize, maxLandForMargin: maxLandForMargin, maxLandForIrr: maxLandForIrr,
+              sensitivity: sensitivity, verdictFor: verdictFor, scoreDeal: scoreDeal };
+
+  if (typeof module !== 'undefined' && module.exports) module.exports = API;
+  root.DealEngine = API;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+</script>
+<script>
+(function(){
+  'use strict';
+  var E = window.DealEngine;
+  var $ = function(id){ return document.getElementById(id); };
+  var state = E.normalize({});
+  var mode = 'quick';
+  var money0 = new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0});
+  var money2 = new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',minimumFractionDigits:2});
+  var fmtM = function(n){ return money0.format(Math.round(n)); };
+  var pct = function(n,d){ return (n===null||n===undefined||!isFinite(n)) ? '—' : n.toFixed(d===undefined?1:d) + '%'; };
+  var shortM = function(n){ return n>=1000000 ? '$'+(n/1000000).toFixed(2)+'M' : n>=1000 ? '$'+Math.round(n/1000)+'k' : '$'+Math.round(n); };
+
+  var FIELDS = ['purchasePrice','buildableSqft','buildCostPerSqft','salePerSqft','buildMonths','sellMonths',
+    'softCostPct','contingencyPct','permitFees','buyClosingPct','monthlyCarry','demoCost',
+    'ltcPct','maxLtvPct','ratePct','pointsPct','lenderFee','myProfitShare','myCashShare',
+    'targetMarginPct','targetIrrPct'];
+
+  function toast(msg){
+    var t = $('toast'); t.textContent = msg; t.classList.add('show');
+    clearTimeout(toast._t); toast._t = setTimeout(function(){ t.classList.remove('show'); }, 2200);
+  }
+
+  function readForm(){
+    FIELDS.forEach(function(f){
+      var el = $(f); if (!el) return;
+      var v = el.value.trim();
+      if (v !== '') state[f] = Number(v);
+    });
+    state.useLoan = $('swLoan').classList.contains('on');
+    state.hasPartner = $('swPartner').classList.contains('on');
+    state.interestMethod = $('swMethod').classList.contains('on') ? 'draw' : 'flat';
+    state.includeCarryInBasis = false;
+    state._name = $('dealName').value.trim();
+    return E.normalize(state);
+  }
+
+  function writeForm(){
+    FIELDS.forEach(function(f){ if ($(f)) $(f).value = state[f]; });
+    $('swLoan').classList.toggle('on', state.useLoan);
+    $('swPartner').classList.toggle('on', state.hasPartner);
+    $('swMethod').classList.toggle('on', state.interestMethod !== 'flat');
+    $('dealName').value = state._name || '';
+    syncVisibility();
+  }
+
+  function syncVisibility(){
+    var full = mode === 'full';
+    $('advA').classList.toggle('show', full);
+    $('advB').classList.toggle('show', state.useLoan);
+    $('advC').classList.toggle('show', state.hasPartner);
+    $('demoField').style.display = state.dealType === 'teardown' ? 'block' : 'none';
+    $('lblLand').textContent = state.dealType === 'teardown' ? 'House + lot price' : 'Lot purchase price';
+    $('modeHint').textContent = full ? 'Full underwrite — every assumption is yours to set.' : 'Quick look — market averages fill the rest (soft 8%, contingency 6%, lender 80% LTC at 10.5% + 2 pts).';
+    if (!full) $('advDetails').open = $('advDetails').open; // leave user choice alone
+  }
+
+  function row(label, value, cls, sub){
+    return '<div class="row"><span class="l">'+label+(sub?'<span class="mini">'+sub+'</span>':'')+
+           '</span><span class="v '+(cls||'')+'">'+value+'</span></div>';
+  }
+
+  function render(){
+    var input = readForm();
+    // QUICK MODE: only the deal-specific numbers come from the form; the rest are market averages.
+    var calcInput = input;
+    if (mode === 'quick') {
+      calcInput = E.normalize(Object.assign({}, E.DEFAULTS, {
+        dealType: input.dealType,
+        purchasePrice: input.purchasePrice,
+        buildableSqft: input.buildableSqft,
+        buildCostPerSqft: input.buildCostPerSqft,
+        salePerSqft: input.salePerSqft,
+        buildMonths: input.buildMonths,
+        sellMonths: input.sellMonths,
+        hasPartner: input.hasPartner,
+        myProfitShare: input.myProfitShare,
+        myCashShare: input.myCashShare,
+        targetMarginPct: input.targetMarginPct,
+        targetIrrPct: input.targetIrrPct,
+        interestMethod: 'draw'
+      }));
+    }
+    var r = E.run(calcInput);
+    var L = r.lines;
+
+    // hero
+    $('heroMargin').innerHTML = pct(r.margin) + ' <small>net margin · ' + fmtM(r.profit) + ' profit</small>';
+    var pill = $('heroPill');
+    pill.className = 'pill p-' + r.verdict.key;
+    pill.textContent = r.verdict.label + ' — ' + r.verdict.note;
+    $('heroScore').textContent = r.score.points;
+    $('heroGrade').textContent = 'grade ' + r.score.grade + ' · ' + r.months + ' months';
+
+    // kpis
+    $('kProfit').textContent = fmtM(r.profit);
+    $('kProfit').className = 'v ' + (r.profit >= 0 ? 'pos' : 'neg');
+    $('kProfit').closest('.kpi').className = 'kpi ' + (r.profit >= 0 ? 'gold' : 'bad');
+    $('kCash').textContent = fmtM(r.peakEquity);
+    $('kIrr').textContent = r.irr === null ? '—' : pct(r.irr, 0);
+    $('kIrrS').textContent = r.myCoc ? pct(r.myCoc,0)+' cash-on-cash over '+r.months+' mo' : 'on your cash';
+    $('kIrr').className = 'v ' + ((r.irr||0) >= 25 ? 'pos' : (r.irr||0) >= 12 ? '' : 'neg');
+    $('kAllIn').textContent = fmtM(r.allInCost);
+    $('kAllInS').textContent = fmtM(r.allInPerSqft) + '/sf all-in vs ' + fmtM(r.salePerSqft) + '/sf sale';
+
+    // max land solver
+    var maxLand = E.maxLandForMargin(calcInput, calcInput.targetMarginPct);
+    var delta = calcInput.purchasePrice - maxLand;
+    $('solveLand').textContent = fmtM(maxLand);
+    $('solveLandS').innerHTML = (delta > 0
+      ? 'Asking price is ' + fmtM(delta) + ' <b>above</b> the price that still hits ' + pct(calcInput.targetMarginPct,0) + '. You need the dirt at ' + fmtM(maxLand) + ' or less.'
+      : 'You have ' + fmtM(-delta) + ' of room at ' + pct(calcInput.targetMarginPct,0) + ' target. Offer below ' + fmtM(maxLand) + ' and you are protected.');
+
+    // breakdown
+    var bd = '';
+    bd += row('Projected sale (ARV)', fmtM(L.arv), '', fmtM(r.salePerSqft)+'/sf × '+Math.round(calcInput.buildableSqft)+' sf');
+    bd += row(r.inputs.dealType === 'teardown' ? 'House + lot' : 'Lot purchase', '−'+fmtM(calcInput.purchasePrice), 'neg');
+    if (L.buyClosing) bd += row('Buy closing costs', '−'+fmtM(L.buyClosing), 'neg', calcInput.buyClosingPct+'%');
+    if (L.demo) bd += row('Demolition', '−'+fmtM(L.demo), 'neg');
+    bd += row('Construction (hard + soft + cont.)', '−'+fmtM(L.buildTotal), 'neg', fmtM(L.hard)+' hard · '+fmtM(L.soft)+' soft · '+fmtM(L.contingency)+' cont · '+fmtM(calcInput.permitFees)+' permits');
+    bd += row('Carrying costs', '−'+fmtM(L.carryTotal), 'neg', calcInput.monthlyCarry+'/mo × '+(r.months+1));
+    if (r.loan > 0) {
+      bd += row('Loan points + fees', '−'+fmtM(L.points + L.fee), 'neg', fmtM(r.loan)+' loan');
+      bd += row('Interest', '−'+fmtM(L.interestTotal), 'neg',
+        r.inputs.interestMethod === 'flat' ? calcInput.ratePct+'% flat for '+(r.months/12).toFixed(1)+' yr' : 'on drawn balance at '+calcInput.ratePct+'%');
+    }
+    bd += row('Selling costs', '−'+fmtM(L.sellCosts), 'neg', calcInput.sellingCostPct+'% of sale');
+    bd += row('Net profit', fmtM(r.profit), r.profit >= 0 ? 'pos' : 'neg', '');
+    bd = bd.replace('class="row"><span class="l">Net profit', 'class="row total"><span class="l">Net profit');
+    $('breakdown').innerHTML = bd;
+
+    // partner box
+    $('partnerBox').style.display = calcInput.hasPartner ? 'grid' : 'none';
+    if (calcInput.hasPartner){
+      $('kMyProfit').textContent = fmtM(r.myProfit);
+      $('kMyProfitS').textContent = calcInput.myProfitShare + '% of ' + fmtM(r.profit);
+      $('kMyCoc').textContent = pct(r.myCoc, 0);
+      $('kMyCocS').textContent = 'on ' + fmtM(r.myCash) + ' of my cash · ' + r.multiple.toFixed(2) + 'x';
+      $('myProfitBoxTitle') && ($('myProfitBoxTitle').textContent = 'My profit');
+    }
+
+    // sensitivity
+    var s = E.sensitivity(calcInput, 10);
+    var html = '<table class="grid"><thead><tr><th>Build \\ Sale</th>';
+    s.sales.forEach(function(v){ html += '<th>'+fmtM(v)+'</th>'; });
+    html += '</tr></thead><tbody>';
+    s.rows.forEach(function(rowv){
+      html += '<tr><td>'+fmtM(rowv.build)+'</td>';
+      rowv.cells.forEach(function(m){
+        var cls = m >= calcInput.targetMarginPct ? 'cell-g' : m >= calcInput.targetMarginPct-8 ? 'cell-a' : 'cell-r';
+        html += '<td class="'+cls+'">'+m.toFixed(1)+'%</td>';
+      });
+      html += '</tr>';
+    });
+    html += '</tbody></table>';
+    $('sensTable').innerHTML = html;
+
+    // schedule
+    var sch = '<table class="sched"><thead><tr><th>Mo</th><th>Phase</th><th>Build draw</th><th>Interest</th><th>Carry</th><th>Equity</th><th>Cumulative</th></tr></thead><tbody>';
+    for (var t = 0; t <= r.months; t++){
+      var phase = t === 0 ? 'Close' : t <= r.buildMonths ? 'Build' : 'Sell';
+      var draw = (t >= 1 && t <= r.buildMonths) ? r.drawPerMonth : 0;
+      var buildSpend = (t >= 1 && t <= r.buildMonths) ? L.buildTotal / r.buildMonths : 0;
+      var interest = r.interestByMonth[t] || 0;
+      if (r.interestMethod === 'flat') interest = (t === r.months ? L.interestTotal : 0);
+      var eq = r.flows[t];
+      if (t === r.months) eq -= (L.arv - L.sellCosts - r.loan); // show operating equity, not the sale
+      sch += '<tr><td>'+t+'</td><td>'+phase+'</td><td>'+(draw?fmtM(draw):'—')+'</td><td>'+(interest?fmtM(interest):'—')+
+             '</td><td>'+fmtM(calcInput.monthlyCarry)+'</td><td class="'+(eq<0?'cell-r':'cell-g')+'">'+fmtM(eq)+
+             '</td><td>'+fmtM(r.cumulative[t])+'</td></tr>';
+    }
+    sch += '</tbody></table>';
+    $('schedule').innerHTML = sch;
+
+    window._last = { input: calcInput, r: r, maxLand: maxLand };
+    try { localStorage.setItem('dmp_last_v1', JSON.stringify(calcInput)); } catch(e){}
+  }
+
+  /* ---------- events ---------- */
+  FIELDS.forEach(function(f){
+    var el = $(f); if (!el) return;
+    el.addEventListener('input', render);
+    el.addEventListener('change', render);
+  });
+
+  $('segMode').addEventListener('click', function(e){
+    var b = e.target.closest('button'); if (!b) return;
+    mode = b.dataset.mode;
+    [].forEach.call(this.children, function(c){ c.classList.toggle('on', c === b); });
+    render();
+  });
+  $('segType').addEventListener('click', function(e){
+    var b = e.target.closest('button'); if (!b) return;
+    state.dealType = b.dataset.type;
+    [].forEach.call(this.children, function(c){ c.classList.toggle('on', c === b); });
+    syncVisibility(); render();
+  });
+  ['swLoan','swPartner','swMethod'].forEach(function(id){
+    $(id).addEventListener('click', function(){ this.classList.toggle('on'); syncVisibility(); render(); });
+  });
+
+  $('btnPrint').addEventListener('click', function(){ window.print(); });
+  $('btnReset').addEventListener('click', function(){
+    state = E.normalize({}); mode = 'quick';
+    [].forEach.call($('segMode').children, function(c){ c.classList.toggle('on', c.dataset.mode === 'quick'); });
+    [].forEach.call($('segType').children, function(c){ c.classList.toggle('on', c.dataset.type === 'lot'); });
+    writeForm(); render(); toast('Reset to the sample deal');
+  });
+
+  function summaryText(){
+    var d = window._last, r = d.r;
+    return [
+      (state._name || 'Deal') + ' — MainMath',
+      'Sale ' + fmtM(r.lines.arv) + ' (' + fmtM(r.salePerSqft) + '/sf × ' + Math.round(r.inputs.buildableSqft) + ' sf)',
+      'Land ' + fmtM(r.inputs.purchasePrice) + ' · Build ' + fmtM(r.lines.buildTotal) + ' · All-in ' + fmtM(r.allInCost),
+      'Net profit ' + fmtM(r.profit) + ' (' + pct(r.margin) + ')',
+      'Cash needed ' + fmtM(r.peakEquity) + ' · Return ' + (r.irr===null?'—':pct(r.irr,0)) + ' annualized',
+      'Max lot price at ' + pct(r.inputs.targetMarginPct,0) + ' target: ' + fmtM(d.maxLand),
+      'Score ' + r.score.points + '/100 (' + r.score.grade + ') · ' + r.months + ' months'
+    ].join('\n');
+  }
+  $('btnCopy').addEventListener('click', function(){
+    var txt = summaryText();
+    if (navigator.clipboard) navigator.clipboard.writeText(txt).then(function(){ toast('Summary copied'); }, function(){ alert(txt); });
+    else alert(txt);
+  });
+  $('btnExport').addEventListener('click', function(){
+    var blob = new Blob([JSON.stringify({name: state._name || 'deal', inputs: readForm(), exported: new Date().toISOString()}, null, 2)], {type:'application/json'});
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = (state._name || 'mainmath').replace(/[^a-z0-9\-_ ]/gi,'').replace(/\s+/g,'-').toLowerCase() + '.json';
+    a.click(); URL.revokeObjectURL(a.href); toast('Exported');
+  });
+
+  var KEY = 'dmp_deals_v1';
+  function deals(){ try { return JSON.parse(localStorage.getItem(KEY) || '[]'); } catch(e){ return []; } }
+  function saveDeals(list){ localStorage.setItem(KEY, JSON.stringify(list)); }
+  $('btnSave').addEventListener('click', function(){
+    var name = $('dealName').value.trim() || ('Deal ' + new Date().toLocaleDateString());
+    var list = deals().filter(function(d){ return d.name !== name; });
+    var r = window._last.r;
+    list.unshift({ name: name, ts: Date.now(), inputs: readForm(),
+      snap: { margin: r.margin, profit: r.profit, cash: r.peakEquity, score: r.score.points } });
+    saveDeals(list); toast('Saved "' + name + '"');
+  });
+  $('btnSaved').addEventListener('click', function(){
+    var list = deals(), html = '';
+    if (!list.length) html = '<p style="color:#9C9A96">No saved deals yet.</p>';
+    list.forEach(function(d, idx){
+      html += '<div class="deal"><div><div class="n">'+d.name+'</div><div class="m">'+
+        pct(d.snap.margin)+' margin · '+fmtM(d.snap.profit)+' · score '+d.snap.score+'</div></div>'+
+        '<div style="display:flex;gap:6px"><button class="btn" data-load="'+idx+'">Load</button>'+
+        '<button class="btn ghost" data-del="'+idx+'">✕</button></div></div>';
+    });
+    $('savedList').innerHTML = html;
+    $('modalSaved').classList.add('show');
+  });
+  $('savedList').addEventListener('click', function(e){
+    var b = e.target.closest('button'); if (!b) return;
+    var list = deals();
+    if (b.dataset.load !== undefined){
+      var d = list[Number(b.dataset.load)];
+      state = E.normalize(d.inputs); state._name = d.name;
+      writeForm(); render(); $('modalSaved').classList.remove('show'); toast('Loaded "'+d.name+'"');
+    } else if (b.dataset.del !== undefined){
+      list.splice(Number(b.dataset.del), 1); saveDeals(list); $('btnSaved').click();
+    }
+  });
+  $('closeSaved').addEventListener('click', function(){ $('modalSaved').classList.remove('show'); });
+  [ 'modalSaved' ].forEach(function(id){
+    $(id).addEventListener('click', function(e){ if (e.target === this) this.classList.remove('show'); });
+  });
+
+  /* boot: last used inputs, else sample */
+  var lastRaw = null;
+  try { lastRaw = JSON.parse(localStorage.getItem('dmp_last_v1') || 'null'); } catch(e){}
+  if (lastRaw) state = E.normalize(lastRaw);
+  writeForm(); render();
+})();
+</script>
+
+<script>
+(function(){
+  var KEY='mm_lead_v1';
+  function $(id){return document.getElementById(id);}
+  var gate=$('gate');
+  function openGate(){gate.classList.add('show');setTimeout(function(){$('gName').focus();},120);}
+  function closeGate(){gate.classList.remove('show');}
+  var saved=null;try{saved=JSON.parse(localStorage.getItem(KEY)||'null');}catch(e){}
+  var heroBtn=$('heroOpen');
+  if(heroBtn)heroBtn.addEventListener('click',function(){
+    if(saved){$('resultsCard').scrollIntoView({behavior:'smooth',block:'start'});}
+    else openGate();
+  });
+  $('gSkip').addEventListener('click',function(){
+    closeGate();$('resultsCard').scrollIntoView({behavior:'smooth',block:'start'});
+  });
+  $('gateForm').addEventListener('submit',function(e){
+    e.preventDefault();
+    var name=$('gName').value.trim();
+    var email=$('gEmail').value.trim();
+    var err=$('gErr');
+    if(name.length<2||!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){err.style.display='block';return;}
+    err.style.display='none';
+    var deal=document.getElementById('dealName').value.trim()||'-';
+    try{localStorage.setItem(KEY,JSON.stringify({name:name,email:email,ts:new Date().toISOString()}));}catch(e2){}
+    // real form post through a hidden iframe — no CORS, works on any static host
+    $('relayName').value=name; $('relayEmail').value=email; $('relayDeal').value=deal;
+    try{$('leadRelay').submit();}catch(e3){}
+    closeGate();
+    $('resultsCard').scrollIntoView({behavior:'smooth',block:'start'});
+    var t=$('toast');t.textContent='You are in. Your numbers are live below.';
+    t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2800);
+  });
+  if(!saved) setTimeout(openGate, 900);
+})();
+</script>
+
+</body>
+</html>
