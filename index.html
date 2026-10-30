@@ -132,6 +132,15 @@
   .solver .k{font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--gold)}
   .solver .v{font-size:24px;font-weight:800;letter-spacing:-.7px;margin-top:2px}
   .solver .s{font-size:11.5px;color:#B9B4A6;margin-top:3px}
+  .trow{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:12px;padding-top:11px;
+    border-top:1px solid rgba(242,182,50,.22)}
+  .trow .lab{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--gold);margin-right:2px}
+  .trow .chip{background:rgba(242,182,50,.08);border:1px solid rgba(242,182,50,.28);color:#E8C57A;
+    border-radius:999px;padding:5px 10px;font-size:11.5px;font-weight:700;cursor:pointer}
+  .trow .chip.on{background:var(--gold);color:#100D05;border-color:var(--gold)}
+  .trow .inp{width:78px}
+  .trow input{padding:7px 10px;font-size:13.5px;border-radius:9px}
+  .trow .suf{right:9px;font-size:12px}
 
   table.grid{width:100%;border-collapse:collapse;font-size:11.5px;font-variant-numeric:tabular-nums}
   table.grid th,table.grid td{padding:6px 4px;text-align:right;border-bottom:1px solid rgba(255,255,255,.05)}
@@ -458,6 +467,14 @@
         <div class="k">Max lot price at target margin</div>
         <div class="v" id="solveLand">—</div>
         <div class="s" id="solveLandS">—</div>
+        <div class="trow">
+          <span class="lab">Profit target</span>
+          <button class="chip" data-t="15">15%</button>
+          <button class="chip on" data-t="20">20%</button>
+          <button class="chip" data-t="25">25%</button>
+          <button class="chip" data-t="30">30%</button>
+          <div class="inp has-suf"><input type="text" inputmode="decimal" autocomplete="off" id="targetInline" /><span class="suf">%</span></div>
+        </div>
       </div>
 
       <div style="margin-top:16px">
@@ -955,6 +972,13 @@
       ? 'Asking price is ' + fmtM(delta) + ' <b>above</b> the price that still hits ' + pct(calcInput.targetMarginPct,0) + '. You need the dirt at ' + fmtM(maxLand) + ' or less.'
       : 'You have ' + fmtM(-delta) + ' of room at ' + pct(calcInput.targetMarginPct,0) + ' target. Offer below ' + fmtM(maxLand) + ' and you are protected.');
 
+    // keep the inline profit-target control in sync
+    var ti = $('targetInline');
+    if (ti && document.activeElement !== ti) ti.value = prettyNum(calcInput.targetMarginPct);
+    [].forEach.call(document.querySelectorAll('.trow .chip'), function(c){
+      c.classList.toggle('on', Number(c.dataset.t) === Number(calcInput.targetMarginPct));
+    });
+
     // breakdown
     var bd = '';
     bd += row('Projected sale (ARV)', fmtM(L.arv), '', fmtM(r.salePerSqft)+'/sf × '+Math.round(calcInput.buildableSqft)+' sf');
@@ -1030,6 +1054,24 @@
       if (n !== null) el.value = prettyNum(n);
     });
   });
+
+  (function(){
+    var ti = $('targetInline');
+    if (ti) ti.addEventListener('input', function(){
+      var n = cleanNum(ti.value);
+      if (n === null) return;
+      $('targetMarginPct').value = n;
+      render();
+    });
+    [].forEach.call(document.querySelectorAll('.trow .chip'), function(c){
+      c.addEventListener('click', function(){
+        var t = Number(c.dataset.t);
+        $('targetMarginPct').value = t;
+        if ($('targetInline')) $('targetInline').value = t;
+        render();
+      });
+    });
+  })();
 
   $('segMode').addEventListener('click', function(e){
     var b = e.target.closest('button'); if (!b) return;
