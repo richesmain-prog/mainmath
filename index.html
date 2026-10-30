@@ -761,6 +761,9 @@
     var flows = opFlows.slice();
     flows[months] += arv - sellCosts - loan;              // sale closes at the end of the last month
 
+    var cumulative = [], runC = 0;
+    for (var c = 0; c < flows.length; c++) { runC += flows[c]; cumulative.push(runC); }
+
     var allInCost = i.purchasePrice + buyClosing + demo + buildTotal + points + fee + interestTotal + carryTotal;
     var totalCost = allInCost + sellCosts;
     var profit = arv - totalCost;
@@ -794,7 +797,7 @@
                points: points, fee: fee, interestTotal: interestTotal },
       loan: loan, loanBasis: basis, bindingCap: binding, loanToArv: arv > 0 ? loan / arv * 100 : null,
       t0Draw: t0Draw, drawPerMonth: drawPerMonth, interestByMonth: interestByMonth,
-      flows: flows, opFlows: opFlows,
+      flows: flows, opFlows: opFlows, cumulative: cumulative,
       months: months, buildMonths: i.buildMonths, sellMonths: i.sellMonths,
       allInCost: allInCost, totalCost: totalCost, profit: profit, margin: margin,
       grossSpread: grossSpread, cashInvested: invested, peakEquity: peakEquity,
