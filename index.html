@@ -500,7 +500,7 @@
 <div class="gate" id="gate">
   <div class="box">
     <h2>Get the calculator</h2>
-    <p>Tell me who you are and I'll send deal notes and new tools. No spam — and the tool is free either way.</p>
+    <p>This tool is free. Put your name and email in and it opens. I'll send deal notes and new tools — no spam, and I never sell your details.</p>
     <form id="gateForm" novalidate>
       <label for="gName">Your name</label>
       <input id="gName" name="name" autocomplete="given-name" placeholder="Rich" />
@@ -508,7 +508,6 @@
       <input id="gEmail" name="email" type="email" inputmode="email" autocomplete="email" placeholder="you@company.com" />
       <div class="err" id="gErr">Add your name and a real email.</div>
       <button type="submit">Show me the numbers</button>
-      <button type="button" class="skip" id="gSkip">Skip — take me to the calculator</button>
     </form>
     <p class="fine">Your details stay with Rich Main. Nothing is sold or shared.<br>
       Prefer email? <a href="mailto:rich@themainbuild.com" style="color:#B9B4A6">rich@themainbuild.com</a></p>
@@ -1099,16 +1098,13 @@
   var KEY='mm_lead_v1';
   function $(id){return document.getElementById(id);}
   var gate=$('gate');
-  function openGate(){gate.classList.add('show');setTimeout(function(){$('gName').focus();},120);}
-  function closeGate(){gate.classList.remove('show');}
+  function openGate(){gate.classList.add('show');document.body.style.overflow='hidden';setTimeout(function(){$('gName').focus();},120);}
+  function closeGate(){gate.classList.remove('show');document.body.style.overflow='';}
   var saved=null;try{saved=JSON.parse(localStorage.getItem(KEY)||'null');}catch(e){}
   var heroBtn=$('heroOpen');
   if(heroBtn)heroBtn.addEventListener('click',function(){
     if(saved){$('resultsCard').scrollIntoView({behavior:'smooth',block:'start'});}
     else openGate();
-  });
-  $('gSkip').addEventListener('click',function(){
-    closeGate();$('resultsCard').scrollIntoView({behavior:'smooth',block:'start'});
   });
   $('gateForm').addEventListener('submit',function(e){
     e.preventDefault();
@@ -1128,7 +1124,8 @@
     var t=$('toast');t.textContent='You are in. Your numbers are live below.';
     t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2800);
   });
-  // no auto-popup: the page opens straight into the calculator
+  // hard gate: no access until name + email are in (remembered on this device)
+  if(!saved) openGate();
 })();
 </script>
 
