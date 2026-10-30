@@ -839,6 +839,7 @@
   }
 
   /* ---------- solvers: null = no price reaches that target ---------- */
+  var MAX_LAND = 1e9;   // same ceiling normalize() applies to purchasePrice
   function irrOf(r, i) {
     var v = i.hasPartner ? r.myIrr : r.irr;
     return v === null || v === undefined || !isFinite(v) ? -1e12 : v;
@@ -854,11 +855,15 @@
       hi *= 2;
       if (++guard > 60 || !isFinite(hi)) return null;   // no finite ceiling exists
     }
+    if (hi > MAX_LAND) {
+      hi = MAX_LAND;
+      if (core(Object.assign({}, i, { purchasePrice: hi })).margin >= t) return MAX_LAND;
+    }
     for (var k = 0; k < 80; k++) {
       var mid = (lo + hi) / 2;
       if (core(Object.assign({}, i, { purchasePrice: mid })).margin >= t) lo = mid; else hi = mid;
     }
-    return (lo + hi) / 2;
+    return Math.min((lo + hi) / 2, MAX_LAND);
   }
 
   function maxLandForIrr(raw, targetIrrPct) {
@@ -878,12 +883,16 @@
       hi *= 2;
       if (++guard > 60 || !isFinite(hi)) return null;   // no finite ceiling exists
     }
+    if (hi > MAX_LAND) {
+      hi = MAX_LAND;
+      if (irrOf(core(Object.assign({}, i, { purchasePrice: hi })), i) >= t - 1e-6) return MAX_LAND;
+    }
     for (var k = 0; k < 80; k++) {
       var mid = (lo + hi) / 2;
       var r = core(Object.assign({}, i, { purchasePrice: mid }));
       if (irrOf(r, i) >= t - 1e-6) lo = mid; else hi = mid;
     }
-    return (lo + hi) / 2;
+    return Math.min((lo + hi) / 2, MAX_LAND);
   }
 
   function sensitivity(raw, spanPct) {
@@ -901,7 +910,7 @@
     return { sales: sales, rows: rows };
   }
 
-  var API = { DEFAULTS: DEFAULTS, normalize: normalize, run: run, core: core,
+  var API = { DEFAULTS: DEFAULTS, MAX_LAND: MAX_LAND, normalize: normalize, run: run, core: core,
               monthlyIrr: monthlyIrr, annualize: annualize, npv: npv,
               maxLandForMargin: maxLandForMargin, maxLandForIrr: maxLandForIrr,
               sensitivity: sensitivity, verdictFor: verdictFor, scoreDeal: scoreDeal };
@@ -981,6 +990,7 @@
     $('advA').classList.toggle('show', full);
     $('advB').classList.toggle('show', state.useLoan);
     $('advC').classList.toggle('show', state.hasPartner);
+    ['swLoan','swPartner','swMethod'].forEach(function(id){ var e = $(id); if (e) e.setAttribute('aria-checked', e.classList.contains('on') ? 'true' : 'false'); });
     $('demoField').style.display = state.dealType === 'teardown' ? 'block' : 'none';
     $('lblLand').textContent = state.dealType === 'teardown' ? 'House + lot price' : 'Lot purchase price';
     $('modeHint').textContent = full ? 'Full underwrite — every assumption is yours to set.' : 'Quick look — market averages fill the rest (soft 8%, contingency 6%, lender 80% LTC at 10.5% + 2 pts). Switch to Full underwrite to change them.';
@@ -1087,6 +1097,7 @@
           'Drop the target to ' + pct(Math.floor(ceiling), 0) + ' or lower, or change the build cost or sale price.';
     } else {
       $('solveLand').textContent = fmtM(maxLand);
+      if (maxLand >= E.MAX_LAND) { $('solveLandS').innerHTML += '<br><b>Above the $1B cap</b> — any land price up to $1B still clears this target.'; }
       $('solveLandS').innerHTML = (delta > 0
         ? 'Asking price is ' + fmtM(delta) + ' <b>above</b> the price that still hits ' + tpct(calcInput.targetMarginPct) + '. You need the dirt at ' + fmtM(maxLand) + ' or less.'
         : 'You have ' + fmtM(-delta) + ' of room at ' + tpct(calcInput.targetMarginPct) + ' target. Offer below ' + fmtM(maxLand) + ' and you are protected.');
@@ -1153,13 +1164,12 @@
     // schedule
     var sch = '<table class="sched"><thead><tr><th>Mo</th><th>Phase</th><th>Build draw</th><th>Interest</th><th>Carry</th><th>Equity</th><th>Cumulative</th></tr></thead><tbody>';
     for (var t = 0; t <= r.months; t++){
-      var phase = t === 0 ? 'Close' : t <= r.buildMonths ? 'Build' : 'Sell';
+      var phase = t === 0 ? 'Close' : t <= r.buildMonths ? 'Build' : (t === r.months ? 'Sell + close' : 'Sell');
       var draw = (t >= 1 && t <= r.buildMonths) ? r.drawPerMonth : 0;
       var buildSpend = (t >= 1 && t <= r.buildMonths) ? L.buildTotal / r.buildMonths : 0;
       var interest = (t >= 1 ? (r.interestByMonth[t - 1] || 0) : 0);
       if (r.interestMethod === 'flat') interest = (t === r.months ? L.interestTotal : 0);
-      var eq = r.flows[t];
-      if (t === r.months) eq -= (L.arv - L.sellCosts - r.loan); // show operating equity, not the sale
+      var eq = r.flows[t];   // the last month includes the sale receipt, so Cumulative reconciles
       sch += '<tr><td>'+t+'</td><td>'+phase+'</td><td>'+(draw?fmtM(draw):'—')+'</td><td>'+(interest?fmtM(interest):'—')+
              '</td><td>'+fmtM(calcInput.monthlyCarry)+'</td><td class="'+(eq<0?'cell-r':'cell-g')+'">'+fmtM(eq)+
              '</td><td>'+fmtM(r.cumulative[t])+'</td></tr>';
@@ -1168,7 +1178,11 @@
     $('schedule').innerHTML = sch;
 
     window._last = { input: calcInput, r: r, maxLand: maxLand };
-    try { localStorage.setItem('dmp_last_v1', JSON.stringify(mode === 'full' ? calcInput : state)); } catch(e){}
+    try {
+      var snap = Object.assign({}, mode === 'full' ? calcInput : state);
+      snap._name = ($('dealName').value || '').trim();
+      localStorage.setItem('dmp_last_v1', JSON.stringify(snap));
+    } catch(e){}
   }
 
   /* ---------- events ---------- */
@@ -1245,6 +1259,13 @@
     });
   });
 
+  ['swLoan','swPartner','swMethod'].forEach(function(id){
+    var el = $(id);
+    el.tabIndex = 0; el.setAttribute('role','switch');
+    el.addEventListener('keydown', function(e){
+      if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); el.click(); }
+    });
+  });
   $('btnPrint').addEventListener('click', function(){ window.print(); });
   $('btnReset').addEventListener('click', function(){
     state = E.normalize({}); mode = 'quick'; try { localStorage.setItem('dmp_mode_v1','quick'); } catch(e){}
@@ -1301,6 +1322,7 @@
   function saveDeals(list){ localStorage.setItem(KEY, JSON.stringify(list)); }
   $('btnSave').addEventListener('click', function(){
     var name = $('dealName').value.trim() || ('Deal ' + new Date().toLocaleDateString());
+    state._name = name;
     var list = deals().filter(function(d){ return d.name !== name; });
     var r = window._last.r;
     list.unshift({ name: name, ts: Date.now(), mode: mode, inputs: readForm(),
@@ -1349,7 +1371,9 @@
       [].forEach.call($('segMode').children, function(c){ c.classList.toggle('on', c.dataset.mode === 'full'); });
     }
   } catch(e){}
-  syncType(); writeForm(); render();
+  syncType(); writeForm();
+  if (lastRaw && lastRaw._name) $('dealName').value = lastRaw._name;
+  render();
 })();
 </script>
 
@@ -1363,7 +1387,7 @@
   var saved=null;try{saved=JSON.parse(localStorage.getItem(KEY)||'null');}catch(e){}
   var heroBtn=$('heroOpen');
   if(heroBtn)heroBtn.addEventListener('click',function(){
-    try{saved=JSON.parse(localStorage.getItem(KEY)||'null');}catch(e){}
+    try{var st=localStorage.getItem(KEY); if(st) saved=JSON.parse(st);}catch(e){}
     if(saved){$('resultsCard').scrollIntoView({behavior:'smooth',block:'start'});}
     else openGate();
   });
@@ -1386,6 +1410,14 @@
     $('resultsCard').scrollIntoView({behavior:'smooth',block:'start'});
     var t=$('toast');t.textContent='You are in. Your numbers are live below.';
     t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2800);
+  });
+  document.addEventListener('keydown',function(e){
+    if(e.key!=='Tab'||!gate.classList.contains('show'))return;
+    var f=[].slice.call(gate.querySelectorAll('input,button,a[href]')).filter(function(el){return !el.disabled;});
+    if(!f.length)return;
+    var first=f[0],last=f[f.length-1];
+    if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}
+    else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
   });
   // hard gate: no access until name + email are in (remembered on this device)
   if(!saved) openGate();
