@@ -1259,6 +1259,13 @@
     });
   });
 
+  if ($('dealName')) $('dealName').addEventListener('input', function(){
+    try {
+      var raw = JSON.parse(localStorage.getItem('dmp_last_v1') || 'null') || {};
+      raw._name = this.value.trim();
+      localStorage.setItem('dmp_last_v1', JSON.stringify(raw));
+    } catch(e){}
+  });
   ['swLoan','swPartner','swMethod'].forEach(function(id){
     var el = $(id);
     el.tabIndex = 0; el.setAttribute('role','switch');
