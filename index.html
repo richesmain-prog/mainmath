@@ -940,11 +940,8 @@
       warns.push('<b>Lot price looks like a typo.</b> The model is pricing ' + fmtM(calcInput.purchasePrice) +
         ' for the dirt against a ' + fmtM(arvNow) + ' sale. The math below is correct — but it is underwriting a free lot.');
     }
-    if (r.margin > 55) {
+    if (r.margin > 60) {
       warns.push('<b>' + pct(r.margin, 0) + ' margin is not a real-world number.</b> Recheck your build cost per foot and your sale comps before you believe it.');
-    }
-    if ((r.irr || 0) > 300) {
-      warns.push('<b>' + (r.irr || 0).toFixed(0) + '% annualized is a red flag.</b> Returns this high almost always mean one of the inputs is off.');
     }
     var wb = $('warnBox');
     if (warns.length) { wb.innerHTML = warns.join('<br><br>'); wb.style.display = 'block'; }
