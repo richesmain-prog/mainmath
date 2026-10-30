@@ -926,11 +926,18 @@
 
   // numbers arrive with commas, dollar signs, spaces — strip them before parsing
   function cleanNum(raw){
-    var t = String(raw == null ? '' : raw).replace(/[^0-9.\-]/g, '');
-    if (t === '' || t === '-' || t === '.') return null;
-    var n = Number(t);
+    var t = String(raw == null ? '' : raw).trim().replace(/[$,\s]/g, '');
+    if (t === '') return null;
+    // accepts 1200000, 1,200,000, $1.2m, 850k, 1.5e6 — anything else keeps the previous value
+    var m = t.match(/^(-?\d*\.?\d+)([eE][-+]?\d+)?([mMkK])?$/);
+    if (!m) return null;
+    var n = parseFloat(m[1] + (m[2] || ''));
+    var suf = (m[3] || '').toLowerCase();
+    if (suf === 'm') n *= 1e6;
+    if (suf === 'k') n *= 1e3;
     return isFinite(n) ? n : null;
   }
+  function tpct(v){ var d = Math.abs(v - Math.round(v)) < 0.05 ? 0 : 1; return pct(v, d); }
   function prettyNum(n){
     if (!isFinite(n)) return '';
     return Number(n).toLocaleString('en-US', { maximumFractionDigits: 4 });
@@ -1051,8 +1058,10 @@
         ' for the dirt against a ' + fmtM(arvNow) + ' sale. The math below is correct — but it is underwriting a free lot.');
     }
     if (unreachable) {
-      warns.push('<b>Your profit target is above what the deal can produce.</b> At a ' + pct(calcInput.targetMarginPct,0) +
-        ' target there is no lot price that works — a free lot only gets you ' + pct(ceiling) + '.');
+      warns.push(ceiling === null
+        ? '<b>There is no sale price yet.</b> Add a sale $/sf and the target check will run.'
+        : '<b>Your profit target is above what the deal can produce.</b> At a ' + tpct(calcInput.targetMarginPct) +
+          ' target there is no lot price that works — a free lot only gets you ' + pct(ceiling) + '.');
     }
     if (arvNow <= 0) {
       warns.push('<b>Sale price is zero.</b> Put a $/sqft sale price in before you read anything below.');
@@ -1079,8 +1088,8 @@
     } else {
       $('solveLand').textContent = fmtM(maxLand);
       $('solveLandS').innerHTML = (delta > 0
-        ? 'Asking price is ' + fmtM(delta) + ' <b>above</b> the price that still hits ' + pct(calcInput.targetMarginPct,0) + '. You need the dirt at ' + fmtM(maxLand) + ' or less.'
-        : 'You have ' + fmtM(-delta) + ' of room at ' + pct(calcInput.targetMarginPct,0) + ' target. Offer below ' + fmtM(maxLand) + ' and you are protected.');
+        ? 'Asking price is ' + fmtM(delta) + ' <b>above</b> the price that still hits ' + tpct(calcInput.targetMarginPct) + '. You need the dirt at ' + fmtM(maxLand) + ' or less.'
+        : 'You have ' + fmtM(-delta) + ' of room at ' + tpct(calcInput.targetMarginPct) + ' target. Offer below ' + fmtM(maxLand) + ' and you are protected.');
     }
 
     // second ceiling: the same deal measured on annual return instead of margin
@@ -1256,7 +1265,7 @@
       'Land ' + fmtM(r.inputs.purchasePrice) + ' \u00b7 Build ' + fmtM(r.lines.buildTotal) + ' \u00b7 All-in ' + fmtM(r.allInCost),
       (p ? 'My profit ' : 'Net profit ') + fmtM(profit) + ' (' + pct(p ? (r.myCash > 0 ? r.myProfit / r.myCash * 100 : null) : r.margin) + (p ? ' on my cash' : ' margin') + ')',
       'Cash ' + fmtM(cash) + ' \u00b7 Return ' + (ret === null ? '\u2014' : pct(ret, 0)) + ' annualized',
-      'Max lot price at ' + pct(r.inputs.targetMarginPct, 0) + ' target: ' + (d.maxLand === null ? 'no price works' : fmtM(d.maxLand)),
+      'Max lot price at ' + tpct(r.inputs.targetMarginPct) + ' target: ' + (d.maxLand === null ? 'no price works' : fmtM(d.maxLand)),
       'Score ' + r.score.points + '/100 (' + r.score.grade + ') \u00b7 ' + r.months + ' months'
     ].join('\n');
   }
