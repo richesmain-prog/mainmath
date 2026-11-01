@@ -175,6 +175,17 @@
   .deal .n{font-size:13px;font-weight:700}
   .deal .m{font-size:11px;color:var(--mut)}
   .printonly{display:none}
+  /* ---- field help (?) ---- */
+  .field label .lw{display:inline-flex;align-items:center}
+  .qh{position:relative;display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;
+    margin-left:6px;border-radius:50%;border:1px solid rgba(242,182,50,.45);background:transparent;
+    color:var(--gold);font-family:inherit;font-size:10.5px;font-weight:700;line-height:1;cursor:pointer;padding:0;flex:none}
+  .qh::before{content:'';position:absolute;inset:-12px}
+  .qh:hover,.qh[aria-expanded="true"]{background:var(--gold);color:#100D05}
+  .qh:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+  .help{font-size:12px;line-height:1.45;color:var(--txt);background:rgba(242,182,50,.07);
+    border:1px solid rgba(242,182,50,.25);border-radius:10px;padding:8px 10px;margin:0 0 6px}
+  .help[hidden]{display:none}
 
   /* ---- community page ---- */
   .chero{padding:34px 0 6px;max-width:780px}
@@ -221,7 +232,7 @@
   @media print{
     .chero,.how,.hero,.printonly{display:none!important}
     .printonly{display:block!important;font-size:16px;font-weight:800;margin:0 0 10px}
-    header,.btn,.seg,.modal,.toast,#inputsCard{display:none!important}
+    header,.btn,.seg,.modal,.toast,#inputsCard,.qh,.help{display:none!important}
     body{background:#fff;color:#000}
     .card{break-inside:avoid;border-color:#ddd}
     .cols{grid-template-columns:1fr}
@@ -260,7 +271,7 @@
     <div class="steps">
       <div class="step"><div class="n">1</div><b>Lot price</b><span>What they are asking for the dirt. House + lot if it is a tear-down.</span></div>
       <div class="step"><div class="n">2</div><b>Home size</b><span>The square feet you would actually build.</span></div>
-      <div class="step"><div class="n">3</div><b>Build $/sqft</b><span>Your all-in hard cost. Use a real bid, not a wish.</span></div>
+      <div class="step"><div class="n">3</div><b>Build $/sqft</b><span>Your hard cost per heated sqft, garage and porches included. Use a real bid, not a wish.</span></div>
       <div class="step"><div class="n">4</div><b>Sale $/sqft</b><span>What finished homes sell for nearby, from sold comps.</span></div>
       <div class="step"><div class="n">5</div><b>Read the gold box</b><span>Max lot price is your ceiling. Offer below it, never above.</span></div>
       <div class="step"><div class="n">+</div><b>Full Underwrite</b><span>Open it to change soft costs, contingency, permits, loan terms, partner split.</span></div>
@@ -272,7 +283,7 @@
       <p><b>Net margin</b> — profit divided by sale price. Under 20% on a spec build is thin.<br>
       <b>Cash you need</b> — the most money that has to leave your pocket at any point, interest included.<br>
       <b>Max lot price</b> — the highest offer that still hits your target margin. This is the negotiation number.<br>
-      <b>All-in $/sf</b> — every cost divided by finished square feet. Compare it to the sale $/sf. That spread is the deal.</p>
+      <b>All-in $/sf</b> — every cost except selling costs, divided by heated square feet. Compare it to the sale $/sf. That spread, before selling costs, is the deal.</p>
     </details>
   </section>
 </div>
@@ -318,11 +329,11 @@
 
       <div class="two">
         <div class="field">
-          <label id="lblLand">Lot purchase price</label>
+          <label id="lblLand"><span class="lt">Lot purchase price</span></label>
           <div class="inp has-pre"><span class="pre">$</span><input type="text" inputmode="decimal" autocomplete="off" id="purchasePrice" step="1000" /></div>
         </div>
         <div class="field">
-          <label>Buildable sqft</label>
+          <label>Buildable sqft <span class="tag">heated area</span></label>
           <div class="inp"><input type="text" inputmode="decimal" autocomplete="off" id="buildableSqft" step="50" /></div>
         </div>
       </div>
@@ -904,25 +915,55 @@
   /* Scan for the highest land price that still clears the target.
      A scan, not a bisection, because personal IRR is not guaranteed monotone
      once the profit and cash shares differ. */
+  /* Land prices where the financing changes shape. Cash at risk starts from zero
+     right after these, so a feasible window can be narrow there and a plain grid
+     can step over it. */
+  function landKinks(i) {
+    if (!i.useLoan || !(i.ltcPct > 0)) return [];
+    var hard = i.buildableSqft * i.buildCostPerSqft;
+    var soft = hard * i.softCostPct / 100;
+    var cont = (hard + soft) * i.contingencyPct / 100;
+    var demo = i.dealType === 'teardown' ? i.demoCost : 0;
+    var carry = i.includeCarryInBasis ? i.monthlyCarry * (i.buildMonths + i.sellMonths + 1) : 0;
+    var otherBasis = demo + hard + soft + cont + i.permitFees + carry;
+    var capLoan = i.buildableSqft * i.salePerSqft * i.maxLtvPct / 100;
+    var out = [];
+    var kLtv = capLoan / (i.ltcPct / 100) - otherBasis;  // LTV cap starts to bind
+    var kDraw = capLoan / (i.ltcPct / 100) - demo;       // closing draw reaches the whole loan
+    [kLtv, kDraw].forEach(function (k) {
+      if (isFinite(k) && k > 0 && k < MAX_LAND) out.push(k, k * (1 + 1e-9) + 1e-3, k + 1, k * 1.0001 + 1);
+    });
+    return out;
+  }
+
+  /* Scan for the highest land price that still clears the target.
+     A scan, not a bisection, because personal IRR is not guaranteed monotone
+     once the profit and cash shares differ. The scan covers $0 to the cap,
+     log-spaced from $1, plus the financing kinks above. */
   function maxLandForIrr(raw, targetIrrPct) {
     var i = normalize(raw);
     var t = targetIrrPct === undefined ? i.targetIrrPct : num(targetIrrPct);
-    var N = 80, LO = 100, HI = MAX_LAND, lastGood = null, best = null;
+    var N = 240, LO = 1, HI = MAX_LAND, pts = [0];
+    for (var k = 0; k <= N; k++) pts.push(LO * Math.pow(HI / LO, k / N));
+    pts = pts.concat(landKinks(i)).sort(function (a, b) { return a - b; });
 
-    for (var k = 0; k <= N; k++) {
-      var price = LO * Math.pow(HI / LO, k / N);       // log-spaced: $100 -> $1B
-      if (irrProbe(price, i) >= t - 1e-6) { lastGood = price; continue; }
-      if (lastGood !== null) {
-        var lo = lastGood, hi = price;                  // refine this crossing
-        for (var j = 0; j < 50; j++) {
+    var ok = function (p) { return irrProbe(p, i) >= t - 1e-6; };
+    var best = null, prevGood = null;
+    for (var m = 0; m < pts.length; m++) {
+      var price = pts[m];
+      if (m > 0 && price === pts[m - 1]) continue;
+      if (ok(price)) { prevGood = price; continue; }
+      if (prevGood !== null) {
+        var lo = prevGood, hi = price;                  // refine this crossing
+        for (var j = 0; j < 60; j++) {
           var mid = (lo + hi) / 2;
-          if (irrProbe(mid, i) >= t - 1e-6) lo = mid; else hi = mid;
+          if (ok(mid)) lo = mid; else hi = mid;
         }
-        best = (lo + hi) / 2;                           // remember it; a later crossing can be higher
-        lastGood = null;
+        if (best === null || lo > best) best = lo;      // a later crossing can be higher
+        prevGood = null;
       }
     }
-    if (lastGood !== null) return MAX_LAND;             // still clearing at the cap
+    if (prevGood !== null) return MAX_LAND;             // still clearing at the cap
     return best;                                        // highest crossing found, or null
   }
 
@@ -1029,7 +1070,7 @@
     $('advC').classList.toggle('show', state.hasPartner);
     ['swLoan','swPartner','swMethod'].forEach(function(id){ var e = $(id); if (e) e.setAttribute('aria-checked', e.classList.contains('on') ? 'true' : 'false'); });
     $('demoField').style.display = state.dealType === 'teardown' ? 'block' : 'none';
-    $('lblLand').textContent = state.dealType === 'teardown' ? 'House + lot price' : 'Lot purchase price';
+    $('lblLand').querySelector('.lt').textContent = state.dealType === 'teardown' ? 'House + lot price' : 'Lot purchase price';
     $('modeHint').textContent = full ? 'Full underwrite — every assumption is yours to set.'
       : 'Quick look — market averages for soft 8%, contingency 6%, permits $25k, buy closing 1.5%, carry $1,200/mo, lender 80% LTC / 72% LTV at 10.5% + 2 pts + $4,500 fee, selling 6%, $60k demo on a tear-down'
         + (state.useLoan ? '' : ' Loan off (all cash).')
@@ -1258,6 +1299,92 @@
     var lab = field ? field.querySelector('label') : null;
     if (lab && !lab.getAttribute('for')) lab.setAttribute('for', f);
   });
+
+  /* ---------- field help: a (?) next to each label ---------- */
+  var HELP = {
+    purchasePrice: function(){ return state.dealType === 'teardown'
+      ? 'What you pay for the existing house and lot together. Closing costs go in <b>Buy closing costs</b> and the tear-down goes in <b>Demolition cost</b>. Don’t add them here.'
+      : 'What you pay for the lot. Closing costs go in <b>Buy closing costs</b>, so don’t add them here.'; },
+    buildableSqft: 'Heated living area only. <b>Don’t</b> count the garage, porches or patios, because comps sell on living area. Their cost goes into build cost per sqft.',
+    buildCostPerSqft: 'Your total hard construction cost divided by the <b>heated</b> sqft. Include everything the builder builds: garage, porches, site work, pool and finishes. Example: $1,425,000 total build ÷ 5,000 heated sqft = $285. Don’t include soft costs, permits or contingency. Those are entered separately.',
+    salePerSqft: 'What similar finished new builds nearby sold for, per <b>heated</b> sqft (sale price ÷ living area). Your sale price = this × heated sqft.',
+    buildMonths: 'Months from the start of construction to the certificate of occupancy. Construction costs and loan draws are spread evenly over these months.',
+    sellMonths: 'Months the finished house sits before the sale closes: listing, showings and escrow. Carry and interest keep running. Enter 0 if it’s pre-sold.',
+    softCostPct: 'Architect, engineering, design, surveys and other non-construction costs, as a % of hard cost.',
+    contingencyPct: 'A cushion for overruns, as a % of hard plus soft costs. 5–10% is typical.',
+    permitFees: 'Building permits plus impact fees and utility tap or connection fees, in dollars.',
+    buyClosingPct: 'Title, escrow and recording costs when you buy, as a % of the purchase price.',
+    monthlyCarry: 'Property taxes, builder’s risk insurance and utilities per month while you own it, from the month you close until the sale closes. Don’t include loan interest. It’s calculated separately.',
+    sellingCostPct: 'Agent commissions, seller closing costs and buyer concessions, as a % of the sale price.',
+    demoCost: 'Cost to tear down and haul away the existing house, including abatement and utility disconnects.',
+    ltcPct: 'The % of your cost the lender will fund. Cost = land + demo + hard + soft + contingency + permits. Your loan is the smaller of this and max loan to ARV.',
+    maxLtvPct: 'The lender’s cap as a % of ARV (after-repair value, meaning the finished sale price). If this is lower than loan to cost, it sets your loan size.',
+    ratePct: 'Annual interest rate on the loan.',
+    pointsPct: 'Upfront lender charge as a % of the loan amount. 2 points = 2% of the loan.',
+    lenderFee: 'Flat lender charges in dollars, such as underwriting, document prep and draw inspections.',
+    myProfitShare: 'The % of the profit you keep. The rest goes to your partner.',
+    myCashShare: 'The % of the cash going into the deal that you put up yourself.',
+    targetMarginPct: 'Your minimum net profit as a % of the sale price. It sets the deal verdict and the max lot price.',
+    targetIrrPct: 'Your minimum annual return (IRR) on the cash you put in. It sets the max lot price at that return.'
+  };
+  function closeHelp(except){
+    [].forEach.call(document.querySelectorAll('.qh[aria-expanded="true"]'), function(b){
+      if (b === except) return;
+      b.setAttribute('aria-expanded', 'false');
+      var p = $(b.getAttribute('aria-controls')); if (p) p.hidden = true;
+    });
+  }
+  Object.keys(HELP).forEach(function(f){
+    var el = $(f); if (!el || !el.closest) return;
+    var field = el.closest('.field'), lab = field ? field.querySelector('label') : null;
+    if (!lab) return;
+    // wrap the label's own text so the (?) sits right after it, not out by the tag
+    var wrap = document.createElement('span'); wrap.className = 'lw';
+    var first = lab.firstChild;
+    if (first && first.nodeType === 3) { first.nodeValue = first.nodeValue.replace(/\s+$/, ''); wrap.appendChild(first); }
+    else if (first && first.classList && first.classList.contains('lt')) wrap.appendChild(first);
+    lab.insertBefore(wrap, lab.firstChild);
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'qh'; b.textContent = '?';
+    b.setAttribute('aria-expanded', 'false'); b.setAttribute('aria-controls', 'help-' + f);
+    b.setAttribute('aria-label', 'What goes in this field?');
+    wrap.appendChild(b);
+    var panel = document.createElement('div');
+    panel.className = 'help'; panel.id = 'help-' + f; panel.hidden = true;
+    lab.parentNode.insertBefore(panel, lab.nextSibling);
+    b.addEventListener('click', function(e){
+      e.preventDefault(); e.stopPropagation();          // don't let the label focus the input
+      var open = b.getAttribute('aria-expanded') === 'true';
+      closeHelp(b);
+      if (open) { b.setAttribute('aria-expanded', 'false'); panel.hidden = true; return; }
+      var h = HELP[f]; panel.innerHTML = typeof h === 'function' ? h() : h;
+      b.setAttribute('aria-expanded', 'true'); panel.hidden = false;
+    });
+  });
+  document.addEventListener('keydown', function(e){
+    if (e.key !== 'Escape') return;
+    var open = document.querySelector('.qh[aria-expanded="true"]');
+    if (open) { closeHelp(); open.focus(); }
+  });
+  document.addEventListener('click', function(e){
+    if (e.target.closest && (e.target.closest('.help') || e.target.closest('.qh'))) return;
+    closeHelp();
+  });
+
+  /* ---------- tap a number field: whole value selected, so typing replaces it ---------- */
+  FIELDS.concat(['targetInline']).forEach(function(f){
+    var el = $(f); if (!el) return;
+    var fresh = false;
+    function selAll(){
+      if (document.activeElement !== el) return;
+      try { el.setSelectionRange(0, el.value.length); } catch(_) { el.select(); }
+    }
+    el.addEventListener('focus', function(){ fresh = true; setTimeout(selAll, 0); });
+    // the mouseup / touchend that finishes the tap would drop a caret and undo the selection
+    el.addEventListener('mouseup', function(e){ if (fresh) { e.preventDefault(); fresh = false; } });
+    el.addEventListener('touchend', function(){ if (fresh) { fresh = false; setTimeout(selAll, 0); } });
+    el.addEventListener('blur', function(){ fresh = false; });
+  });
   function paintPressed(){
     [].forEach.call(document.querySelectorAll('#segMode button,#segType button,.trow .chip'), function(b){
       b.setAttribute('aria-pressed', b.classList.contains('on') ? 'true' : 'false');
@@ -1282,11 +1409,12 @@
       var norm = E.normalize(state);      // show the value the engine will actually use
       el.value = prettyNum(norm[f]);
       state[f] = norm[f];
+      el.classList.remove('clamped'); el.title = '';   // the box now shows what is used
       render();
     });
   });
 
-  $('advDetails').addEventListener('focusin', function(){ if (mode === 'quick') setMode('full'); });
+  $('advDetails').addEventListener('focusin', function(e){ if (e.target && e.target.classList && e.target.classList.contains('qh')) return; if (mode === 'quick') setMode('full'); });
   (function(){
     var ti = $('targetInline');
     if (ti) ti.addEventListener('input', function(){
@@ -1294,12 +1422,16 @@
       if (n === null) return;
       $('targetMarginPct').value = n;
       render();
+      var used = E.normalize(Object.assign({}, state, { targetMarginPct: n })).targetMarginPct;
+      if (Math.abs(n - used) > 1e-9) { ti.classList.add('clamped'); ti.title = 'Using ' + prettyNum(used) + ' — out of range'; }
+      else { ti.classList.remove('clamped'); ti.title = ''; }
     });
     if (ti) ti.addEventListener('blur', function(){
       var n = cleanNum(ti.value);
       var v = E.normalize(Object.assign({}, state, { targetMarginPct: n === null ? state.targetMarginPct : n })).targetMarginPct;
       v = Math.round(v * 10000) / 10000;
       ti.value = prettyNum(v);
+      ti.classList.remove('clamped'); ti.title = '';
       state.targetMarginPct = v;
       $('targetMarginPct').value = v;
       render();
