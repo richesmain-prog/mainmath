@@ -82,7 +82,7 @@
   .inp{position:relative;display:flex;align-items:center}
   .inp .pre,.inp .suf{position:absolute;font-size:13px;color:#6f6e6a;pointer-events:none}
   .inp .pre{left:11px} .inp .suf{right:11px}
-  input[type=number],input[type=text],select{
+  input[type=number],input[type=text],input[type=date],select{
     width:100%;background:#0E0E11;border:1px solid var(--line);border-radius:11px;
     color:var(--txt);padding:11px 12px;font-size:15px;font-weight:600;font-variant-numeric:tabular-nums;
     outline:none;-moz-appearance:textfield}
@@ -141,7 +141,7 @@
     border-radius:999px;padding:5px 10px;font-size:11.5px;font-weight:700;cursor:pointer;min-height:40px;min-width:52px}
   .trow .chip.on,.trow .vchip.on{background:var(--gold);color:#100D05;border-color:var(--gold)}
   /* the two main tabs: big, raised, each in its own color (gold = spec, blue = hire a GC) */
-  #segTab{gap:12px;grid-template-columns:repeat(3,1fr)}
+  #segTab{gap:12px;grid-template-columns:repeat(4,1fr)}
   #segTab button{--c:242,182,50;display:flex;align-items:center;gap:13px;padding:15px 16px;font-size:13.5px;border-radius:16px;
     color:#B8B5AE;border-color:rgba(var(--c),.32);
     background:linear-gradient(135deg,rgba(var(--c),.15),rgba(var(--c),.03) 62%),var(--panel2);
@@ -149,6 +149,7 @@
     transition:transform .12s,box-shadow .12s,border-color .12s,background .12s}
   #segTab button[data-tab="contract"]{--c:125,211,252}
   #segTab button[data-tab="lender"]{--c:52,211,153}
+  #segTab button[data-tab="loi"]{--c:196,181,253}
   #segTab button b{font-size:17px;margin-bottom:3px;color:rgb(var(--c))}
   #segTab .ti{flex:none;width:44px;height:44px;border-radius:13px;display:flex;align-items:center;justify-content:center;
     background:rgba(var(--c),.16);color:rgb(var(--c));transition:background .12s,color .12s}
@@ -159,13 +160,29 @@
     box-shadow:0 8px 30px rgba(var(--c),.3),inset 0 1px 0 rgba(255,255,255,.12)}
   #segTab button.on .ti{background:rgb(var(--c));color:#0B0B0D}
   #segTab button:focus-visible{outline:2px solid rgb(var(--c));outline-offset:2px}
-  @media (max-width:820px){ #segTab button{flex-direction:column;align-items:flex-start;gap:9px} }
-  @media (max-width:520px){      /* three across on a phone: icon and name only */
-    #segTab{gap:8px}
+  @media (max-width:1080px){ #segTab button{flex-direction:column;align-items:flex-start;gap:9px} }
+  @media (max-width:520px){      /* two by two on a phone: icon and name only */
+    #segTab{gap:8px;grid-template-columns:1fr 1fr}
     #segTab button{padding:12px 10px;align-items:center;text-align:center}
     #segTab button>span:last-child{font-size:0}
     #segTab button b{font-size:13.5px;margin:0} #segTab .ti{width:36px;height:36px;border-radius:11px}
   }
+  /* LOI + due diligence tab */
+  input[type=date]{color-scheme:dark;font-size:14px}
+  .chk{display:flex;gap:10px;align-items:flex-start;width:100%;text-align:left;background:var(--panel2);border:1px solid var(--line);
+    border-radius:12px;padding:10px 11px;color:var(--txt);cursor:pointer;font:inherit}
+  .chk .bx{flex:none;width:20px;height:20px;border-radius:6px;border:1.5px solid #55545a;margin-top:1px;display:flex;
+    align-items:center;justify-content:center;font-size:13px;font-weight:800;color:transparent}
+  .chk.on{border-color:rgba(196,181,253,.5);background:rgba(196,181,253,.07)}
+  .chk.on .bx{background:#C4B5FD;border-color:#C4B5FD;color:#100D05}
+  .chk b{display:block;font-size:13px;font-weight:600}
+  .chk span.d{display:block;font-size:11.5px;color:var(--mut);margin-top:2px;line-height:1.4}
+  .chk:focus-visible{outline:2px solid #C4B5FD;outline-offset:2px}
+  .ddgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+  @media (max-width:760px){ .ddgrid{grid-template-columns:1fr} }
+  .letter{white-space:pre-wrap;font:12.5px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;background:#0E0E11;border:1px solid var(--line);
+    border-radius:12px;padding:13px;margin:0;max-height:440px;overflow:auto;color:#DAD7D1}
+  .miss{font-size:12px;color:#F6D2D2;margin:6px 0 0;line-height:1.5}
   /* contract pricing tab */
   .mgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}
   @media (max-width:620px){ .mgrid{grid-template-columns:1fr} }
@@ -267,7 +284,8 @@
   @media print{
     .chero,.how,.hero,.printonly{display:none!important}
     .printonly{display:block!important;font-size:16px;font-weight:800;margin:0 0 10px}
-    header,.btn,.seg,.modal,.toast,#inputsCard,#cInputs,#lInputs,.qh,.help{display:none!important}
+    header,.btn,.seg,.modal,.toast,#inputsCard,#cInputs,#lInputs,#oInputs,#ddCard,.qh,.help{display:none!important}
+    .letter{max-height:none;border:0;padding:0;color:#000;background:#fff}
     body{background:#fff;color:#000}
     .card{break-inside:avoid;border-color:#ddd}
     .cols{grid-template-columns:1fr}
@@ -329,6 +347,7 @@
     <button data-tab="spec" class="on"><span class="ti"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg></span><span><b>Spec Build</b>Buy the lot, build it, sell it</span></button>
     <button data-tab="contract"><span class="ti"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 18h18"/><path d="M5 18v-3a7 7 0 0 1 14 0v3"/><path d="M10 8.3V5h4v3.3"/></svg></span><span><b>Hire a GC</b>You own it, a GC builds it: cost-plus, GMP, lump sum, design-build</span></button>
     <button data-tab="lender"><span class="ti"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10l9-6 9 6"/><path d="M5 10v8M9.5 10v8M14.5 10v8M19 10v8"/><path d="M3 20h18"/></svg></span><span><b>Lender Terms</b>What your lender charges: loan size, cash at closing, cost of the money</span></button>
+    <button data-tab="loi"><span class="ti"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 14l2 2 4-4"/></svg></span><span><b>LOI &amp; Due Diligence</b>Tie up the land: your offer letter, your outs, and what to check before you close</span></button>
   </div>
 
   <div class="printonly" id="printHead"></div>
@@ -754,6 +773,10 @@
         <div><div class="t">Interest on the full loan from day one</div><div class="d">Off = interest only on the money you have drawn</div></div>
         <div class="tog"></div>
       </div>
+      <div class="switch" id="swReserve">
+        <div><div class="t">Interest reserve</div><div class="d">On = the lender holds the interest inside the loan and pays itself. Off = you pay interest monthly out of pocket</div></div>
+        <div class="tog"></div>
+      </div>
       <div id="lPermBox" hidden>
         <div style="font-size:12px;font-weight:700;margin:6px 0 9px">The mortgage after the build</div>
         <div class="two">
@@ -783,13 +806,158 @@
         and 7.5–9%, and lot equity often counts toward the down payment. These come from lender websites. Your quote will differ.
       </div>
       <div class="foot">
-        Estimates only. Not a loan offer or lending advice. Draws are spread evenly over the build, and interest is assumed paid
-        monthly out of pocket (no interest reserve). Lenders differ on appraisals, draw fees, reserves, and how they count a lot
+        Estimates only. Not a loan offer or lending advice. Draws are spread evenly over the build, and interest is paid monthly out of
+        pocket unless the interest reserve switch is on. A reserve is borrowed money, so it adds interest of its own. Lenders differ on appraisals, draw fees, reserves, and how they count a lot
         you already own. Get the term sheet in writing before you commit money.
       </div>
     </div>
   </div>
   </div><!-- /lenderView -->
+
+  <!-- ============ LOI + DUE DILIGENCE ============ -->
+  <div id="loiView" hidden>
+  <div class="cols">
+    <div class="card" id="oInputs">
+      <h3>1 · Your offer</h3>
+      <p class="hint">An LOI (letter of intent) is a short, non-binding offer. It ties up the land while you check it out.
+        Fill in the boxes and the letter writes itself. The price starts from your Spec Build lot price.</p>
+
+      <div class="two">
+        <div class="field">
+          <label>Buyer</label>
+          <input type="text" autocomplete="off" id="oBuyer" placeholder="Your company name" maxlength="300" />
+        </div>
+        <div class="field">
+          <label>Seller</label>
+          <input type="text" autocomplete="off" id="oSeller" placeholder="Owner or their company" maxlength="300" />
+        </div>
+      </div>
+      <div class="field">
+        <label>Property</label>
+        <input type="text" autocomplete="off" id="oProp" placeholder="Address, parcel number (APN), or legal description" maxlength="300" />
+      </div>
+      <div class="two">
+        <div class="field">
+          <label>What you plan to build</label>
+          <input type="text" autocomplete="off" id="oUse" placeholder="e.g. one single-family home" maxlength="300" />
+        </div>
+        <div class="field">
+          <label>Title / escrow company</label>
+          <input type="text" autocomplete="off" id="oTitleCo" placeholder="Who holds the deposit" maxlength="300" />
+        </div>
+      </div>
+      <div class="two">
+        <div class="field">
+          <label>Offer price <span class="tag" id="oPriceTag"></span></label>
+          <div class="inp has-pre"><span class="pre">$</span><input type="text" inputmode="decimal" autocomplete="off" id="oPrice" /></div>
+        </div>
+        <div class="field">
+          <label>Earnest money deposit <span class="tag" id="oEarnestTag"></span></label>
+          <div class="inp has-pre"><span class="pre">$</span><input type="text" inputmode="decimal" autocomplete="off" id="oEarnest" /></div>
+        </div>
+      </div>
+      <div class="two">
+        <div class="field">
+          <label>LOI date</label>
+          <input type="date" id="oDate" />
+        </div>
+        <div class="field">
+          <label>Offer stays open</label>
+          <div class="inp has-suf"><input type="text" inputmode="decimal" autocomplete="off" id="oValid" /><span class="suf">days</span></div>
+        </div>
+      </div>
+      <div class="two">
+        <div class="field">
+          <label>Due diligence period</label>
+          <div class="inp has-suf"><input type="text" inputmode="decimal" autocomplete="off" id="oDD" /><span class="suf">days</span></div>
+        </div>
+        <div class="field">
+          <label>Close after due diligence</label>
+          <div class="inp has-suf"><input type="text" inputmode="decimal" autocomplete="off" id="oClose" /><span class="suf">days</span></div>
+        </div>
+      </div>
+
+      <div style="font-size:12px;font-weight:700;margin:6px 0 4px">Your outs (contingencies)</div>
+      <p class="hint" style="margin-bottom:9px">A contingency is a condition that has to come true or you can walk away and keep your deposit.</p>
+      <div id="oConts" style="display:grid;gap:8px;margin-bottom:11px"></div>
+      <div class="three">
+        <div class="field">
+          <label>Minimum units</label>
+          <div class="inp"><input type="text" inputmode="decimal" autocomplete="off" id="oUnits" /></div>
+        </div>
+        <div class="field">
+          <label>Extensions</label>
+          <div class="inp"><input type="text" inputmode="decimal" autocomplete="off" id="oExtN" /></div>
+        </div>
+        <div class="field">
+          <label>Days per extension</label>
+          <div class="inp has-suf"><input type="text" inputmode="decimal" autocomplete="off" id="oExtDays" /><span class="suf">days</span></div>
+        </div>
+      </div>
+      <div class="field">
+        <label>Seller stops shopping it</label>
+        <div class="inp has-suf"><input type="text" inputmode="decimal" autocomplete="off" id="oExcl" /><span class="suf">days</span></div>
+      </div>
+
+      <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap">
+        <button class="btn" id="oRelink">Use Spec Build price</button>
+        <button class="btn ghost" id="oClear">Clear the letter</button>
+      </div>
+    </div>
+
+    <div class="card" id="oResults">
+      <h3>2 · Your LOI</h3>
+      <p class="hint" id="oHint"></p>
+      <div id="oOut"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin:16px 0 6px">
+        <div style="font-size:12px;font-weight:700">The letter</div>
+        <button class="btn gold" id="oCopy">Copy letter</button>
+      </div>
+      <pre class="letter" id="oLetter"></pre>
+      <details class="faq" style="margin-top:12px">
+        <summary>How to play it ▾</summary>
+        <p><b>Offer on an LOI, not a purchase agreement.</b> It is non-binding and needs no deposit yet.<br>
+        <b>Terms over price.</b> Time to check the land is worth more than a small discount.<br>
+        <b>Hang your outs on both dates.</b> Tie each contingency to the due diligence period and to the closing.<br>
+        <b>Extend due diligence, not closing,</b> and show the seller proof you are making progress.<br>
+        <b>The back-and-forth is free research time.</b> A few weeks on the LOI and a few more on the purchase agreement is about six weeks before you commit.<br>
+        <b>Staple a one-page cover letter</b> that explains your plan, and back your price with comps.<br>
+        <b>Have a real estate attorney review the purchase agreement</b> before you sign it.</p>
+      </details>
+    </div>
+  </div>
+
+  <div class="card" id="ddCard" style="margin-top:14px">
+    <h3>3 · Due diligence checklist</h3>
+    <p class="hint" id="ddHint">Check these before your deposit goes hard. Tap each one when it is done.</p>
+    <div class="ddgrid" id="ddList"></div>
+    <div style="font-size:12px;font-weight:700;margin:16px 0 9px">What checking it out costs you</div>
+    <div class="three">
+      <div class="field">
+        <label>Survey</label>
+        <div class="inp has-pre"><span class="pre">$</span><input type="text" inputmode="decimal" autocomplete="off" id="oSurvey" /></div>
+      </div>
+      <div class="field">
+        <label>Soil test</label>
+        <div class="inp has-pre"><span class="pre">$</span><input type="text" inputmode="decimal" autocomplete="off" id="oSoil" /></div>
+      </div>
+      <div class="field">
+        <label>Environmental</label>
+        <div class="inp has-pre"><span class="pre">$</span><input type="text" inputmode="decimal" autocomplete="off" id="oEnviro" /></div>
+      </div>
+    </div>
+    <div class="field">
+      <label>Other (architect sketch, civil, fees)</label>
+      <div class="inp has-pre"><span class="pre">$</span><input type="text" inputmode="decimal" autocomplete="off" id="oOther" /></div>
+    </div>
+    <div class="foot">
+        Estimates and a starting template only. Not legal advice, and not a contract. Land rules, costs and timelines change by city and state.
+        Have a real estate attorney review any letter or purchase agreement before you send or sign it.
+        The terms and checks here are what Rich Main took from Jerome Maldonado’s public videos and classes, plus Rich’s own letters.
+        Jerome Maldonado did not write, review or endorse this tool.
+    </div>
+  </div>
+  </div><!-- /loiView -->
 </div>
 
 <!-- SAVED -->
@@ -1287,7 +1455,7 @@
 
   /* ---------- lender terms: one ground-up loan, from the borrower's side ----------
      c: { lot, build, arv, own, owed, ltcPct, ltvPct, landAdvPct, ratePct, pointsPct, fees, closing,
-          buildMonths, holdMonths, dutch, type ('ac' | 'c2p'), permRatePct, permYears }
+          buildMonths, holdMonths, dutch, reserve, type ('ac' | 'c2p'), permRatePct, permYears }
      lot    = purchase price, or what the lot is worth if it is already owned (it counts as cost either way)
      dayOne = what the lender funds at closing toward the dirt; the rest of the loan is paid out in build draws
      The loan is the smaller of the two lender tests, and never more than the job needs. */
@@ -1300,12 +1468,29 @@
     var bm = clamp(Math.round(num(c.buildMonths)), 1, 60);
     var hm = c2p ? 0 : clamp(Math.round(num(c.holdMonths)), 0, 36);   // a perm loan converts at completion
 
-    var cost = lot + build;
-    var byLtc = cost * ltc, byLtv = arv * ltv, cap = Math.max(0, Math.min(byLtc, byLtv));
-    var lotNeed = own ? owed : lot;                       // cash the dirt needs at closing: the price, or the payoff
-    var dayOne = Math.min(cap, lot * adv, lotNeed);
-    var holdback = Math.min(cap - dayOne, build);         // construction money, paid out in draws
-    var loan = dayOne + holdback;
+    // Interest reserve: the lender sets the interest aside inside the loan and pays itself from it.
+    // The reserve counts as a project cost and it is borrowed money too, so a bigger reserve means a bigger
+    // loan and more interest. The loop repeats until the reserve equals the interest it has to cover.
+    var months = bm + hm, lotNeed = own ? owed : lot;     // cash the dirt needs at closing: the price, or the payoff
+    var cost, byLtc, byLtv, cap, dayOne, holdback, loan, interest = 0, reserve = 0, want = 0;
+    for (var pass = 0; pass < (c.reserve ? 80 : 1); pass++) {
+      var was = reserve;
+      cost = lot + build + reserve;
+      byLtc = cost * ltc; byLtv = arv * ltv; cap = Math.max(0, Math.min(byLtc, byLtv));
+      dayOne = Math.min(cap, lot * adv, lotNeed);
+      reserve = Math.min(want, cap - dayOne);             // the reserve is funded before the build draws
+      holdback = Math.min(cap - dayOne - reserve, build); // construction money, paid out in draws
+      loan = dayOne + holdback + reserve;
+      interest = 0;
+      if (c.dutch) interest = loan * rate / 12 * months;  // charged on the whole loan from day one
+      else for (var m = 1, bal = dayOne, left = reserve; m <= months; m++) {
+        if (m <= bm) bal += holdback / bm;
+        var due = bal * rate / 12, paid = Math.min(due, left);
+        interest += due; bal += paid; left -= paid;       // interest paid from the reserve is borrowed too
+      }
+      if (!c.reserve || (Math.abs(interest - want) < 0.001 && Math.abs(reserve - was) < 0.001)) break;
+      want = interest;
+    }
     var binding = loan < cap - 0.5 ? 'need' : (byLtv < byLtc ? 'ltv' : 'ltc');
 
     var points = loan * clamp(num(c.pointsPct), 0, 10) / 100;
@@ -1313,13 +1498,7 @@
     var closing = clamp(num(c.closing), 0, 1e9);
     var cashClose = lotNeed - dayOne + closing + points + fees;
     var gap = build - holdback;                           // the part of the build the borrower pays
-
-    var months = bm + hm, interest = 0, bal = dayOne;
-    if (c.dutch) interest = loan * rate / 12 * months;    // charged on the whole loan from day one
-    else for (var m = 1; m <= months; m++) {
-      if (m <= bm) bal += holdback / bm;
-      interest += bal * rate / 12;
-    }
+    var interestCash = Math.max(0, interest - reserve);   // interest the borrower pays out of pocket
 
     var pr = clamp(num(c.permRatePct), 0, 30) / 100 / 12, n = clamp(Math.round(num(c.permYears)), 1, 40) * 12;
     var permPay = !c2p ? null : (pr > 0 ? loan * pr / (1 - Math.pow(1 + pr, -n)) : loan / n);
@@ -1329,12 +1508,34 @@
              lotNeed: lotNeed, dayOne: dayOne, holdback: holdback, gap: gap,
              points: points, fees: fees, closing: closing, cashClose: cashClose,
              months: months, buildMonths: bm, holdMonths: hm, interest: interest, fullDrawPayment: loan * rate / 12,
-             costOfMoney: points + fees + interest, cashTotal: cashClose + gap + interest,
+             reserve: reserve, interestCash: interestCash,
+             costOfMoney: points + fees + interest, cashTotal: cashClose + gap + interestCash,
              ltcActual: cost > 0 ? loan / cost * 100 : null, ltvActual: arv > 0 ? loan / arv * 100 : null,
              lotEquity: own ? lot - owed : null, permPay: permPay };
   }
 
-  var API = { DEFAULTS: DEFAULTS, MAX_LAND: MAX_LAND, normalize: normalize, run: run, core: core, contracts: contracts, lender: lender,
+  /* ---------- land offer (LOI): the numbers and dates behind a letter of intent ----------
+     c: { price, arv, earnest (null = auto), date ('YYYY-MM-DD'), validDays, ddDays, closeDays, extCount, extDays, ddCosts }
+     Dates count from c.date, as if the seller signed that day. Extensions push due diligence, and closing follows it. */
+  function offer(c) {
+    var price = clamp(num(c.price), 0, 1e10), arv = clamp(num(c.arv), 0, 1e11);
+    var autoEarnest = price > 0 ? Math.max(1000, Math.round(price * 0.015 / 500) * 500) : 0;   // about 1.5%, to the nearest $500
+    var typed = !(c.earnest === null || c.earnest === undefined || c.earnest === '');
+    var earnest = typed ? clamp(num(c.earnest), 0, 1e9) : autoEarnest;
+    var dd = clamp(Math.round(num(c.ddDays)), 0, 730), cl = clamp(Math.round(num(c.closeDays)), 0, 730);
+    var extra = clamp(Math.round(num(c.extCount)), 0, 12) * clamp(Math.round(num(c.extDays)), 0, 365);
+    var valid = clamp(Math.round(num(c.validDays)), 0, 365), costs = clamp(num(c.ddCosts), 0, 1e9);
+    function add(n) {                                   // UTC math, so daylight saving cannot shift a date
+      var p = /^(\d{4})-(\d{2})-(\d{2})$/.exec(c.date || '');
+      return p ? new Date(Date.UTC(+p[1], +p[2] - 1, +p[3]) + n * 864e5).toISOString().slice(0, 10) : null;
+    }
+    return { price: price, earnest: earnest, autoEarnest: autoEarnest,
+             earnestPct: price > 0 ? earnest / price * 100 : null, landPct: arv > 0 ? price / arv * 100 : null,
+             expires: add(valid), ddEnd: add(dd), ddEndMax: add(dd + extra), close: add(dd + cl), closeMax: add(dd + extra + cl),
+             extraDays: extra, atRiskBefore: costs, atRiskAfter: costs + earnest };
+  }
+
+  var API = { DEFAULTS: DEFAULTS, MAX_LAND: MAX_LAND, normalize: normalize, run: run, core: core, contracts: contracts, lender: lender, offer: offer,
               monthlyIrr: monthlyIrr, annualize: annualize, npv: npv,
               maxLandForMargin: maxLandForMargin, maxLandForIrr: maxLandForIrr,
               sensitivity: sensitivity, verdictFor: verdictFor, scoreDeal: scoreDeal };
@@ -1397,12 +1598,63 @@
                  'lClosing','lPermRate','lPermYears'];
   var LDEF = { lLot:null, lBuild:null, lArv:null, lMonths:null, lSell:null, lLtc:null, lLtv:null, lLandAdv:null,
                lRate:null, lPoints:null, lFees:null, lClosing:null, lOwed:0, lPermRate:7, lPermYears:30,
-               type:'ac', own:false, dutch:false };
+               type:'ac', own:false, dutch:false, reserve:false };
   var LLIM = { lLot:[0,1e9], lOwed:[0,1e9], lBuild:[0,1e9], lArv:[0,1e10], lMonths:[1,60], lSell:[0,36],
                lLtc:[0,100], lLtv:[0,100], lLandAdv:[0,100], lRate:[0,40], lPoints:[0,10], lFees:[0,1e8],
                lClosing:[0,1e9], lPermRate:[0,30], lPermYears:[1,40] };
   var LKEY = 'mm_lender_v1';
   var ls = loadBoxes(LKEY, LFIELDS, LDEF, LLIM);
+
+  // LOI + due diligence tab. Numbers use the shared boxes; names, switches, date and checklist ticks are loaded below
+  var OFIELDS = ['oPrice','oEarnest','oValid','oDD','oClose','oUnits','oExtN','oExtDays','oExcl','oSurvey','oSoil','oEnviro','oOther'];
+  var OTEXT = ['oBuyer','oSeller','oProp','oUse','oTitleCo'];
+  // the outs. src: 'jm' = taught by Jerome Maldonado, 'own' = from Rich's own LOIs
+  var OCONT = [
+    { id:'kPermit', on:true, src:'jm', t:'Permit-ready before closing', d:'You close when the building permit is ready to pull. The usual out for one house.' },
+    { id:'kApprovals', on:true, src:'jm', t:'All municipal approvals', d:'The word “all” covers zoning, public works, the fire marshal and the utility companies.' },
+    { id:'kDensity', on:false, src:'jm', t:'Minimum number of units', d:'For apartments or a lot split. No approval for your unit count, no deal.' },
+    { id:'kLoan', on:true, src:'jm', t:'Construction loan commitment', d:'No loan, no purchase.' },
+    { id:'kTitle', on:true, src:'own', t:'Clear title and survey', d:'No surprise liens, easements or boundary problems.' },
+    { id:'kExt', on:true, src:'jm', t:'Extensions if approvals run late', d:'Extra time when the city is slow. You show the seller your progress.' },
+    { id:'kCoop', on:true, src:'jm', t:'Seller lets you pursue permits', d:'The seller signs as owner on city, county and state paperwork while you seek approvals.' },
+    { id:'kDocs', on:true, src:'jm', t:'Seller hands over all property documents', d:'Any survey, title policy, soil or environmental reports, plans and permits they already have.' },
+    { id:'kAccess', on:true, src:'own', t:'Site access for tests', d:'You can walk the land and bring in a surveyor and soil crew.' },
+    { id:'kAssign', on:true, src:'own', t:'Buyer “or assigns”', d:'Lets you close in a different company name.' }
+  ];
+  // the checklist. Costs and quotes come from Jerome Maldonado's videos unless src is 'own' (Rich's Ground-Up notes)
+  var DDLIST = [
+    { id:'comps', src:'jm', t:'Sold comps and days on market', d:'Banks follow comps. Know what finished homes really sold for, and how fast.' },
+    { id:'seller', src:'jm', t:'Why is the seller selling?', d:'Ask the owner, not just the broker. If they need a fast close, find out why.' },
+    { id:'city', src:'jm', t:'Meet the city first', d:'Bring a map screenshot, the parcel number and the address. Ask: will you support what I want to build?' },
+    { id:'zoning', src:'jm', t:'Zoning is not enough', d:'Confirm the use, unit count after parking, setbacks, height, fire rules, and any extra approval.' },
+    { id:'util', src:'jm', t:'Utilities at the lot, not “down the road”', d:'Power, water, sewer, gas. Crossing a street for power can run about $30,000. A well can run $30,000–35,000.' },
+    { id:'sewer', src:'jm', t:'Sewer or septic', d:'Is there a sewer stub-out? If not, septic averages about $7,500, more with clay soil or a pump.' },
+    { id:'fees', src:'jm', t:'Impact fees, permits and meters', d:'About $7,500 on average, from about $2,000 to $12,000. Meters and connections are extra.' },
+    { id:'flood', src:'jm', t:'Flood zone and wetlands', d:'They add engineering and cost. New builders should avoid them.' },
+    { id:'access', src:'jm', t:'Road access and easements', d:'If the lot is not on a public road, get the access in writing. Look for easements nobody mentioned.' },
+    { id:'survey', src:'jm', t:'Survey', d:'Ask the seller for theirs first. A new one runs about $1,000, more in big cities.' },
+    { id:'soil', src:'jm', t:'Soil and grading', d:'Rock or clay changes your dirt-work cost. Samples run about $1,500; a certified report $3,000–5,000.' },
+    { id:'enviro', src:'jm', t:'Environmental', d:'Make sure the land is not dirty. An environmental engineer runs about $2,000–3,000.' },
+    { id:'hoa', src:'jm', t:'HOA and deed restrictions', d:'Look for rules on setbacks, height and what you can build.' },
+    { id:'title', src:'own', t:'Title report', d:'Read the exceptions (Schedule B). They must be clean by closing.' },
+    { id:'arch', src:'jm', t:'Local architect', d:'Hire one with projects in that city. Public permit records show who builds there.' },
+    { id:'drive', src:'jm', t:'Drive the lot', d:'Boots on the ground. Look at the neighbors, the slope, power lines and traffic.' },
+    { id:'stress', src:'jm', t:'Stress-test the deal', d:'Run it with delays, higher costs and a lower sale price. The Spec Build tab has that table.' }
+  ];
+  var ODEF = { oPrice:null, oEarnest:null, oValid:7, oDD:60, oClose:60, oUnits:8, oExtN:2, oExtDays:30, oExcl:60,
+               oSurvey:1000, oSoil:1500, oEnviro:2500, oOther:0 };
+  var OLIM = { oPrice:[0,1e9], oEarnest:[0,1e9], oValid:[0,365], oDD:[0,730], oClose:[0,730], oUnits:[1,1000], oExtN:[0,12],
+               oExtDays:[0,365], oExcl:[0,365], oSurvey:[0,1e7], oSoil:[0,1e7], oEnviro:[0,1e7], oOther:[0,1e8] };
+  var OKEY = 'mm_loi_v1';
+  var os = loadBoxes(OKEY, OFIELDS, ODEF, OLIM);
+  (function(){
+    var raw = {}; try { raw = JSON.parse(localStorage.getItem(OKEY) || 'null') || {}; } catch(e){}
+    OTEXT.forEach(function(k){ os[k] = typeof raw[k] === 'string' ? raw[k].slice(0, 300) : ''; });
+    OCONT.forEach(function(c){ os[c.id] = typeof raw[c.id] === 'boolean' ? raw[c.id] : c.on; });
+    os.dd = {}; DDLIST.forEach(function(x){ os.dd[x.id] = !!(raw.dd && raw.dd[x.id] === true); });
+    var now = new Date(), iso = now.getFullYear() + '-' + ('0' + (now.getMonth() + 1)).slice(-2) + '-' + ('0' + now.getDate()).slice(-2);
+    os.oDate = /^\d{4}-\d{2}-\d{2}$/.test(raw.oDate || '') ? raw.oDate : iso;
+  })();
 
   // saved number boxes for a tab; anything missing or out of range falls back to the default
   function loadBoxes(key, fields, def, lim){
@@ -1415,6 +1667,7 @@
       if (raw.type === 'c2p') st.type = 'c2p';
       if (raw.own === true) st.own = true;
       if (raw.dutch === true) st.dutch = true;
+      if (raw.reserve === true) st.reserve = true;
     } catch(e){}
     return st;
   }
@@ -1689,6 +1942,7 @@
     window._last = { input: calcInput, r: r, maxLand: maxLand };
     renderContract();   // the other tabs feed off these numbers
     renderLender();
+    renderLoi();
     try {
       var snap = E.normalize(Object.assign({}, mode === 'full' ? calcInput : state));
       snap._name = ($('dealName').value || '').trim();
@@ -1697,7 +1951,7 @@
   }
 
   /* accessibility: associate every input with its label, and expose toggle state */
-  FIELDS.concat(['dealName'], CFIELDS, LFIELDS).forEach(function(f){
+  FIELDS.concat(['dealName'], CFIELDS, LFIELDS, OFIELDS).forEach(function(f){
     var el = $(f); if (!el || !el.closest) return;
     var field = el.closest('.field');
     var lab = field ? field.querySelector('label') : null;
@@ -1755,7 +2009,20 @@
     lFees: 'Flat lender charges in dollars: underwriting, document prep, appraisal and draw inspections. Ask for the full list in writing.',
     lClosing: 'Title, escrow and recording costs at closing. This does not include points or lender fees. It starts from Spec Build when you are buying the lot.',
     lPermRate: 'The interest rate on the long mortgage the loan turns into after the build. Late-2026 construction-to-perm quotes ran about 7.5–9%.',
-    lPermYears: 'How many years the mortgage runs. 30 is the most common.'
+    lPermYears: 'How many years the mortgage runs. 30 is the most common.',
+    oPrice: 'What you are offering for the land. Offer from your own numbers, not the list price. It starts from your Spec Build lot price.',
+    oEarnest: 'A good-faith deposit held by the title company. It stays refundable through due diligence, then “goes hard” and counts toward the price. On auto it is about 1.5% of the price. Deposits of 1–2% are common on small lots.',
+    oValid: 'How many days the seller has to sign before the offer expires.',
+    oDD: 'Due diligence = your time to check out the land. You can walk away and get your deposit back during this period. 60 days is a common ask. Land that needs city approvals often needs 90 or more.',
+    oClose: 'How many days after due diligence ends you close and pay. A 60 + 60 day structure is a common ask.',
+    oUnits: 'The fewest homes or apartments the city must approve for the deal to work. Only used when “Minimum number of units” is switched on.',
+    oExtN: 'How many times you can push the due diligence deadline if the city is slow. Two is a common ask.',
+    oExtDays: 'How many days each extension adds.',
+    oExcl: 'Days the seller agrees not to shop the land to other buyers while you work on a purchase agreement. Enter 0 to leave this out. Without it, the seller can still sell to someone else.',
+    oSurvey: 'Boundary and topographic survey. Ask the seller for theirs before you pay for one. About $1,000 in many areas, more in big cities.',
+    oSoil: 'Soil samples run about $1,500. A certified soil report runs about $3,000–5,000. Do one on your first build in a new area, or if there is clay.',
+    oEnviro: 'An environmental engineer checks that the land is not contaminated. About $2,000–3,000.',
+    oOther: 'Anything else you pay for before closing: an architect’s concept sketch, a civil engineer, city pre-application fees.'
   };
   function closeHelp(except){
     [].forEach.call(document.querySelectorAll('.qh[aria-expanded="true"]'), function(b){
@@ -1802,7 +2069,7 @@
   });
 
   /* ---------- tap a number field: whole value selected, so typing replaces it ---------- */
-  FIELDS.concat(['targetInline'], CFIELDS, LFIELDS).forEach(function(f){
+  FIELDS.concat(['targetInline'], CFIELDS, LFIELDS, OFIELDS).forEach(function(f){
     var el = $(f); if (!el) return;
     var fresh = false;
     function selAll(){
@@ -1922,7 +2189,7 @@
       if ($('printHead')) $('printHead').textContent = 'MainMath — ' + (this.value.trim() || 'Deal') + ' · ' + new Date().toLocaleDateString();
     } catch(e){}
   });
-  ['swLoan','swPartner','swMethod','swOwn','swDutch'].forEach(function(id){
+  ['swLoan','swPartner','swMethod','swOwn','swDutch','swReserve'].forEach(function(id){
     var el = $(id);
     el.tabIndex = 0; el.setAttribute('role','switch');
     el.addEventListener('keydown', function(e){
@@ -2159,7 +2426,7 @@
     var R = E.lender({ lot: val('lLot'), build: val('lBuild'), arv: val('lArv'), own: ls.own, owed: ls.lOwed,
       ltcPct: val('lLtc'), ltvPct: val('lLtv'), landAdvPct: val('lLandAdv'), ratePct: val('lRate'), pointsPct: val('lPoints'),
       fees: val('lFees'), closing: val('lClosing'), buildMonths: val('lMonths'), holdMonths: val('lSell'),
-      dutch: ls.dutch, type: ls.type, permRatePct: ls.lPermRate, permYears: ls.lPermYears });
+      dutch: ls.dutch, reserve: ls.reserve, type: ls.type, permRatePct: ls.lPermRate, permYears: ls.lPermYears });
 
     // boxes, tags and switches show what is in use
     LFIELDS.forEach(function(f){
@@ -2169,6 +2436,7 @@
     });
     $('swOwn').classList.toggle('on', ls.own); $('swOwn').setAttribute('aria-checked', ls.own ? 'true' : 'false');
     $('swDutch').classList.toggle('on', ls.dutch); $('swDutch').setAttribute('aria-checked', ls.dutch ? 'true' : 'false');
+    $('swReserve').classList.toggle('on', ls.reserve); $('swReserve').setAttribute('aria-checked', ls.reserve ? 'true' : 'false');
     [].forEach.call($('segLoan').children, function(b){ b.classList.toggle('on', b.dataset.loan === ls.type); });
     $('lLotLbl').textContent = ls.own ? 'What the lot is worth' : 'Lot purchase price';
     $('lOwedField').hidden = !ls.own;
@@ -2180,7 +2448,7 @@
     var head = function(t){ return '<div style="font-size:12px;font-weight:700;margin:16px 0 6px">' + t + '</div>'; };
     var total = function(h){ return h.replace('class="row"', 'class="row total"'); };
     $('lHint').textContent = 'Total project cost ' + fmtM(R.cost) + ' = ' + fmtM(R.lot) + (ls.own ? ' lot value' : ' lot') + ' + ' +
-      fmtM(R.build) + ' construction. Finished value ' + fmtM(R.arv) + '.';
+      fmtM(R.build) + ' construction' + (R.reserve > 0.5 ? ' + ' + fmtM(R.reserve) + ' interest reserve' : '') + '. Finished value ' + fmtM(R.arv) + '.';
 
     var why = R.binding === 'ltc' ? 'Held back by loan to cost: ' + tpct(val('lLtc')) + ' of your ' + fmtM(R.cost) + ' cost.'
       : R.binding === 'ltv' ? 'Held back by loan to ARV: ' + tpct(val('lLtv')) + ' of the ' + fmtM(R.arv) + ' finished value. The cost test alone would allow ' + fmtM(R.byLtc) + '.'
@@ -2193,7 +2461,7 @@
       '<div class="kpi"><div class="k">You pay during the build</div><div class="v">' + fmtM(R.gap) + '</div><div class="s">' +
         (R.gap < 0.5 ? 'the lender covers the whole budget' : 'the part of the budget the loan does not cover') + '</div></div>' +
       '<div class="kpi"><div class="k">Interest</div><div class="v">' + fmtM(R.interest) + '</div><div class="s">' + R.months + ' months · ' +
-        (ls.dutch ? 'on the full loan' : 'on what is drawn') + '</div></div>' +
+        (ls.dutch ? 'on the full loan' : 'on what is drawn') + (R.reserve > 0.5 ? ' · paid from the reserve' : '') + '</div></div>' +
       '<div class="kpi"><div class="k">Cost of the money</div><div class="v">' + fmtM(R.costOfMoney) + '</div><div class="s">points + fees + interest' +
         (R.loan > 0 ? ' · ' + pct(R.costOfMoney / R.loan * 100) + ' of the loan' : '') + '</div></div></div>';
 
@@ -2210,7 +2478,9 @@
     h += row('Construction budget', fmtM(R.build), '');
     h += row('Lender pays in draws', fmtM(R.holdback), 'pos', R.build > 0 ? p0(R.holdback / R.build * 100) + ' of the budget' : '');
     h += row('You pay', fmtM(R.gap), R.gap > 0.5 ? 'neg' : '');
-    h += row('Interest payment at full draw', fmtM(R.fullDrawPayment) + '/mo', '', tpct(val('lRate')) + ' interest-only');
+    if (R.reserve > 0.5) h += row('Interest reserve', fmtM(R.reserve), 'pos', 'held inside the loan · the lender pays itself from it');
+    h += row('Interest payment at full draw', fmtM(R.fullDrawPayment) + '/mo', '', R.reserve > 0.5 && R.interestCash < 0.5 ? 'paid from the reserve, not your pocket' : tpct(val('lRate')) + ' interest-only');
+    if (R.reserve > 0.5 && R.interestCash > 0.5) h += row('Interest you still pay', fmtM(R.interestCash), 'neg', 'the loan limit left no room for the full reserve');
     h += row('Total interest', fmtM(R.interest), 'neg', R.buildMonths + ' mo build' + (R.holdMonths ? ' + ' + R.holdMonths + ' mo to sell' : ''));
 
     h += head('The lender’s two tests');
@@ -2226,7 +2496,7 @@
       h += head('At the sale');
       h += row('Pay the lender back', fmtM(R.loan), 'neg', 'from the sale proceeds');
     }
-    h += total(row('Total cash you need', fmtM(R.cashTotal), '', 'closing + your part of the build + interest'));
+    h += total(row('Total cash you need', fmtM(R.cashTotal), '', R.reserve > 0.5 && R.interestCash < 0.5 ? 'closing + your part of the build · interest comes out of the reserve' : 'closing + your part of the build + interest'));
     $('lOut').innerHTML = h;
     try { localStorage.setItem(LKEY, JSON.stringify(ls)); } catch(e){}
   }
@@ -2237,12 +2507,149 @@
   });
   $('swOwn').addEventListener('click', function(){ ls.own = !ls.own; renderLender(); });
   $('swDutch').addEventListener('click', function(){ ls.dutch = !ls.dutch; renderLender(); });
+  $('swReserve').addEventListener('click', function(){ ls.reserve = !ls.reserve; renderLender(); });
   $('lRelink').addEventListener('click', function(){
     LFIELDS.forEach(function(f){ if (LDEF[f] === null) ls[f] = null; });
     renderLender(); toast('Linked to your Spec Build numbers');
   });
 
-  var VIEWS = { spec: 'specView', contract: 'contractView', lender: 'lenderView' };
+  /* ---------- LOI + due diligence tab ---------- */
+  var fmtDay = function(iso){
+    if (!iso) return '—';
+    var p = iso.split('-');
+    return new Date(Date.UTC(+p[0], +p[1] - 1, +p[2])).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric', timeZone:'UTC' });
+  };
+  function loiLetter(R, v){
+    var blank = function(x, what){ return (x || '').trim() || '[' + what + ']'; };
+    var buyer = blank(os.oBuyer, 'Buyer name'), seller = blank(os.oSeller, 'Seller name'), prop = blank(os.oProp, 'Property address, APN or legal description');
+    var use = (os.oUse || '').trim(), title = blank(os.oTitleCo, 'title company');
+    var n = 0, out = [], sec = function(h, body){ n++; out.push(n + '. ' + h + '. ' + body); };
+    var conts = [];
+    if (os.kPermit) conts.push('the Property being permit-ready, meaning building permits for Buyer’s intended use are approved and ready to issue');
+    if (os.kApprovals) conts.push('Buyer receiving all municipal approvals associated with building and zoning to construct ' +
+      (use ? use.replace(/\.$/, '') : 'its intended project') + ', including planning and zoning, public works, fire, and utility providers');
+    if (os.kDensity) conts.push('approval of a minimum density of ' + Math.round(v.oUnits) + ' units on the Property');
+    if (os.kLoan) conts.push('Buyer obtaining a binding construction loan commitment on terms acceptable to Buyer');
+    if (os.kTitle) conts.push('clear and insurable title, and a survey acceptable to Buyer');
+
+    sec('Buyer', buyer + (os.kAssign ? ', or its assigns.' : '.'));
+    sec('Seller', seller + '.');
+    sec('Property', prop + '.' + (use ? ' Buyer intends to build ' + use.replace(/\.$/, '') + '.' : ''));
+    sec('Purchase price', fmtM(R.price) + ', paid at closing.');
+    sec('Earnest money', fmtM(R.earnest) + ', deposited with ' + title + ' within three business days after a purchase agreement is signed. ' +
+      'The deposit is fully refundable until the due diligence period ends and the contingencies below are met. After that it applies to the purchase price.');
+    sec('Due diligence', Math.round(v.oDD) + ' days from the date a purchase agreement is signed. Buyer may review title, survey, soils, environmental conditions, ' +
+      'zoning, utilities, access and anything else it chooses. Buyer may cancel for any reason during this period and receive its deposit back.');
+    if (conts.length) sec('Contingencies', 'Both the due diligence period and Buyer’s obligation to close are contingent on: ' +
+      conts.map(function(c, i){ return '(' + String.fromCharCode(97 + i) + ') ' + c; }).join('; ') + '.');
+    if (os.kExt && v.oExtN > 0 && v.oExtDays > 0) sec('Extensions', 'If approvals are still pending, Buyer may extend the due diligence period ' +
+      Math.round(v.oExtN) + ' time' + (Math.round(v.oExtN) === 1 ? '' : 's') + ' by ' + Math.round(v.oExtDays) + ' days each, by written notice showing its progress.');
+    sec('Closing', 'Within ' + Math.round(v.oClose) + ' days after the due diligence period ends and the contingencies are met.');
+    if (os.kAccess) sec('Access', 'From the date a purchase agreement is signed, Buyer and its consultants may enter the Property to survey, test and inspect it. Buyer will repair any damage it causes.');
+    if (os.kCoop) sec('Seller cooperation', 'Seller will allow Buyer to pursue building permits and approvals for the Property, and will provide its authorization as owner on all needed documents, ' +
+      'including municipal, city, county and state applications required for building approval, at no cost to Seller.');
+    if (os.kDocs) sec('Seller documents', 'Promptly after a purchase agreement is signed, Seller will give Buyer all documents it has related to the Property, ' +
+      'including any survey, title policy, soils or environmental reports, plans, permits and utility information.');
+    sec('Closing costs', 'Seller pays for a standard owner’s title policy. Escrow fees are split equally. Taxes are prorated to the closing date.');
+    if (v.oExcl > 0) sec('Exclusivity', 'For ' + Math.round(v.oExcl) + ' days after Seller signs this letter, Seller will not market the Property or accept other offers while the parties prepare a purchase agreement.');
+    sec('Non-binding', 'This letter is a statement of intent only. Neither party is bound until both sign a written purchase agreement' +
+      (v.oExcl > 0 ? ', except for the Exclusivity section above, which is binding.' : '.'));
+    sec('Expiration', 'This offer expires if Seller has not signed and returned it by ' + fmtDay(R.expires) + '.');
+
+    return 'LETTER OF INTENT TO PURCHASE LAND\n\nDate: ' + fmtDay(os.oDate) + '\nTo: ' + seller + '\nFrom: ' + buyer + '\nRe: ' + prop +
+      '\n\nThis letter sets out the main terms on which Buyer would buy the Property.\n\n' + out.join('\n\n') +
+      '\n\nBUYER: ' + buyer + '\n\nBy: ______________________   Date: __________\n\nSELLER: ' + seller + '\n\nBy: ______________________   Date: __________\n';
+  }
+  function renderLoi(){
+    var d = window._last; if (!d || !$('oOut')) return;
+    var src = { oPrice: d.input.purchasePrice };
+    var R0 = E.offer({ price: os.oPrice !== null ? os.oPrice : src.oPrice });
+    src.oEarnest = R0.autoEarnest;
+    var val = function(f){ return os[f] !== null ? os[f] : src[f]; };
+    var v = {}; OFIELDS.forEach(function(f){ v[f] = val(f); });
+    var R = E.offer({ price: v.oPrice, arv: d.r.lines.arv, earnest: os.oEarnest, date: os.oDate, validDays: v.oValid, ddDays: v.oDD,
+      closeDays: v.oClose, extCount: os.kExt ? v.oExtN : 0, extDays: v.oExtDays, ddCosts: v.oSurvey + v.oSoil + v.oEnviro + v.oOther });
+
+    OFIELDS.forEach(function(f){
+      var el = $(f), tag = $(f + 'Tag');
+      if (tag) tag.textContent = os[f] !== null ? 'yours' : f === 'oEarnest' ? 'auto' : 'linked';
+      if (el && document.activeElement !== el) el.value = prettyNum(Math.round(v[f] * 100) / 100);
+    });
+    OTEXT.forEach(function(k){ var el = $(k); if (el && document.activeElement !== el) el.value = os[k]; });
+    if (document.activeElement !== $('oDate')) $('oDate').value = os.oDate;
+    OCONT.forEach(function(c){ var b = $(c.id); b.classList.toggle('on', !!os[c.id]); b.setAttribute('aria-checked', os[c.id] ? 'true' : 'false'); });
+    DDLIST.forEach(function(x){ var b = $('dd-' + x.id); b.classList.toggle('on', !!os.dd[x.id]); b.setAttribute('aria-checked', os.dd[x.id] ? 'true' : 'false'); });
+    $('oUnits').closest('.field').style.opacity = os.kDensity ? '' : '.45';
+    $('oExtN').closest('.field').style.opacity = $('oExtDays').closest('.field').style.opacity = os.kExt ? '' : '.45';
+
+    // must-haves before it goes out
+    var need = [];
+    if (!os.oBuyer.trim()) need.push('buyer name');
+    if (!os.oSeller.trim()) need.push('seller name');
+    if (!os.oProp.trim()) need.push('property address or parcel number');
+    if (!(R.price > 0)) need.push('offer price');
+    if (!(R.earnest > 0)) need.push('earnest money');
+    if (!(v.oDD > 0)) need.push('due diligence days');
+    if (!os.oTitleCo.trim()) need.push('title company');
+    if (!(os.kPermit || os.kApprovals || os.kDensity || os.kLoan)) need.push('at least one approval or loan contingency');
+    var MUST = 8, have = MUST - need.length, done = 0;
+    DDLIST.forEach(function(x){ if (os.dd[x.id]) done++; });
+
+    $('oHint').textContent = 'Dates count from the day the seller signs. They are shown as if that is your LOI date.';
+    var h = '<div class="solver"><div class="k">Ready to send</div><div class="v">' + have + ' of ' + MUST + ' must-haves</div>' +
+      '<div class="s">' + (need.length ? 'Still missing: ' + need.join(', ') + '.' : 'Every must-have is filled in. Read the letter once, then have an attorney look at it.') + '</div></div>';
+
+    var lp = R.landPct;
+    h += '<div class="kpis" style="margin-top:12px">' +
+      '<div class="kpi gold"><div class="k">Deposit</div><div class="v">' + fmtM(R.earnest) + '</div><div class="s">' + (R.earnestPct === null ? '—' : pct(R.earnestPct) + ' of the price') + ' · refundable in due diligence</div></div>' +
+      '<div class="kpi"><div class="k">Land vs. finished value</div><div class="v">' + (lp === null ? '—' : pct(lp)) + '</div><div class="s">' +
+        (lp === null ? 'add a sale price on the Spec Build tab' : lp <= 12 ? 'at or under the 12% rule of thumb' : lp <= 20 ? 'inside the older 15–20% range, above the 12% rule' : 'above the 12–20% rules of thumb') + '</div></div>' +
+      '<div class="kpi"><div class="k">At risk before the deposit goes hard</div><div class="v">' + fmtM(R.atRiskBefore) + '</div><div class="s">survey, tests and other checks</div></div>' +
+      '<div class="kpi"><div class="k">At risk after</div><div class="v">' + fmtM(R.atRiskAfter) + '</div><div class="s">checks + your deposit</div></div></div>';
+
+    h += '<div style="font-size:12px;font-weight:700;margin:16px 0 6px">Key dates</div>';
+    h += row('Offer expires', fmtDay(R.expires), '', Math.round(v.oValid) + ' days to sign');
+    h += row('Due diligence ends', fmtDay(R.ddEnd), '', Math.round(v.oDD) + ' days');
+    if (R.extraDays > 0) h += row('…with every extension', fmtDay(R.ddEndMax), '', '+' + R.extraDays + ' days');
+    h += row('Closing', fmtDay(R.close), '', Math.round(v.oClose) + ' days later');
+    if (R.extraDays > 0) h += row('Latest closing', fmtDay(R.closeMax), '', 'if every extension is used');
+    h += row('Due diligence checklist', done + ' of ' + DDLIST.length + ' done', done === DDLIST.length ? 'pos' : '', 'section 3 below');
+    $('oOut').innerHTML = h;
+    $('oLetter').textContent = loiLetter(R, v);
+    $('ddHint').textContent = 'Check these before your deposit goes hard on ' + fmtDay(R.ddEnd) + '. ' + done + ' of ' + DDLIST.length + ' done. Tap each one when it is finished.';
+    try {
+      var save = {}; OFIELDS.concat(OTEXT, ['oDate']).forEach(function(k){ save[k] = os[k]; });
+      OCONT.forEach(function(c){ save[c.id] = !!os[c.id]; }); save.dd = os.dd;
+      localStorage.setItem(OKEY, JSON.stringify(save));
+    } catch(e){}
+  }
+  // build the two tick lists once
+  function tickRow(id, t, d2){
+    return '<button type="button" class="chk" id="' + id + '" role="checkbox" aria-checked="false"><span class="bx">✓</span><span><b>' + t + '</b><span class="d">' + d2 + '</span></span></button>';
+  }
+  $('oConts').innerHTML = OCONT.map(function(c){ return tickRow(c.id, c.t, c.d); }).join('');
+  $('ddList').innerHTML = DDLIST.map(function(x){ return tickRow('dd-' + x.id, x.t, x.d); }).join('');
+  OCONT.forEach(function(c){ $(c.id).addEventListener('click', function(){ os[c.id] = !os[c.id]; renderLoi(); }); });
+  DDLIST.forEach(function(x){ $('dd-' + x.id).addEventListener('click', function(){ os.dd[x.id] = !os.dd[x.id]; renderLoi(); }); });
+  wireBoxes(OFIELDS, os, ODEF, OLIM, renderLoi);
+  OTEXT.forEach(function(k){ $(k).addEventListener('input', function(){ os[k] = this.value.slice(0, 300); renderLoi(); }); });
+  $('oDate').addEventListener('input', function(){ if (/^\d{4}-\d{2}-\d{2}$/.test(this.value)) { os.oDate = this.value; renderLoi(); } });
+  $('oRelink').addEventListener('click', function(){ os.oPrice = null; os.oEarnest = null; renderLoi(); toast('Linked to your Spec Build lot price'); });
+  $('oClear').addEventListener('click', function(){
+    OTEXT.forEach(function(k){ os[k] = ''; }); renderLoi(); toast('Names and property cleared');
+  });
+  $('oCopy').addEventListener('click', function(){
+    var txt = $('oLetter').textContent;
+    var fallback = function(){
+      var r = document.createRange(); r.selectNodeContents($('oLetter'));
+      var sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(r);
+      toast('Copy was blocked — the letter is selected, press Ctrl+C');
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(function(){ toast('Letter copied'); }, fallback);
+    else fallback();
+  });
+
+  var VIEWS = { spec: 'specView', contract: 'contractView', lender: 'lenderView', loi: 'loiView' };
   function setTab(t){
     if (!VIEWS[t]) t = 'spec';
     Object.keys(VIEWS).forEach(function(k){ $(VIEWS[k]).hidden = k !== t; });

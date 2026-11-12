@@ -61,4 +61,31 @@ eq(L.dayOne, 280000, 'lender pays toward the payoff'); eq(L.cashClose, 51800, 'c
 L = E.lender({ ...loanIn, type: 'c2p' });
 eq(L.months, 10, 'converts at completion');            assert.ok(Math.abs(L.permPay - 7917.1) < 1, 'perm payment ' + L.permPay);
 
+// interest reserve, interest on the full loan (12 months at 12% = 12% of the loan), worked by hand:
+// reserve R = 0.12 x loan, loan = 85% x (1.4M + R)  ->  R = 142,800 / 0.898 = 159,020.04
+L = E.lender({ ...loanIn, dutch: true, reserve: true });
+eq(L.reserve, 159020.04, 'reserve covers the interest'); eq(L.interest, 159020.04, 'interest with a reserve');
+eq(L.loan, 1325167.04, 'loan grows by 85% of the reserve'); eq(L.interestCash, 0, 'no interest out of pocket');
+eq(L.gap, 113853.01, 'reserve takes room from the draws'); eq(L.cashTotal, 268356.35, 'total cash with a reserve');
+// drawn-balance interest: the reserve still equals the interest, and the loan stays inside the limit
+L = E.lender({ ...loanIn, reserve: true });
+eq(L.reserve, L.interest, 'reserve = interest');         assert.ok(L.loan <= L.cap + 0.01 && L.interest > 101850);
+eq(L.cashTotal, L.cashClose + L.gap, 'interest is not paid in cash');
+// finished-value limit binds: no extra loan, so the reserve only moves cash from monthly interest to the build
+L = E.lender({ ...loanIn, arv: 1.5e6, reserve: true });
+eq(L.loan, 1050000, 'loan stays at 70% of ARV');        eq(L.interestCash, 0, 'reserve still funded');
+
 console.log('lender math OK');
+
+// ---- land offer (LOI): $150k lot, $900k finished value, signed Jan 15 2026, 60 + 60 days, two 30-day extensions
+let O = E.offer({ price: 150000, arv: 900000, earnest: null, date: '2026-01-15', validDays: 7, ddDays: 60, closeDays: 60,
+  extCount: 2, extDays: 30, ddCosts: 5000 });
+eq(O.earnest, 2500, 'auto deposit is about 1.5%, to the nearest $500');   eq(O.landPct, 16.6667, 'land as a share of finished value');
+assert.strictEqual(O.expires, '2026-01-22');     assert.strictEqual(O.ddEnd, '2026-03-16');     assert.strictEqual(O.close, '2026-05-15');
+assert.strictEqual(O.ddEndMax, '2026-05-15');    assert.strictEqual(O.closeMax, '2026-07-14');
+eq(O.atRiskBefore, 5000, 'only the checks are at risk in due diligence');  eq(O.atRiskAfter, 7500, 'checks plus the deposit after');
+eq(E.offer({ price: 150000, earnest: 5000 }).earnest, 5000, 'a typed deposit wins');
+eq(E.offer({ price: 150000, earnest: 0 }).earnest, 0, 'a typed zero deposit is kept');
+assert.strictEqual(E.offer({ price: 1, date: 'nope' }).ddEnd, null);
+
+console.log('offer math OK');
