@@ -141,13 +141,14 @@
     border-radius:999px;padding:5px 10px;font-size:11.5px;font-weight:700;cursor:pointer;min-height:40px;min-width:52px}
   .trow .chip.on,.trow .vchip.on{background:var(--gold);color:#100D05;border-color:var(--gold)}
   /* the two main tabs: big, raised, each in its own color (gold = spec, blue = hire a GC) */
-  #segTab{gap:12px}
+  #segTab{gap:12px;grid-template-columns:repeat(3,1fr)}
   #segTab button{--c:242,182,50;display:flex;align-items:center;gap:13px;padding:15px 16px;font-size:13.5px;border-radius:16px;
     color:#B8B5AE;border-color:rgba(var(--c),.32);
     background:linear-gradient(135deg,rgba(var(--c),.15),rgba(var(--c),.03) 62%),var(--panel2);
     box-shadow:0 6px 18px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.07);
     transition:transform .12s,box-shadow .12s,border-color .12s,background .12s}
   #segTab button[data-tab="contract"]{--c:125,211,252}
+  #segTab button[data-tab="lender"]{--c:52,211,153}
   #segTab button b{font-size:17px;margin-bottom:3px;color:rgb(var(--c))}
   #segTab .ti{flex:none;width:44px;height:44px;border-radius:13px;display:flex;align-items:center;justify-content:center;
     background:rgba(var(--c),.16);color:rgb(var(--c));transition:background .12s,color .12s}
@@ -158,9 +159,12 @@
     box-shadow:0 8px 30px rgba(var(--c),.3),inset 0 1px 0 rgba(255,255,255,.12)}
   #segTab button.on .ti{background:rgb(var(--c));color:#0B0B0D}
   #segTab button:focus-visible{outline:2px solid rgb(var(--c));outline-offset:2px}
-  @media (max-width:520px){
-    #segTab button{flex-direction:column;align-items:flex-start;gap:9px;padding:13px 12px}
-    #segTab button b{font-size:15px} #segTab .ti{width:36px;height:36px;border-radius:11px}
+  @media (max-width:820px){ #segTab button{flex-direction:column;align-items:flex-start;gap:9px} }
+  @media (max-width:520px){      /* three across on a phone: icon and name only */
+    #segTab{gap:8px}
+    #segTab button{padding:12px 10px;align-items:center;text-align:center}
+    #segTab button>span:last-child{font-size:0}
+    #segTab button b{font-size:13.5px;margin:0} #segTab .ti{width:36px;height:36px;border-radius:11px}
   }
   /* contract pricing tab */
   .mgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}
@@ -263,7 +267,7 @@
   @media print{
     .chero,.how,.hero,.printonly{display:none!important}
     .printonly{display:block!important;font-size:16px;font-weight:800;margin:0 0 10px}
-    header,.btn,.seg,.modal,.toast,#inputsCard,#cInputs,.qh,.help{display:none!important}
+    header,.btn,.seg,.modal,.toast,#inputsCard,#cInputs,#lInputs,.qh,.help{display:none!important}
     body{background:#fff;color:#000}
     .card{break-inside:avoid;border-color:#ddd}
     .cols{grid-template-columns:1fr}
@@ -324,6 +328,7 @@
   <div class="seg" id="segTab" style="margin:14px 0 0">
     <button data-tab="spec" class="on"><span class="ti"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg></span><span><b>Spec Build</b>Buy the lot, build it, sell it</span></button>
     <button data-tab="contract"><span class="ti"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 18h18"/><path d="M5 18v-3a7 7 0 0 1 14 0v3"/><path d="M10 8.3V5h4v3.3"/></svg></span><span><b>Hire a GC</b>You own it, a GC builds it: cost-plus, GMP, lump sum, design-build</span></button>
+    <button data-tab="lender"><span class="ti"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10l9-6 9 6"/><path d="M5 10v8M9.5 10v8M14.5 10v8M19 10v8"/><path d="M3 20h18"/></svg></span><span><b>Lender Terms</b>What your lender charges: loan size, cash at closing, cost of the money</span></button>
   </div>
 
   <div class="printonly" id="printHead"></div>
@@ -662,6 +667,129 @@
     </div>
   </div>
   </div><!-- /contractView -->
+
+  <!-- ============ LENDER TERMS ============ -->
+  <div id="lenderView" hidden>
+  <div class="cols">
+    <div class="card" id="lInputs">
+      <h3>1 · The loan</h3>
+      <p class="hint">Ground-up build. Type in what your lender is quoting. Boxes marked “linked” follow your Spec Build numbers.
+        Type over any box to use your own number. Clear a box to link it back.</p>
+
+      <div class="seg" id="segLoan">
+        <button data-loan="ac" class="on"><b>Build &amp; sell loan</b>Acquisition + construction. Paid off when it sells</button>
+        <button data-loan="c2p"><b>Construction-to-perm</b>Turns into a long mortgage when the build is done</button>
+      </div>
+
+      <div class="switch" id="swOwn">
+        <div><div class="t">I already own the lot</div><div class="d">Off = the loan helps you buy it</div></div>
+        <div class="tog"></div>
+      </div>
+
+      <div class="two">
+        <div class="field">
+          <label><span class="lt" id="lLotLbl">Lot purchase price</span> <span class="tag" id="lLotTag"></span></label>
+          <div class="inp has-pre"><span class="pre">$</span><input type="text" inputmode="decimal" autocomplete="off" id="lLot" /></div>
+        </div>
+        <div class="field" id="lOwedField" hidden>
+          <label>What you still owe on the lot</label>
+          <div class="inp has-pre"><span class="pre">$</span><input type="text" inputmode="decimal" autocomplete="off" id="lOwed" /></div>
+        </div>
+      </div>
+      <div class="two">
+        <div class="field">
+          <label>Construction budget <span class="tag" id="lBuildTag"></span></label>
+          <div class="inp has-pre"><span class="pre">$</span><input type="text" inputmode="decimal" autocomplete="off" id="lBuild" /></div>
+        </div>
+        <div class="field">
+          <label>Finished value (ARV) <span class="tag" id="lArvTag"></span></label>
+          <div class="inp has-pre"><span class="pre">$</span><input type="text" inputmode="decimal" autocomplete="off" id="lArv" /></div>
+        </div>
+      </div>
+      <div class="two">
+        <div class="field">
+          <label>Build months <span class="tag" id="lMonthsTag"></span></label>
+          <div class="inp has-suf"><input type="text" inputmode="decimal" autocomplete="off" id="lMonths" /><span class="suf">mo</span></div>
+        </div>
+        <div class="field" id="lSellField">
+          <label>Months to sell after finish <span class="tag" id="lSellTag"></span></label>
+          <div class="inp has-suf"><input type="text" inputmode="decimal" autocomplete="off" id="lSell" /><span class="suf">mo</span></div>
+        </div>
+      </div>
+
+      <div style="font-size:12px;font-weight:700;margin:6px 0 9px">What your lender charges</div>
+      <div class="three">
+        <div class="field">
+          <label>Loan to cost (LTC) <span class="tag" id="lLtcTag"></span></label>
+          <div class="inp has-suf"><input type="text" inputmode="decimal" autocomplete="off" id="lLtc" /><span class="suf">%</span></div>
+        </div>
+        <div class="field">
+          <label>Max loan to ARV <span class="tag" id="lLtvTag"></span></label>
+          <div class="inp has-suf"><input type="text" inputmode="decimal" autocomplete="off" id="lLtv" /><span class="suf">%</span></div>
+        </div>
+        <div class="field">
+          <label>Lot funded at closing <span class="tag" id="lLandAdvTag"></span></label>
+          <div class="inp has-suf"><input type="text" inputmode="decimal" autocomplete="off" id="lLandAdv" /><span class="suf">%</span></div>
+        </div>
+      </div>
+      <div class="three">
+        <div class="field">
+          <label>Interest rate <span class="tag" id="lRateTag"></span></label>
+          <div class="inp has-suf"><input type="text" inputmode="decimal" autocomplete="off" id="lRate" /><span class="suf">%</span></div>
+        </div>
+        <div class="field">
+          <label>Points <span class="tag" id="lPointsTag"></span></label>
+          <div class="inp has-suf"><input type="text" inputmode="decimal" autocomplete="off" id="lPoints" /><span class="suf">%</span></div>
+        </div>
+        <div class="field">
+          <label>Lender fees <span class="tag" id="lFeesTag"></span></label>
+          <div class="inp has-pre"><span class="pre">$</span><input type="text" inputmode="decimal" autocomplete="off" id="lFees" /></div>
+        </div>
+      </div>
+      <div class="field">
+        <label>Closing costs <span class="tag" id="lClosingTag"></span></label>
+        <div class="inp has-pre"><span class="pre">$</span><input type="text" inputmode="decimal" autocomplete="off" id="lClosing" /></div>
+      </div>
+      <div class="switch" id="swDutch">
+        <div><div class="t">Interest on the full loan from day one</div><div class="d">Off = interest only on the money you have drawn</div></div>
+        <div class="tog"></div>
+      </div>
+      <div id="lPermBox" hidden>
+        <div style="font-size:12px;font-weight:700;margin:6px 0 9px">The mortgage after the build</div>
+        <div class="two">
+        <div class="field">
+          <label>Mortgage rate</label>
+          <div class="inp has-suf"><input type="text" inputmode="decimal" autocomplete="off" id="lPermRate" /><span class="suf">%</span></div>
+        </div>
+        <div class="field">
+          <label>Mortgage length</label>
+          <div class="inp has-suf"><input type="text" inputmode="decimal" autocomplete="off" id="lPermYears" /><span class="suf">yr</span></div>
+        </div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap">
+        <button class="btn" id="lRelink">Use Spec Build numbers</button>
+      </div>
+    </div>
+
+    <div class="card" id="lResults">
+      <h3>2 · What the loan really looks like</h3>
+      <p class="hint" id="lHint"></p>
+      <div id="lOut"></div>
+      <div class="note" style="margin-top:14px">
+        <b style="color:var(--txt)">What lenders were advertising in late 2026.</b> Hard money, ground-up: 80–90% loan to cost,
+        65–75% of finished value, about 9–12% interest, 1–3 points, 12–24 month terms. Construction-to-perm: about 20–25% down
+        and 7.5–9%, and lot equity often counts toward the down payment. These come from lender websites. Your quote will differ.
+      </div>
+      <div class="foot">
+        Estimates only. Not a loan offer or lending advice. Draws are spread evenly over the build, and interest is assumed paid
+        monthly out of pocket (no interest reserve). Lenders differ on appraisals, draw fees, reserves, and how they count a lot
+        you already own. Get the term sheet in writing before you commit money.
+      </div>
+    </div>
+  </div>
+  </div><!-- /lenderView -->
 </div>
 
 <!-- SAVED -->
@@ -1157,7 +1285,56 @@
     };
   }
 
-  var API = { DEFAULTS: DEFAULTS, MAX_LAND: MAX_LAND, normalize: normalize, run: run, core: core, contracts: contracts,
+  /* ---------- lender terms: one ground-up loan, from the borrower's side ----------
+     c: { lot, build, arv, own, owed, ltcPct, ltvPct, landAdvPct, ratePct, pointsPct, fees, closing,
+          buildMonths, holdMonths, dutch, type ('ac' | 'c2p'), permRatePct, permYears }
+     lot    = purchase price, or what the lot is worth if it is already owned (it counts as cost either way)
+     dayOne = what the lender funds at closing toward the dirt; the rest of the loan is paid out in build draws
+     The loan is the smaller of the two lender tests, and never more than the job needs. */
+  function lender(c) {
+    var lot = clamp(num(c.lot), 0, 1e10), build = clamp(num(c.build), 0, 1e10), arv = clamp(num(c.arv), 0, 1e11);
+    var own = !!c.own, owed = own ? clamp(num(c.owed), 0, 1e10) : 0;
+    var ltc = clamp(num(c.ltcPct), 0, 100) / 100, ltv = clamp(num(c.ltvPct), 0, 100) / 100;
+    var adv = clamp(num(c.landAdvPct), 0, 100) / 100, rate = clamp(num(c.ratePct), 0, 40) / 100;
+    var c2p = c.type === 'c2p';
+    var bm = clamp(Math.round(num(c.buildMonths)), 1, 60);
+    var hm = c2p ? 0 : clamp(Math.round(num(c.holdMonths)), 0, 36);   // a perm loan converts at completion
+
+    var cost = lot + build;
+    var byLtc = cost * ltc, byLtv = arv * ltv, cap = Math.max(0, Math.min(byLtc, byLtv));
+    var lotNeed = own ? owed : lot;                       // cash the dirt needs at closing: the price, or the payoff
+    var dayOne = Math.min(cap, lot * adv, lotNeed);
+    var holdback = Math.min(cap - dayOne, build);         // construction money, paid out in draws
+    var loan = dayOne + holdback;
+    var binding = loan < cap - 0.5 ? 'need' : (byLtv < byLtc ? 'ltv' : 'ltc');
+
+    var points = loan * clamp(num(c.pointsPct), 0, 10) / 100;
+    var fees = loan > 0 ? clamp(num(c.fees), 0, 1e8) : 0;
+    var closing = clamp(num(c.closing), 0, 1e9);
+    var cashClose = lotNeed - dayOne + closing + points + fees;
+    var gap = build - holdback;                           // the part of the build the borrower pays
+
+    var months = bm + hm, interest = 0, bal = dayOne;
+    if (c.dutch) interest = loan * rate / 12 * months;    // charged on the whole loan from day one
+    else for (var m = 1; m <= months; m++) {
+      if (m <= bm) bal += holdback / bm;
+      interest += bal * rate / 12;
+    }
+
+    var pr = clamp(num(c.permRatePct), 0, 30) / 100 / 12, n = clamp(Math.round(num(c.permYears)), 1, 40) * 12;
+    var permPay = !c2p ? null : (pr > 0 ? loan * pr / (1 - Math.pow(1 + pr, -n)) : loan / n);
+
+    return { cost: cost, lot: lot, build: build, arv: arv, own: own, owed: owed, c2p: c2p,
+             byLtc: byLtc, byLtv: byLtv, cap: cap, loan: loan, binding: binding,
+             lotNeed: lotNeed, dayOne: dayOne, holdback: holdback, gap: gap,
+             points: points, fees: fees, closing: closing, cashClose: cashClose,
+             months: months, buildMonths: bm, holdMonths: hm, interest: interest, fullDrawPayment: loan * rate / 12,
+             costOfMoney: points + fees + interest, cashTotal: cashClose + gap + interest,
+             ltcActual: cost > 0 ? loan / cost * 100 : null, ltvActual: arv > 0 ? loan / arv * 100 : null,
+             lotEquity: own ? lot - owed : null, permPay: permPay };
+  }
+
+  var API = { DEFAULTS: DEFAULTS, MAX_LAND: MAX_LAND, normalize: normalize, run: run, core: core, contracts: contracts, lender: lender,
               monthlyIrr: monthlyIrr, annualize: annualize, npv: npv,
               maxLandForMargin: maxLandForMargin, maxLandForIrr: maxLandForIrr,
               sensitivity: sensitivity, verdictFor: verdictFor, scoreDeal: scoreDeal };
@@ -1213,13 +1390,52 @@
   var CLIM = { cHard:[0,1e9], cPermits:[0,1e9], cDesign:[0,1e9], cGmp:[0,1e10], cContPct:[0,100],
                cFeePct:[0,100], cSharePct:[0,100], cLumpPct:[0,100], cDbPct:[0,100], cVar:[-90,300] };
   var CKEY = 'mm_contract_v1';
-  var cs = Object.assign({}, CDEF);
-  try {
-    var cRaw = JSON.parse(localStorage.getItem(CKEY) || 'null') || {};
-    CFIELDS.forEach(function(f){
-      if (typeof cRaw[f] === 'number' && isFinite(cRaw[f])) cs[f] = Math.min(CLIM[f][1], Math.max(CLIM[f][0], cRaw[f]));
+  var cs = loadBoxes(CKEY, CFIELDS, CDEF, CLIM);
+
+  // lender terms tab: same linking rule. type / own / dutch are switches, not number boxes
+  var LFIELDS = ['lLot','lOwed','lBuild','lArv','lMonths','lSell','lLtc','lLtv','lLandAdv','lRate','lPoints','lFees',
+                 'lClosing','lPermRate','lPermYears'];
+  var LDEF = { lLot:null, lBuild:null, lArv:null, lMonths:null, lSell:null, lLtc:null, lLtv:null, lLandAdv:null,
+               lRate:null, lPoints:null, lFees:null, lClosing:null, lOwed:0, lPermRate:7, lPermYears:30,
+               type:'ac', own:false, dutch:false };
+  var LLIM = { lLot:[0,1e9], lOwed:[0,1e9], lBuild:[0,1e9], lArv:[0,1e10], lMonths:[1,60], lSell:[0,36],
+               lLtc:[0,100], lLtv:[0,100], lLandAdv:[0,100], lRate:[0,40], lPoints:[0,10], lFees:[0,1e8],
+               lClosing:[0,1e9], lPermRate:[0,30], lPermYears:[1,40] };
+  var LKEY = 'mm_lender_v1';
+  var ls = loadBoxes(LKEY, LFIELDS, LDEF, LLIM);
+
+  // saved number boxes for a tab; anything missing or out of range falls back to the default
+  function loadBoxes(key, fields, def, lim){
+    var st = Object.assign({}, def);
+    try {
+      var raw = JSON.parse(localStorage.getItem(key) || 'null') || {};
+      fields.forEach(function(f){
+        if (typeof raw[f] === 'number' && isFinite(raw[f])) st[f] = Math.min(lim[f][1], Math.max(lim[f][0], raw[f]));
+      });
+      if (raw.type === 'c2p') st.type = 'c2p';
+      if (raw.own === true) st.own = true;
+      if (raw.dutch === true) st.dutch = true;
+    } catch(e){}
+    return st;
+  }
+  // typing in a tab's number box. st[f] === null means linked: it follows Spec Build (or auto)
+  function wireBoxes(fields, st, def, lim, rerender){
+    fields.forEach(function(f){
+      var el = $(f); if (!el) return;
+      el.addEventListener('input', function(){
+        var n = cleanNum(el.value);
+        if (n === null) return;                       // half-typed: keep the last good number
+        st[f] = Math.min(lim[f][1], Math.max(lim[f][0], n));
+        rerender();
+      });
+      el.addEventListener('blur', function(){
+        var n = cleanNum(el.value);
+        // a cleared linked box goes back to following Spec Build (or auto, for the GMP cap)
+        if (def[f] === null && (n === null || (f === 'cGmp' && n <= 0))) st[f] = null;
+        rerender();                                   // the box now shows the number in use
+      });
     });
-  } catch(e){}
+  }
 
   function toast(msg){
     var t = $('toast'); t.textContent = msg; t.classList.add('show');
@@ -1471,7 +1687,8 @@
     $('schedule').innerHTML = sch;
 
     window._last = { input: calcInput, r: r, maxLand: maxLand };
-    renderContract();   // the contract tab feeds off these numbers
+    renderContract();   // the other tabs feed off these numbers
+    renderLender();
     try {
       var snap = E.normalize(Object.assign({}, mode === 'full' ? calcInput : state));
       snap._name = ($('dealName').value || '').trim();
@@ -1480,7 +1697,7 @@
   }
 
   /* accessibility: associate every input with its label, and expose toggle state */
-  FIELDS.concat(['dealName'], CFIELDS).forEach(function(f){
+  FIELDS.concat(['dealName'], CFIELDS, LFIELDS).forEach(function(f){
     var el = $(f); if (!el || !el.closest) return;
     var field = el.closest('.field');
     var lab = field ? field.querySelector('label') : null;
@@ -1521,7 +1738,24 @@
     cSharePct: 'GMP only. If the job finishes under the cap, this is the % of the savings the GC keeps. You keep the rest.',
     cGmp: 'GMP = guaranteed maximum price: the most the GC can bill you. On auto it is cost + contingency + the GC’s fee. Type the cap from a real proposal to test it. Clear the box to go back to auto.',
     cLumpPct: 'The GC’s markup on a fixed-price job, as a % of cost plus contingency. It is usually higher than a cost-plus fee, because the GC carries the overrun risk.',
-    cDbPct: 'The GC’s markup when design and construction are one fixed price, as a % of design + cost + contingency.'
+    cDbPct: 'The GC’s markup when design and construction are one fixed price, as a % of design + cost + contingency.',
+    lLot: function(){ return ls.own
+      ? 'What the lot is worth today. Lenders usually use the appraised value, or what you paid if you bought it recently. It counts as part of your project cost, and your equity in it counts as your money in the deal.'
+      : 'What you are paying for the lot. It starts from Spec Build.'; },
+    lOwed: 'The payoff on any loan against the lot right now. The new lender pays this off at closing. Enter 0 if you own it free and clear.',
+    lBuild: 'Everything it costs to build: hard costs, soft costs, contingency and permits. It starts from your Spec Build numbers.',
+    lArv: 'ARV = after-repair value. For a new build it means what the finished house is worth. The lender’s appraiser sets this number, so use theirs once you have it.',
+    lMonths: 'Months from the first draw to the finished house. Interest runs the whole time, on a balance that grows with every draw.',
+    lSell: 'Months the finished house sits before it sells and the loan is paid off. You pay interest on the full loan the whole time.',
+    lLtc: 'LTC = loan to cost. The most the lender will lend, as a % of total project cost (lot + construction). Example: 85% of a $1,000,000 project is an $850,000 loan. Late-2026 hard money quotes ran 80–90%.',
+    lLtv: 'The lender’s second test: the most they will lend as a % of the finished value. Your loan is the smaller of this and loan to cost. Late-2026 hard money quotes ran 65–75%.',
+    lLandAdv: 'The % of the lot the lender funds at closing. The rest of the lot comes out of your pocket. Many lenders fund less of the dirt than of the construction. On auto it matches your loan to cost.',
+    lRate: 'The yearly interest rate. During the build you pay interest only, with no principal. Late-2026 hard money quotes ran about 9–12%.',
+    lPoints: 'An upfront charge, as a % of the loan. 2 points on a $1,000,000 loan is $20,000, paid at closing. Late-2026 quotes ran 1–3 points.',
+    lFees: 'Flat lender charges in dollars: underwriting, document prep, appraisal and draw inspections. Ask for the full list in writing.',
+    lClosing: 'Title, escrow and recording costs at closing. This does not include points or lender fees. It starts from Spec Build when you are buying the lot.',
+    lPermRate: 'The interest rate on the long mortgage the loan turns into after the build. Late-2026 construction-to-perm quotes ran about 7.5–9%.',
+    lPermYears: 'How many years the mortgage runs. 30 is the most common.'
   };
   function closeHelp(except){
     [].forEach.call(document.querySelectorAll('.qh[aria-expanded="true"]'), function(b){
@@ -1568,7 +1802,7 @@
   });
 
   /* ---------- tap a number field: whole value selected, so typing replaces it ---------- */
-  FIELDS.concat(['targetInline'], CFIELDS).forEach(function(f){
+  FIELDS.concat(['targetInline'], CFIELDS, LFIELDS).forEach(function(f){
     var el = $(f); if (!el) return;
     var fresh = false;
     function selAll(){
@@ -1582,7 +1816,7 @@
     el.addEventListener('blur', function(){ fresh = false; });
   });
   function paintPressed(){
-    [].forEach.call(document.querySelectorAll('#segMode button,#segType button,#segTab button,.trow .chip,.trow .vchip'), function(b){
+    [].forEach.call(document.querySelectorAll('#segMode button,#segType button,#segTab button,#segLoan button,.trow .chip,.trow .vchip'), function(b){
       b.setAttribute('aria-pressed', b.classList.contains('on') ? 'true' : 'false');
     });
   }
@@ -1688,7 +1922,7 @@
       if ($('printHead')) $('printHead').textContent = 'MainMath — ' + (this.value.trim() || 'Deal') + ' · ' + new Date().toLocaleDateString();
     } catch(e){}
   });
-  ['swLoan','swPartner','swMethod'].forEach(function(id){
+  ['swLoan','swPartner','swMethod','swOwn','swDutch'].forEach(function(id){
     var el = $(id);
     el.tabIndex = 0; el.setAttribute('role','switch');
     el.addEventListener('keydown', function(e){
@@ -1900,21 +2134,7 @@
     $('cCards').innerHTML = html;
     try { localStorage.setItem(CKEY, JSON.stringify(cs)); } catch(e){}
   }
-  CFIELDS.forEach(function(f){
-    var el = $(f); if (!el) return;
-    el.addEventListener('input', function(){
-      var n = cleanNum(el.value);
-      if (n === null) return;                       // half-typed: keep the last good number
-      cs[f] = Math.min(CLIM[f][1], Math.max(CLIM[f][0], n));
-      renderContract();
-    });
-    el.addEventListener('blur', function(){
-      var n = cleanNum(el.value);
-      // a cleared linked box goes back to following Spec Build (or auto, for the GMP cap)
-      if (CDEF[f] === null && (n === null || (f === 'cGmp' && n <= 0))) cs[f] = null;
-      renderContract();                             // the box now shows the number in use
-    });
-  });
+  wireBoxes(CFIELDS, cs, CDEF, CLIM, renderContract);
   [].forEach.call(document.querySelectorAll('.trow .vchip'), function(c){
     c.addEventListener('click', function(){ cs.cVar = Number(c.dataset.v); renderContract(); });
   });
@@ -1926,9 +2146,106 @@
     ['cFeePct','cSharePct','cGmp','cLumpPct','cDbPct','cVar'].forEach(function(f){ cs[f] = CDEF[f]; });
     renderContract(); toast('Terms reset');
   });
+  /* ---------- lender terms tab ---------- */
+  function renderLender(){
+    var d = window._last; if (!d || !$('lOut')) return;
+    var L = d.r.lines, inp = d.input;
+    var src = { lLot: inp.purchasePrice, lBuild: L.buildTotal + L.demo, lArv: L.arv, lMonths: inp.buildMonths, lSell: inp.sellMonths,
+                lLtc: inp.ltcPct, lLtv: inp.maxLtvPct, lRate: inp.ratePct, lPoints: inp.pointsPct, lFees: inp.lenderFee,
+                lClosing: ls.own ? 0 : L.buyClosing };
+    var val = function(f){ return ls[f] !== null ? ls[f] : src[f]; };
+    src.lLandAdv = val('lLtc');                     // auto: the lender funds the dirt at the same % as the rest
+    var c2p = ls.type === 'c2p';
+    var R = E.lender({ lot: val('lLot'), build: val('lBuild'), arv: val('lArv'), own: ls.own, owed: ls.lOwed,
+      ltcPct: val('lLtc'), ltvPct: val('lLtv'), landAdvPct: val('lLandAdv'), ratePct: val('lRate'), pointsPct: val('lPoints'),
+      fees: val('lFees'), closing: val('lClosing'), buildMonths: val('lMonths'), holdMonths: val('lSell'),
+      dutch: ls.dutch, type: ls.type, permRatePct: ls.lPermRate, permYears: ls.lPermYears });
+
+    // boxes, tags and switches show what is in use
+    LFIELDS.forEach(function(f){
+      var el = $(f), tag = $(f + 'Tag');
+      if (tag) tag.textContent = ls[f] !== null ? 'yours' : f === 'lLandAdv' ? 'auto' : 'linked';   // short: these boxes are narrow
+      if (el && document.activeElement !== el) el.value = prettyNum(Math.round(val(f) * 100) / 100);
+    });
+    $('swOwn').classList.toggle('on', ls.own); $('swOwn').setAttribute('aria-checked', ls.own ? 'true' : 'false');
+    $('swDutch').classList.toggle('on', ls.dutch); $('swDutch').setAttribute('aria-checked', ls.dutch ? 'true' : 'false');
+    [].forEach.call($('segLoan').children, function(b){ b.classList.toggle('on', b.dataset.loan === ls.type); });
+    $('lLotLbl').textContent = ls.own ? 'What the lot is worth' : 'Lot purchase price';
+    $('lOwedField').hidden = !ls.own;
+    $('lSellField').hidden = c2p;
+    $('lPermBox').hidden = !c2p;
+    paintPressed();
+
+    var p0 = function(n){ return pct(n, 0); };
+    var head = function(t){ return '<div style="font-size:12px;font-weight:700;margin:16px 0 6px">' + t + '</div>'; };
+    var total = function(h){ return h.replace('class="row"', 'class="row total"'); };
+    $('lHint').textContent = 'Total project cost ' + fmtM(R.cost) + ' = ' + fmtM(R.lot) + (ls.own ? ' lot value' : ' lot') + ' + ' +
+      fmtM(R.build) + ' construction. Finished value ' + fmtM(R.arv) + '.';
+
+    var why = R.binding === 'ltc' ? 'Held back by loan to cost: ' + tpct(val('lLtc')) + ' of your ' + fmtM(R.cost) + ' cost.'
+      : R.binding === 'ltv' ? 'Held back by loan to ARV: ' + tpct(val('lLtv')) + ' of the ' + fmtM(R.arv) + ' finished value. The cost test alone would allow ' + fmtM(R.byLtc) + '.'
+      : 'The lender covers everything the job needs. The two tests would allow up to ' + fmtM(R.cap) + '.';
+    var h = '<div class="solver"><div class="k">Your loan</div><div class="v">' + fmtM(R.loan) + '</div>' +
+      '<div class="s">' + pct(R.ltcActual) + ' of cost · ' + pct(R.ltvActual) + ' of finished value. ' + why + '</div></div>';
+
+    h += '<div class="kpis" style="margin-top:12px">' +
+      '<div class="kpi gold"><div class="k">Cash at closing</div><div class="v">' + fmtM(R.cashClose) + '</div><div class="s">lot, points, fees and closing costs</div></div>' +
+      '<div class="kpi"><div class="k">You pay during the build</div><div class="v">' + fmtM(R.gap) + '</div><div class="s">' +
+        (R.gap < 0.5 ? 'the lender covers the whole budget' : 'the part of the budget the loan does not cover') + '</div></div>' +
+      '<div class="kpi"><div class="k">Interest</div><div class="v">' + fmtM(R.interest) + '</div><div class="s">' + R.months + ' months · ' +
+        (ls.dutch ? 'on the full loan' : 'on what is drawn') + '</div></div>' +
+      '<div class="kpi"><div class="k">Cost of the money</div><div class="v">' + fmtM(R.costOfMoney) + '</div><div class="s">points + fees + interest' +
+        (R.loan > 0 ? ' · ' + pct(R.costOfMoney / R.loan * 100) + ' of the loan' : '') + '</div></div></div>';
+
+    h += head('At the closing table');
+    h += row(ls.own ? 'Pay off the lot' : 'Buy the lot', '−' + fmtM(R.lotNeed), R.lotNeed > 0 ? 'neg' : '', ls.own && R.owed === 0 ? 'owned free and clear' : '');
+    h += row('Lender puts in on day one', '+' + fmtM(R.dayOne), R.dayOne > 0 ? 'pos' : '', R.lot > 0 ? p0(R.dayOne / R.lot * 100) + ' of the lot' : '');
+    h += row('Closing costs', '−' + fmtM(R.closing), 'neg');
+    h += row('Points', '−' + fmtM(R.points), 'neg', tpct(val('lPoints')) + ' of the loan');
+    h += row('Lender fees', '−' + fmtM(R.fees), 'neg');
+    h += total(row('Cash you bring to closing', fmtM(R.cashClose), ''));
+    if (ls.own) h += row('Your lot equity', fmtM(R.lotEquity), '', 'counts as your money in the deal');
+
+    h += head('During the build');
+    h += row('Construction budget', fmtM(R.build), '');
+    h += row('Lender pays in draws', fmtM(R.holdback), 'pos', R.build > 0 ? p0(R.holdback / R.build * 100) + ' of the budget' : '');
+    h += row('You pay', fmtM(R.gap), R.gap > 0.5 ? 'neg' : '');
+    h += row('Interest payment at full draw', fmtM(R.fullDrawPayment) + '/mo', '', tpct(val('lRate')) + ' interest-only');
+    h += row('Total interest', fmtM(R.interest), 'neg', R.buildMonths + ' mo build' + (R.holdMonths ? ' + ' + R.holdMonths + ' mo to sell' : ''));
+
+    h += head('The lender’s two tests');
+    h += row('Loan to cost', fmtM(R.byLtc), '', tpct(val('lLtc')) + ' × ' + fmtM(R.cost));
+    h += row('Loan to ARV', fmtM(R.byLtv), '', tpct(val('lLtv')) + ' × ' + fmtM(R.arv));
+    h += row('The smaller one is your limit', fmtM(R.cap), '');
+
+    if (c2p) {
+      h += head('After the build: the mortgage');
+      h += row('Mortgage balance', fmtM(R.loan), '', pct(R.ltvActual) + ' of finished value');
+      h += row('Monthly payment', money0.format(Math.round(R.permPay)) + '/mo', '', tpct(ls.lPermRate) + ' for ' + ls.lPermYears + ' yr · taxes and insurance are extra');
+    } else {
+      h += head('At the sale');
+      h += row('Pay the lender back', fmtM(R.loan), 'neg', 'from the sale proceeds');
+    }
+    h += total(row('Total cash you need', fmtM(R.cashTotal), '', 'closing + your part of the build + interest'));
+    $('lOut').innerHTML = h;
+    try { localStorage.setItem(LKEY, JSON.stringify(ls)); } catch(e){}
+  }
+  wireBoxes(LFIELDS, ls, LDEF, LLIM, renderLender);
+  $('segLoan').addEventListener('click', function(e){
+    var b = e.target.closest('button'); if (!b) return;
+    ls.type = b.dataset.loan; renderLender();
+  });
+  $('swOwn').addEventListener('click', function(){ ls.own = !ls.own; renderLender(); });
+  $('swDutch').addEventListener('click', function(){ ls.dutch = !ls.dutch; renderLender(); });
+  $('lRelink').addEventListener('click', function(){
+    LFIELDS.forEach(function(f){ if (LDEF[f] === null) ls[f] = null; });
+    renderLender(); toast('Linked to your Spec Build numbers');
+  });
+
+  var VIEWS = { spec: 'specView', contract: 'contractView', lender: 'lenderView' };
   function setTab(t){
-    $('specView').hidden = t === 'contract';
-    $('contractView').hidden = t !== 'contract';
+    if (!VIEWS[t]) t = 'spec';
+    Object.keys(VIEWS).forEach(function(k){ $(VIEWS[k]).hidden = k !== t; });
     [].forEach.call($('segTab').children, function(c){ c.classList.toggle('on', c.dataset.tab === t); });
     try { localStorage.setItem('mm_tab_v1', t); } catch(e){}
     paintPressed();
@@ -1950,7 +2267,7 @@
   syncType(); writeForm();
   if (lastRaw && lastRaw._name) $('dealName').value = lastRaw._name;
   render();
-  try { if (localStorage.getItem('mm_tab_v1') === 'contract') setTab('contract'); } catch(e){}
+  try { var tab0 = localStorage.getItem('mm_tab_v1'); if (tab0 && tab0 !== 'spec') setTab(tab0); } catch(e){}
 })();
 </script>
 
