@@ -137,9 +137,18 @@
   .trow{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:12px;padding-top:11px;
     border-top:1px solid rgba(242,182,50,.22)}
   .trow .lab{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--gold);margin-right:2px}
-  .trow .chip{background:rgba(242,182,50,.08);border:1px solid rgba(242,182,50,.28);color:#E8C57A;
+  .trow .chip,.trow .vchip{background:rgba(242,182,50,.08);border:1px solid rgba(242,182,50,.28);color:#E8C57A;
     border-radius:999px;padding:5px 10px;font-size:11.5px;font-weight:700;cursor:pointer;min-height:40px;min-width:52px}
-  .trow .chip.on{background:var(--gold);color:#100D05;border-color:var(--gold)}
+  .trow .chip.on,.trow .vchip.on{background:var(--gold);color:#100D05;border-color:var(--gold)}
+  /* contract pricing tab */
+  .mgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}
+  @media (max-width:620px){ .mgrid{grid-template-columns:1fr} }
+  .mgrid .kpi.gold{border-color:rgba(242,182,50,.45)}
+  .mgrid .kpi .v small{font-size:11.5px;font-weight:600;color:var(--mut);letter-spacing:0}
+  .mgrid .kpi .s{font-size:11.5px;color:var(--mut);line-height:1.4;margin:3px 0 8px}
+  .mgrid .row{font-size:12px}
+  .mgrid .row .v{font-size:13px;font-weight:600;letter-spacing:0;margin-top:0;color:var(--txt)}
+  .mgrid .row .v.pos{color:var(--green)} .mgrid .row .v.neg{color:#F0A0A0}
   .trow .inp{width:78px}
   .trow input{padding:7px 10px;font-size:13.5px;border-radius:9px}
   .trow .suf{right:9px;font-size:12px}
@@ -232,7 +241,7 @@
   @media print{
     .chero,.how,.hero,.printonly{display:none!important}
     .printonly{display:block!important;font-size:16px;font-weight:800;margin:0 0 10px}
-    header,.btn,.seg,.modal,.toast,#inputsCard,.qh,.help{display:none!important}
+    header,.btn,.seg,.modal,.toast,#inputsCard,#cInputs,.qh,.help{display:none!important}
     body{background:#fff;color:#000}
     .card{break-inside:avoid;border-color:#ddd}
     .cols{grid-template-columns:1fr}
@@ -290,7 +299,13 @@
 
 <div class="wrap">
 
+  <div class="seg" id="segTab" style="margin:14px 0 0">
+    <button data-tab="spec" class="on"><b>Spec Build</b>Buy the lot, build it, sell it</button>
+    <button data-tab="contract"><b>Hire a GC</b>You own it, a GC builds it: cost-plus, GMP, lump sum, design-build</button>
+  </div>
+
   <div class="printonly" id="printHead"></div>
+  <div id="specView">
   <div class="hero">
     <div>
       <div class="lbl">Net margin</div>
@@ -531,6 +546,100 @@
       </div>
     </div>
   </div>
+  </div><!-- /specView -->
+
+  <!-- ============ CONTRACT PRICING ============ -->
+  <div id="contractView" hidden>
+  <div class="cols">
+    <div class="card" id="cInputs">
+      <h3>1 · The job</h3>
+      <p class="hint">You are the owner and you hire a general contractor (GC) to build it. These boxes start from your Spec Build numbers.
+        Type over any box to use your own number. Clear a box to link it back.</p>
+
+      <div class="two">
+        <div class="field">
+          <label>Cost of the work <span class="tag" id="cHardTag"></span></label>
+          <div class="inp has-pre"><span class="pre">$</span><input type="text" inputmode="decimal" autocomplete="off" id="cHard" /></div>
+        </div>
+        <div class="field">
+          <label>Permits &amp; fees <span class="tag" id="cPermitsTag"></span></label>
+          <div class="inp has-pre"><span class="pre">$</span><input type="text" inputmode="decimal" autocomplete="off" id="cPermits" /></div>
+        </div>
+      </div>
+      <div class="two">
+        <div class="field">
+          <label>Contingency <span class="tag" id="cContPctTag"></span></label>
+          <div class="inp has-suf"><input type="text" inputmode="decimal" autocomplete="off" id="cContPct" /><span class="suf">%</span></div>
+        </div>
+        <div class="field">
+          <label>Design &amp; engineering <span class="tag" id="cDesignTag"></span></label>
+          <div class="inp has-pre"><span class="pre">$</span><input type="text" inputmode="decimal" autocomplete="off" id="cDesign" /></div>
+        </div>
+      </div>
+
+      <div style="font-size:12px;font-weight:700;margin:6px 0 9px">The GC’s terms</div>
+      <div class="two">
+        <div class="field">
+          <label>GC fee <span class="tag">cost-plus &amp; GMP</span></label>
+          <div class="inp has-suf"><input type="text" inputmode="decimal" autocomplete="off" id="cFeePct" /><span class="suf">%</span></div>
+        </div>
+        <div class="field">
+          <label>GC’s share of savings <span class="tag">GMP</span></label>
+          <div class="inp has-suf"><input type="text" inputmode="decimal" autocomplete="off" id="cSharePct" /><span class="suf">%</span></div>
+        </div>
+      </div>
+      <div class="two">
+        <div class="field">
+          <label>GMP cap <span class="tag" id="cGmpTag"></span></label>
+          <div class="inp has-pre"><span class="pre">$</span><input type="text" inputmode="decimal" autocomplete="off" id="cGmp" /></div>
+        </div>
+        <div class="field">
+          <label>GC markup, lump sum</label>
+          <div class="inp has-suf"><input type="text" inputmode="decimal" autocomplete="off" id="cLumpPct" /><span class="suf">%</span></div>
+        </div>
+      </div>
+      <div class="two">
+        <div class="field">
+          <label>GC markup, design-build</label>
+          <div class="inp has-suf"><input type="text" inputmode="decimal" autocomplete="off" id="cDbPct" /><span class="suf">%</span></div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap">
+        <button class="btn" id="cRelink">Use Spec Build numbers</button>
+        <button class="btn ghost" id="cReset">Reset terms</button>
+      </div>
+    </div>
+
+    <div class="card" id="cResults">
+      <h3>2 · Four ways to hire the GC</h3>
+      <p class="hint" id="cHint"></p>
+
+      <div class="solver">
+        <div class="k">What if the job really costs</div>
+        <div class="v" id="cActual">—</div>
+        <div class="s" id="cActualS">—</div>
+        <div class="trow">
+          <span class="lab">vs. estimate</span>
+          <button class="vchip" data-v="-10">−10%</button>
+          <button class="vchip" data-v="-5">−5%</button>
+          <button class="vchip" data-v="0">On budget</button>
+          <button class="vchip" data-v="5">+5%</button>
+          <button class="vchip" data-v="10">+10%</button>
+          <div class="inp has-suf"><input type="text" inputmode="decimal" autocomplete="off" id="cVar" aria-label="Actual cost versus estimate, percent" /><span class="suf">%</span></div>
+        </div>
+      </div>
+
+      <div class="mgrid" id="cCards"></div>
+
+      <div class="foot">
+        Estimates only. Not legal, tax, or accounting advice. Lump sum and design-build are shown as fixed prices, and the design cost
+        is held steady in the what-if. A fixed price still moves if you change the plans: change orders are extra. Real contracts differ
+        on what counts as a cost, how savings are split, and who owns the contingency. Have an attorney review any contract before you sign.
+      </div>
+    </div>
+  </div>
+  </div><!-- /contractView -->
 </div>
 
 <!-- SAVED -->
@@ -986,7 +1095,47 @@
     return { sales: sales, rows: rows };
   }
 
-  var API = { DEFAULTS: DEFAULTS, MAX_LAND: MAX_LAND, normalize: normalize, run: run, core: core,
+  /* ---------- contract pricing: one job, four contract types, seen from the builder's side ----------
+     c: { cost, design, contPct, feePct, lumpPct, dbPct, sharePct, gmp (0/null = auto), variancePct }
+     cost     = estimated cost of the work, before fee
+     actual   = what the work really costs = cost moved by variancePct
+     Lump sum and design-build are modelled as fixed prices: the builder keeps an underrun and eats an overrun. */
+  function contracts(c) {
+    var cost = clamp(num(c.cost), 0, 1e10), design = clamp(num(c.design), 0, 1e10);
+    var f = clamp(num(c.feePct), 0, 100) / 100, m = clamp(num(c.lumpPct), 0, 100) / 100;
+    var d = clamp(num(c.dbPct), 0, 100) / 100, share = clamp(num(c.sharePct), 0, 100) / 100;
+    var budget = cost * (1 + clamp(num(c.contPct), 0, 100) / 100);      // estimate + contingency
+    var actual = cost * (1 + clamp(num(c.variancePct), -90, 300) / 100);
+    var gmpAuto = budget * (1 + f);
+    var gmp = num(c.gmp) > 0 ? num(c.gmp) : gmpAuto;
+
+    function line(key, price, pays, profit, breakCost) {
+      return { key: key, price: price, pays: pays, profit: profit,
+               margin: pays > 0 ? profit / pays * 100 : null,
+               // how far over the estimate the cost can run before the builder's profit hits zero
+               cushion: breakCost === null ? null : (cost > 0 ? (breakCost / cost - 1) * 100 : null),
+               ownerAllIn: pays + (key === 'db' ? 0 : design) };       // owner hires the architect separately, except design-build
+    }
+
+    var billed = actual * (1 + f);                                      // cost + fee, before any cap
+    var underCap = billed <= gmp;
+    var saved = underCap ? gmp - billed : 0;
+    var lump = budget * (1 + m);
+    var db = (design + budget) * (1 + d);
+
+    return {
+      cost: cost, actual: actual, budget: budget, design: design, gmpAuto: gmpAuto,
+      list: [
+        line('costplus', cost * (1 + f), billed, actual * f, null),
+        line('gmp', gmp, underCap ? billed + saved * share : gmp,
+             underCap ? actual * f + saved * share : gmp - actual, gmp),
+        line('lump', lump, lump, lump - actual, lump),
+        line('db', db, db, db - actual - design, db - design)
+      ]
+    };
+  }
+
+  var API = { DEFAULTS: DEFAULTS, MAX_LAND: MAX_LAND, normalize: normalize, run: run, core: core, contracts: contracts,
               monthlyIrr: monthlyIrr, annualize: annualize, npv: npv,
               maxLandForMargin: maxLandForMargin, maxLandForIrr: maxLandForIrr,
               sensitivity: sensitivity, verdictFor: verdictFor, scoreDeal: scoreDeal };
@@ -1034,6 +1183,21 @@
     'softCostPct','contingencyPct','permitFees','buyClosingPct','monthlyCarry','sellingCostPct','demoCost',
     'ltcPct','maxLtvPct','ratePct','pointsPct','lenderFee','myProfitShare','myCashShare',
     'targetMarginPct','targetIrrPct'];
+
+  // contract pricing tab: null = linked (follows the Spec Build numbers, or auto for the GMP cap)
+  var CFIELDS = ['cHard','cPermits','cContPct','cDesign','cFeePct','cSharePct','cGmp','cLumpPct','cDbPct','cVar'];
+  var CDEF = { cHard:null, cPermits:null, cContPct:null, cDesign:null, cGmp:null,
+               cFeePct:15, cSharePct:50, cLumpPct:20, cDbPct:20, cVar:0 };
+  var CLIM = { cHard:[0,1e9], cPermits:[0,1e9], cDesign:[0,1e9], cGmp:[0,1e10], cContPct:[0,100],
+               cFeePct:[0,100], cSharePct:[0,100], cLumpPct:[0,100], cDbPct:[0,100], cVar:[-90,300] };
+  var CKEY = 'mm_contract_v1';
+  var cs = Object.assign({}, CDEF);
+  try {
+    var cRaw = JSON.parse(localStorage.getItem(CKEY) || 'null') || {};
+    CFIELDS.forEach(function(f){
+      if (typeof cRaw[f] === 'number' && isFinite(cRaw[f])) cs[f] = Math.min(CLIM[f][1], Math.max(CLIM[f][0], cRaw[f]));
+    });
+  } catch(e){}
 
   function toast(msg){
     var t = $('toast'); t.textContent = msg; t.classList.add('show');
@@ -1285,6 +1449,7 @@
     $('schedule').innerHTML = sch;
 
     window._last = { input: calcInput, r: r, maxLand: maxLand };
+    renderContract();   // the contract tab feeds off these numbers
     try {
       var snap = E.normalize(Object.assign({}, mode === 'full' ? calcInput : state));
       snap._name = ($('dealName').value || '').trim();
@@ -1293,7 +1458,7 @@
   }
 
   /* accessibility: associate every input with its label, and expose toggle state */
-  FIELDS.concat(['dealName']).forEach(function(f){
+  FIELDS.concat(['dealName'], CFIELDS).forEach(function(f){
     var el = $(f); if (!el || !el.closest) return;
     var field = el.closest('.field');
     var lab = field ? field.querySelector('label') : null;
@@ -1325,7 +1490,16 @@
     myProfitShare: 'The % of the profit you keep. The rest goes to your partner.',
     myCashShare: 'The % of the cash going into the deal that you put up yourself.',
     targetMarginPct: 'Your minimum net profit as a % of the sale price. It sets the deal verdict and the max lot price.',
-    targetIrrPct: 'Your minimum annual return (IRR) on the cash you put in. It sets the max lot price at that return.'
+    targetIrrPct: 'Your minimum annual return (IRR) on the cash you put in. It sets the max lot price at that return.',
+    cHard: 'What the job costs the GC to build, before the GC’s fee: labor, materials and subs. It starts from Spec Build: build cost per sqft × heated sqft. If your Spec Build number is a GC bid with the fee already inside, type the cost without the fee here.',
+    cPermits: 'Permits and fees the GC pays and bills to you through the contract. They are added to the cost of the work. Enter 0 if you pay them directly.',
+    cContPct: 'A cushion for surprises, as a % of the cost of the work. The GC builds it into a GMP, lump sum or design-build price. Cost-plus has no cushion, because you pay the real cost.',
+    cDesign: 'Architect, engineering and design cost. In design-build it is inside the GC’s price. In the other three you hire and pay the architect yourself. It starts from Spec Build soft costs.',
+    cFeePct: 'The GC’s overhead and profit, as a % of the cost of the work. Used for cost-plus and GMP. Ask each GC for this number.',
+    cSharePct: 'GMP only. If the job finishes under the cap, this is the % of the savings the GC keeps. You keep the rest.',
+    cGmp: 'GMP = guaranteed maximum price: the most the GC can bill you. On auto it is cost + contingency + the GC’s fee. Type the cap from a real proposal to test it. Clear the box to go back to auto.',
+    cLumpPct: 'The GC’s markup on a fixed-price job, as a % of cost plus contingency. It is usually higher than a cost-plus fee, because the GC carries the overrun risk.',
+    cDbPct: 'The GC’s markup when design and construction are one fixed price, as a % of design + cost + contingency.'
   };
   function closeHelp(except){
     [].forEach.call(document.querySelectorAll('.qh[aria-expanded="true"]'), function(b){
@@ -1372,7 +1546,7 @@
   });
 
   /* ---------- tap a number field: whole value selected, so typing replaces it ---------- */
-  FIELDS.concat(['targetInline']).forEach(function(f){
+  FIELDS.concat(['targetInline'], CFIELDS).forEach(function(f){
     var el = $(f); if (!el) return;
     var fresh = false;
     function selAll(){
@@ -1386,7 +1560,7 @@
     el.addEventListener('blur', function(){ fresh = false; });
   });
   function paintPressed(){
-    [].forEach.call(document.querySelectorAll('#segMode button,#segType button,.trow .chip'), function(b){
+    [].forEach.call(document.querySelectorAll('#segMode button,#segType button,#segTab button,.trow .chip,.trow .vchip'), function(b){
       b.setAttribute('aria-pressed', b.classList.contains('on') ? 'true' : 'false');
     });
   }
@@ -1638,6 +1812,109 @@
     $(id).addEventListener('click', function(e){ if (e.target === this) this.classList.remove('show'); });
   });
 
+  /* ---------- contract pricing tab ---------- */
+  var CTEXT = {
+    costplus: { name: 'Cost-plus', risk: 'an overrun is yours',
+      desc: 'You pay what the job really costs, plus the GC’s fee. There is no ceiling, so an overrun is yours.' },
+    gmp: { name: 'GMP', risk: 'the GC pays above the cap',
+      desc: 'Cost plus fee, but never more than the cap. Finish under it and you split the savings with the GC.' },
+    lump: { name: 'Lump sum', risk: 'the GC pays an overrun',
+      desc: 'One fixed price. If the GC comes in under, the GC keeps it. If it goes over, the GC eats it.' },
+    db: { name: 'Design-build', risk: 'the GC pays an overrun',
+      desc: 'One fixed price for design and construction, and one company to call. The GC carries both.' }
+  };
+  function renderContract(){
+    var d = window._last; if (!d || !$('cCards')) return;
+    var src = { cHard: d.r.lines.hard, cPermits: d.input.permitFees, cContPct: d.input.contingencyPct,
+                cDesign: d.r.lines.soft, cGmp: 0 };
+    var val = function(f){ return cs[f] !== null ? cs[f] : src[f]; };
+    var res = E.contracts({ cost: val('cHard') + val('cPermits'), design: val('cDesign'), contPct: val('cContPct'),
+      feePct: cs.cFeePct, lumpPct: cs.cLumpPct, dbPct: cs.cDbPct, sharePct: cs.cSharePct,
+      gmp: cs.cGmp, variancePct: cs.cVar });
+    src.cGmp = res.gmpAuto;
+
+    // every box shows the number in use; a box being typed in is left alone
+    CFIELDS.forEach(function(f){
+      var el = $(f), tag = $(f + 'Tag');
+      if (tag) tag.textContent = cs[f] !== null ? 'your number' : f === 'cGmp' ? 'auto' : 'from Spec Build';
+      if (el && document.activeElement !== el) el.value = prettyNum(Math.round(val(f) * 100) / 100);
+    });
+    [].forEach.call(document.querySelectorAll('.trow .vchip'), function(c){
+      c.classList.toggle('on', Number(c.dataset.v) === cs.cVar);
+    });
+    paintPressed();
+
+    var sqft = d.input.buildableSqft;
+    $('cHint').textContent = 'Estimated cost of the work ' + fmtM(res.cost) + ' (' + fmtM(res.cost / sqft) + '/sf). With contingency ' +
+      fmtM(res.budget) + '. “You pay” is the GC’s bill plus design, so the four line up.';
+    $('cActual').textContent = fmtM(res.actual);
+    var diff = res.actual - res.cost;
+    $('cActualS').textContent = Math.abs(diff) < 0.5 ? 'Right on your estimate. Tap a chip to test an overrun or a savings.'
+      : fmtM(Math.abs(diff)) + (diff > 0 ? ' over' : ' under') + ' your estimate. See who pays for it under each contract.';
+
+    // owner's view: what each contract costs you, and how the four differ
+    var low = res.list.reduce(function(a, b){ return b.ownerAllIn < a.ownerAllIn ? b : a; });
+    var specBudget = d.r.lines.buildTotal;          // hard + soft + contingency + permits from Spec Build
+    var html = '';
+    res.list.forEach(function(m){
+      var T = CTEXT[m.key], cheapest = m === low, isDb = m.key === 'db';
+      var gcNote = fmtM(m.pays / sqft) + '/sf';
+      if (m.key === 'gmp') gcNote += m.pays < m.price - 0.5 ? ' · ' + fmtM(m.price - m.pays) + ' under the cap' : ' · at the cap';
+      var vs = m.ownerAllIn - specBudget;
+      html += '<div class="kpi ' + (cheapest ? 'gold' : '') + '">' +
+        '<div class="k">' + T.name + (cheapest ? ' · costs you least' : '') + '</div>' +
+        '<div class="v">' + fmtM(m.ownerAllIn) + ' <small>you pay</small></div>' +
+        '<div class="s">' + T.desc + '</div>' +
+        row('To the GC', fmtM(m.pays), '', gcNote) +
+        row('Design', isDb ? 'Inside the price' : fmtM(res.design), '', isDb ? '' : 'you hire the architect') +
+        row('Most you can be billed', m.key === 'costplus' ? 'No limit' : fmtM(m.price + (isDb ? 0 : res.design)),
+            m.key === 'costplus' ? 'neg' : '', T.risk) +
+        row('More than the cheapest', cheapest ? '—' : '+' + fmtM(m.ownerAllIn - low.ownerAllIn)) +
+        row('Against your Spec Build budget', Math.abs(vs) < 0.5 ? 'Even' : fmtM(Math.abs(vs)) + (vs > 0 ? ' over' : ' under'),
+            vs > 0.5 ? 'neg' : 'pos', fmtM(specBudget)) +
+        row('The GC makes', fmtM(m.profit), m.profit < 0 ? 'neg' : '', pct(m.margin) + ' margin') +
+        '</div>';
+    });
+    $('cCards').innerHTML = html;
+    try { localStorage.setItem(CKEY, JSON.stringify(cs)); } catch(e){}
+  }
+  CFIELDS.forEach(function(f){
+    var el = $(f); if (!el) return;
+    el.addEventListener('input', function(){
+      var n = cleanNum(el.value);
+      if (n === null) return;                       // half-typed: keep the last good number
+      cs[f] = Math.min(CLIM[f][1], Math.max(CLIM[f][0], n));
+      renderContract();
+    });
+    el.addEventListener('blur', function(){
+      var n = cleanNum(el.value);
+      // a cleared linked box goes back to following Spec Build (or auto, for the GMP cap)
+      if (CDEF[f] === null && (n === null || (f === 'cGmp' && n <= 0))) cs[f] = null;
+      renderContract();                             // the box now shows the number in use
+    });
+  });
+  [].forEach.call(document.querySelectorAll('.trow .vchip'), function(c){
+    c.addEventListener('click', function(){ cs.cVar = Number(c.dataset.v); renderContract(); });
+  });
+  $('cRelink').addEventListener('click', function(){
+    ['cHard','cPermits','cContPct','cDesign'].forEach(function(f){ cs[f] = null; });
+    renderContract(); toast('Linked to your Spec Build numbers');
+  });
+  $('cReset').addEventListener('click', function(){
+    ['cFeePct','cSharePct','cGmp','cLumpPct','cDbPct','cVar'].forEach(function(f){ cs[f] = CDEF[f]; });
+    renderContract(); toast('Terms reset');
+  });
+  function setTab(t){
+    $('specView').hidden = t === 'contract';
+    $('contractView').hidden = t !== 'contract';
+    [].forEach.call($('segTab').children, function(c){ c.classList.toggle('on', c.dataset.tab === t); });
+    try { localStorage.setItem('mm_tab_v1', t); } catch(e){}
+    paintPressed();
+  }
+  $('segTab').addEventListener('click', function(e){
+    var b = e.target.closest('button'); if (b) setTab(b.dataset.tab);
+  });
+
   /* boot: last used inputs, else sample */
   var lastRaw = null;
   try { lastRaw = JSON.parse(localStorage.getItem('dmp_last_v1') || 'null'); } catch(e){}
@@ -1651,6 +1928,7 @@
   syncType(); writeForm();
   if (lastRaw && lastRaw._name) $('dealName').value = lastRaw._name;
   render();
+  try { if (localStorage.getItem('mm_tab_v1') === 'contract') setTab('contract'); } catch(e){}
 })();
 </script>
 
