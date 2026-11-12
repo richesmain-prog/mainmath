@@ -140,6 +140,28 @@
   .trow .chip,.trow .vchip{background:rgba(242,182,50,.08);border:1px solid rgba(242,182,50,.28);color:#E8C57A;
     border-radius:999px;padding:5px 10px;font-size:11.5px;font-weight:700;cursor:pointer;min-height:40px;min-width:52px}
   .trow .chip.on,.trow .vchip.on{background:var(--gold);color:#100D05;border-color:var(--gold)}
+  /* the two main tabs: big, raised, each in its own color (gold = spec, blue = hire a GC) */
+  #segTab{gap:12px}
+  #segTab button{--c:242,182,50;display:flex;align-items:center;gap:13px;padding:15px 16px;font-size:13.5px;border-radius:16px;
+    color:#B8B5AE;border-color:rgba(var(--c),.32);
+    background:linear-gradient(135deg,rgba(var(--c),.15),rgba(var(--c),.03) 62%),var(--panel2);
+    box-shadow:0 6px 18px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.07);
+    transition:transform .12s,box-shadow .12s,border-color .12s,background .12s}
+  #segTab button[data-tab="contract"]{--c:125,211,252}
+  #segTab button b{font-size:17px;margin-bottom:3px;color:rgb(var(--c))}
+  #segTab .ti{flex:none;width:44px;height:44px;border-radius:13px;display:flex;align-items:center;justify-content:center;
+    background:rgba(var(--c),.16);color:rgb(var(--c));transition:background .12s,color .12s}
+  #segTab button:hover{transform:translateY(-2px);border-color:rgba(var(--c),.75);box-shadow:0 10px 26px rgba(0,0,0,.7)}
+  #segTab button:active{transform:translateY(0);box-shadow:0 2px 8px rgba(0,0,0,.6)}
+  #segTab button.on{color:var(--txt);border-color:rgb(var(--c));
+    background:linear-gradient(135deg,rgba(var(--c),.36),rgba(var(--c),.1) 65%),var(--panel2);
+    box-shadow:0 8px 30px rgba(var(--c),.3),inset 0 1px 0 rgba(255,255,255,.12)}
+  #segTab button.on .ti{background:rgb(var(--c));color:#0B0B0D}
+  #segTab button:focus-visible{outline:2px solid rgb(var(--c));outline-offset:2px}
+  @media (max-width:520px){
+    #segTab button{flex-direction:column;align-items:flex-start;gap:9px;padding:13px 12px}
+    #segTab button b{font-size:15px} #segTab .ti{width:36px;height:36px;border-radius:11px}
+  }
   /* contract pricing tab */
   .mgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}
   @media (max-width:620px){ .mgrid{grid-template-columns:1fr} }
@@ -300,8 +322,8 @@
 <div class="wrap">
 
   <div class="seg" id="segTab" style="margin:14px 0 0">
-    <button data-tab="spec" class="on"><b>Spec Build</b>Buy the lot, build it, sell it</button>
-    <button data-tab="contract"><b>Hire a GC</b>You own it, a GC builds it: cost-plus, GMP, lump sum, design-build</button>
+    <button data-tab="spec" class="on"><span class="ti"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg></span><span><b>Spec Build</b>Buy the lot, build it, sell it</span></button>
+    <button data-tab="contract"><span class="ti"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 18h18"/><path d="M5 18v-3a7 7 0 0 1 14 0v3"/><path d="M10 8.3V5h4v3.3"/></svg></span><span><b>Hire a GC</b>You own it, a GC builds it: cost-plus, GMP, lump sum, design-build</span></button>
   </div>
 
   <div class="printonly" id="printHead"></div>
