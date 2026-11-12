@@ -2,16 +2,16 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="description" content="Free spec-build deal calculator by Rich Main. Enter four numbers: profit, cash needed, annual return, and the most you can pay for the lot." />
+<meta name="description" content="Deal math for builders, by Rich Main. Check a lot, price your builder, size your loan and write your offer letter. Four tools, one deal." />
 <meta property="og:type" content="website" />
-<meta property="og:title" content="MainMath — spec build deal calculator by Rich Main" />
+<meta property="og:title" content="MainMath — deal math for builders, by Rich Main" />
 <meta property="og:description" content="Type four numbers. Get the profit, the cash you need, and the max lot price that still hits your margin." />
-<meta property="og:url" content="https://richesmain-prog.github.io/mainmath/" />
+<meta property="og:url" content="https://math.therichmain.com/" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="theme-color" content="#0A0A0B" />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230A0A0B'/%3E%3Ctext x='16' y='22' font-family='Arial' font-size='17' font-weight='bold' text-anchor='middle' fill='%23F2B632'%3EM%3C/text%3E%3C/svg%3E" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>MainMath by Rich Main — spec build deal calculator</title>
+<title>MainMath by Rich Main — deal math for builders</title>
 <style>
   :root{
     --bg:#0A0A0B; --panel:#131316; --panel2:#18181C; --line:rgba(255,255,255,.075);
@@ -151,6 +151,8 @@
   #segTab button[data-tab="lender"]{--c:52,211,153}
   #segTab button[data-tab="loi"]{--c:196,181,253}
   #segTab button b{font-size:17px;margin-bottom:3px;color:rgb(var(--c))}
+  #segTab .st{display:block;font-style:normal;font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
+    color:rgba(var(--c),.8);margin-bottom:3px}
   #segTab .ti{flex:none;width:44px;height:44px;border-radius:13px;display:flex;align-items:center;justify-content:center;
     background:rgba(var(--c),.16);color:rgb(var(--c));transition:background .12s,color .12s}
   #segTab button:hover{transform:translateY(-2px);border-color:rgba(var(--c),.75);box-shadow:0 10px 26px rgba(0,0,0,.7)}
@@ -165,8 +167,31 @@
     #segTab{gap:8px;grid-template-columns:1fr 1fr}
     #segTab button{padding:12px 10px;align-items:center;text-align:center}
     #segTab button>span:last-child{font-size:0}
-    #segTab button b{font-size:13.5px;margin:0} #segTab .ti{width:36px;height:36px;border-radius:11px}
+    #segTab button b{font-size:13.5px;margin:0;line-height:1.25} #segTab .ti{width:36px;height:36px;border-radius:11px}
+    #segTab .st{font-size:9.5px;letter-spacing:.05em}
   }
+  /* workflow: the four-step map, the per-tab step strip, and the next-step bar */
+  #segTab{scroll-margin-top:76px}
+  button.step{text-align:left;color:inherit;font:inherit;cursor:pointer;transition:transform .12s,border-color .12s}
+  button.step:hover{transform:translateY(-2px);border-color:rgba(var(--c),.7)}
+  button.step .n{background:rgba(var(--c),.16);color:rgb(var(--c))}
+  button.step b{color:rgb(var(--c));font-size:13.5px}
+  button.step .go{display:block;margin-top:7px;font-size:11.5px;font-weight:700;color:rgb(var(--c))}
+  [data-c="spec"],#specView{--c:242,182,50} [data-c="contract"],#contractView{--c:125,211,252}
+  [data-c="lender"],#lenderView{--c:52,211,153} [data-c="loi"],#loiView{--c:196,181,253}
+  .gloss{display:grid;grid-template-columns:1fr 1fr;gap:6px 18px;margin-top:9px}
+  @media (max-width:760px){ .gloss{grid-template-columns:1fr} }
+  .gloss div{font-size:12px;color:var(--mut);line-height:1.5} .gloss b{color:var(--txt)}
+  .flowh{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:rgb(var(--c));font-weight:700;margin:16px 0 7px}
+  .flow{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  @media (max-width:760px){ .flow{grid-template-columns:1fr 1fr} }
+  .flow div{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:9px 11px;font-size:12px;color:var(--mut);line-height:1.4}
+  .flow b{display:block;color:var(--txt);font-size:12.5px;margin-bottom:1px}
+  .flow i{font-style:normal;font-weight:800;color:rgb(var(--c));margin-right:6px}
+  .nextstep{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:14px;padding:13px 15px;border:1px solid rgba(var(--c),.3);
+    border-radius:var(--r);background:linear-gradient(135deg,rgba(var(--c),.09),transparent 60%),var(--panel)}
+  .nextstep .btn{padding:11px 16px;font-size:14px}
+  .nextstep span{font-size:12.5px;color:var(--mut)}
   /* LOI + due diligence tab */
   input[type=date]{color-scheme:dark;font-size:14px}
   .chk{display:flex;gap:10px;align-items:flex-start;width:100%;text-align:left;background:var(--panel2);border:1px solid var(--line);
@@ -286,6 +311,7 @@
     .printonly{display:block!important;font-size:16px;font-weight:800;margin:0 0 10px}
     header,.btn,.seg,.modal,.toast,#inputsCard,#cInputs,#lInputs,#oInputs,#ddCard,.qh,.help{display:none!important}
     .letter{max-height:none;border:0;padding:0;color:#000;background:#fff}
+    .flow,.flowh,.nextstep{display:none!important}
     body{background:#fff;color:#000}
     .card{break-inside:avoid;border-color:#ddd}
     .cols{grid-template-columns:1fr}
@@ -298,7 +324,7 @@
   <div class="wrap hd">
     <div>
       <div class="brand">Main<span>Math</span></div>
-      <div class="sub">spec-build underwriting · by Rich Main</div>
+      <div class="sub">deal math for builders · by Rich Main</div>
     </div>
     <div class="spacer"></div>
     <button class="btn ghost" id="btnSaved">Saved</button>
@@ -311,7 +337,8 @@
     <span class="eyebrow">Free tool · no account · by Rich Main</span>
     <h1>Know if a lot is worth building on <em>before you spend a dollar.</em></h1>
     <p>Type four numbers. You get the profit, the cash you need, and — the part most calculators skip —
-    the <b>most you can pay for the dirt</b> and still hit your margin.</p>
+    the <b>most you can pay for the dirt</b> and still hit your margin.
+    Then price your builder, check your loan, and write your offer. Four tools, one deal.</p>
     <div class="cta">
       <button class="btn gold" id="heroOpen" style="padding:11px 16px;font-size:14px">Open the calculator</button>
       <span class="tiny">Runs in your browser. Nothing to install.</span>
@@ -319,24 +346,38 @@
   </section>
 
   <section class="how">
-    <h2>How to use it</h2>
-    <p class="sub2">Five boxes. Thirty seconds. Built for a gut check, not a bank package.</p>
+    <h2>How it works</h2>
+    <p class="sub2">One deal, four steps. Start at step 1. Your numbers carry over to the next step, so you never type them twice.</p>
     <div class="steps">
-      <div class="step"><div class="n">1</div><b>Lot price</b><span>What they are asking for the dirt. House + lot if it is a tear-down.</span></div>
-      <div class="step"><div class="n">2</div><b>Home size</b><span>The square feet you would actually build.</span></div>
-      <div class="step"><div class="n">3</div><b>Build $/sqft</b><span>Your hard cost per heated sqft, garage and porches included. Use a real bid, not a wish.</span></div>
-      <div class="step"><div class="n">4</div><b>Sale $/sqft</b><span>What finished homes sell for nearby, from sold comps.</span></div>
-      <div class="step"><div class="n">5</div><b>Read the gold box</b><span>Max lot price is your ceiling. Offer below it, never above.</span></div>
-      <div class="step"><div class="n">+</div><b>Full Underwrite</b><span>Open it to change soft costs, contingency, permits, loan terms, partner split.</span></div>
-      <div class="step"><div class="n">+</div><b>Save</b><span>Name the deal and save it on your device. Print it or export JSON.</span></div>
-      <div class="step"><div class="n">!</div><b>Check it</b><span>Every number is an assumption you control. Verify costs and comps before you commit.</span></div>
+      <button class="step" data-go="spec" data-c="spec"><div class="n">1</div><b>Is it a good deal?</b><span>Spec Build. Type four numbers and find out if the lot is worth it.</span><span class="go">Start here →</span></button>
+      <button class="step" data-go="contract" data-c="contract"><div class="n">2</div><b>How do I pay my builder?</b><span>Hire a GC. Compare four ways to pay and see which costs least.</span><span class="go">Open →</span></button>
+      <button class="step" data-go="lender" data-c="lender"><div class="n">3</div><b>What will my loan cost?</b><span>Lender Terms. See how much the bank lends and what you bring.</span><span class="go">Open →</span></button>
+      <button class="step" data-go="loi" data-c="loi"><div class="n">4</div><b>How do I make my offer?</b><span>LOI &amp; Due Diligence. Write the letter and check the land.</span><span class="go">Open →</span></button>
     </div>
     <details class="faq" style="margin-top:12px">
-      <summary>What the numbers mean ▾</summary>
-      <p><b>Net margin</b> — profit divided by sale price. Under 20% on a spec build is thin.<br>
-      <b>Cash you need</b> — the most money that has to leave your pocket at any point, interest included.<br>
-      <b>Max lot price</b> — the highest offer that still hits your target margin. This is the negotiation number.<br>
-      <b>All-in $/sf</b> — every cost except selling costs, divided by heated square feet. Compare it to the sale $/sf. That spread, before selling costs, is the deal.</p>
+      <summary>What the words mean ▾</summary>
+      <div class="gloss">
+        <div><b>Margin</b> — out of every $100 the house sells for, how many dollars you keep. Under 20% on a spec build is thin.</div>
+        <div><b>ARV</b> — what the finished house is worth. It stands for “after-repair value.”</div>
+        <div><b>Hard cost</b> — what it costs to build: labor, lumber, concrete, everything on site.</div>
+        <div><b>Soft cost</b> — what you pay for that is not building: plans, engineering, design.</div>
+        <div><b>Contingency (in a budget)</b> — extra money set aside for surprises.</div>
+        <div><b>Contingency (in an offer)</b> — a condition. If it does not come true, you can walk away.</div>
+        <div><b>All-in cost</b> — every cost to buy the lot and build the house, before selling costs.</div>
+        <div><b>Cash you need</b> — the most money out of your own pocket at any one time.</div>
+        <div><b>Max lot price</b> — the highest you can pay for the lot and still hit your profit target.</div>
+        <div><b>GC</b> — general contractor. The builder who runs the job.</div>
+        <div><b>Cost-plus</b> — you pay what the job costs, plus the builder’s fee.</div>
+        <div><b>GMP</b> — guaranteed maximum price. Cost plus fee, with a top price the builder cannot go over.</div>
+        <div><b>Lump sum</b> — one set price for the whole job.</div>
+        <div><b>Design-build</b> — one company draws the plans and builds the house.</div>
+        <div><b>LTC</b> — loan to cost. The loan as a percent of what the project costs.</div>
+        <div><b>Loan to ARV</b> — the loan as a percent of what the finished house is worth.</div>
+        <div><b>Points</b> — a fee you pay the lender up front. One point is 1% of the loan.</div>
+        <div><b>LOI</b> — letter of intent. A short offer letter that is not a binding contract.</div>
+        <div><b>Due diligence</b> — your time to check out the land before your deposit is locked in.</div>
+        <div><b>Earnest money</b> — a deposit that shows the seller you are serious.</div>
+      </div>
     </details>
   </section>
 </div>
@@ -344,23 +385,30 @@
 <div class="wrap">
 
   <div class="seg" id="segTab" style="margin:14px 0 0">
-    <button data-tab="spec" class="on"><span class="ti"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg></span><span><b>Spec Build</b>Buy the lot, build it, sell it</span></button>
-    <button data-tab="contract"><span class="ti"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 18h18"/><path d="M5 18v-3a7 7 0 0 1 14 0v3"/><path d="M10 8.3V5h4v3.3"/></svg></span><span><b>Hire a GC</b>You own it, a GC builds it: cost-plus, GMP, lump sum, design-build</span></button>
-    <button data-tab="lender"><span class="ti"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10l9-6 9 6"/><path d="M5 10v8M9.5 10v8M14.5 10v8M19 10v8"/><path d="M3 20h18"/></svg></span><span><b>Lender Terms</b>What your lender charges: loan size, cash at closing, cost of the money</span></button>
-    <button data-tab="loi"><span class="ti"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 14l2 2 4-4"/></svg></span><span><b>LOI &amp; Due Diligence</b>Tie up the land: your offer letter, your outs, and what to check before you close</span></button>
+    <button data-tab="spec" class="on"><span class="ti"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg></span><span><em class="st">Step 1 · Spec Build</em><b>Is it a good deal?</b>Buy a lot, build a house, sell it.</span></button>
+    <button data-tab="contract"><span class="ti"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 18h18"/><path d="M5 18v-3a7 7 0 0 1 14 0v3"/><path d="M10 8.3V5h4v3.3"/></svg></span><span><em class="st">Step 2 · Hire a GC</em><b>How do I pay my builder?</b>Four ways to pay. See which costs least.</span></button>
+    <button data-tab="lender"><span class="ti"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10l9-6 9 6"/><path d="M5 10v8M9.5 10v8M14.5 10v8M19 10v8"/><path d="M3 20h18"/></svg></span><span><em class="st">Step 3 · Lender Terms</em><b>What will my loan cost?</b>How much the bank lends, and what you bring.</span></button>
+    <button data-tab="loi"><span class="ti"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 14l2 2 4-4"/></svg></span><span><em class="st">Step 4 · LOI &amp; Due Diligence</em><b>How do I make my offer?</b>Write your offer letter. Check the land first.</span></button>
   </div>
 
   <div class="printonly" id="printHead"></div>
   <div id="specView">
+  <div class="flowh">How this step works</div>
+  <div class="flow">
+    <div><b><i>1</i>Type four numbers</b>Lot price, home size, build cost and sale price.</div>
+    <div><b><i>2</i>Read the gold box</b>It is the most you should pay for the lot.</div>
+    <div><b><i>3</i>Tune it</b>Open Full Underwrite to change the loan, fees and partner.</div>
+    <div><b><i>4</i>Save it</b>Name the deal and save it on this device.</div>
+  </div>
   <div class="hero">
     <div>
-      <div class="lbl">Net margin</div>
+      <div class="lbl">Profit margin</div>
       <div class="big" id="heroMargin">—</div>
       <div class="profline" id="heroProfit"></div>
       <div style="margin-top:8px"><span class="pill p-thin" id="heroPill">—</span></div>
     </div>
     <div class="score">
-      <div class="lbl">Deal score</div>
+      <div class="lbl">Deal score (0–100)</div>
       <div class="n" id="heroScore">—</div>
       <div class="g" id="heroGrade">—</div>
     </div>
@@ -371,11 +419,11 @@
     <!-- ============ INPUTS ============ -->
     <div class="card" id="inputsCard">
       <h3>1 · The deal</h3>
-      <p class="hint">Numbers you know from the listing. Everything else is an assumption you can change.</p>
+      <p class="hint">Type the numbers you know. We fill in the rest with typical numbers, and you can change any of them.</p>
 
       <div class="seg" id="segMode">
-        <button data-mode="quick" class="on"><b>Quick Look</b>6 inputs, market averages</button>
-        <button data-mode="full"><b>Full Underwrite</b>Every assumption editable</button>
+        <button data-mode="quick" class="on"><b>Quick Look</b>Six boxes. We fill in the rest</button>
+        <button data-mode="full"><b>Full Underwrite</b>Change every number yourself</button>
       </div>
 
       <div class="seg" id="segType">
@@ -394,7 +442,7 @@
           <div class="inp has-pre"><span class="pre">$</span><input type="text" inputmode="decimal" autocomplete="off" id="purchasePrice" step="1000" /></div>
         </div>
         <div class="field">
-          <label>Buildable sqft <span class="tag">heated area</span></label>
+          <label>Home size (sqft) <span class="tag">heated area</span></label>
           <div class="inp"><input type="text" inputmode="decimal" autocomplete="off" id="buildableSqft" step="50" /></div>
         </div>
       </div>
@@ -405,7 +453,7 @@
           <div class="inp has-pre"><span class="pre">$</span><input type="text" inputmode="decimal" autocomplete="off" id="buildCostPerSqft" step="5" /></div>
         </div>
         <div class="field">
-          <label>Sale price / sqft <span class="tag">comps</span></label>
+          <label>Sale price / sqft <span class="tag">from sold homes</span></label>
           <div class="inp has-pre"><span class="pre">$</span><input type="text" inputmode="decimal" autocomplete="off" id="salePerSqft" step="10" /></div>
         </div>
       </div>
@@ -457,10 +505,10 @@
       </div>
 
       <details class="accordion" id="advDetails">
-        <summary>Financing &amp; partnership ▾</summary>
+        <summary>Loan and partner ▾</summary>
         <div style="margin-top:12px">
           <div class="switch" id="swLoan">
-            <div><div class="t">Hard money loan</div><div class="d">Off = all cash, no points or interest</div></div>
+            <div><div class="t">Use a loan</div><div class="d">Off = you pay all cash. No points, no interest</div></div>
             <div class="tog"></div>
           </div>
           <div class="adv" id="advB">
@@ -489,7 +537,7 @@
               </div>
             </div>
             <div class="switch" id="swMethod">
-              <div><div class="t">Draw-based interest</div><div class="d">Off = charge interest on the whole loan from day one (their method)</div></div>
+              <div><div class="t">Interest only on money you have drawn</div><div class="d">Off = interest on the whole loan from day one</div></div>
               <div class="tog"></div>
             </div>
           </div>
@@ -528,8 +576,8 @@
       <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
         <button class="btn gold" id="btnSave">Save deal</button>
         <button class="btn" id="btnCopy">Copy summary</button>
-        <button class="btn" id="btnExport">Export JSON</button>
-        <button class="btn" id="btnImport">Import</button>
+        <button class="btn" id="btnExport">Export file</button>
+        <button class="btn" id="btnImport">Import file</button>
         <input type="file" id="importFile" accept="application/json,.json" style="display:none" />
         <button class="btn ghost" id="btnReset">Reset</button>
       </div>
@@ -542,14 +590,14 @@
       <div class="warn" id="warnBox"></div>
 
       <div class="kpis">
-        <div class="kpi gold"><div class="k">Net profit</div><div class="v" id="kProfit">—</div><div class="s" id="kProfitS">after financing + selling</div></div>
-        <div class="kpi"><div class="k">Cash you need</div><div class="v" id="kCash">—</div><div class="s">peak equity, incl. interest</div></div>
-        <div class="kpi"><div class="k">Annualized return</div><div class="v" id="kIrr">—</div><div class="s" id="kIrrS">on your cash</div></div>
+        <div class="kpi gold"><div class="k">Profit</div><div class="v" id="kProfit">—</div><div class="s" id="kProfitS">after every cost</div></div>
+        <div class="kpi"><div class="k">Cash you need</div><div class="v" id="kCash">—</div><div class="s">the most out of your pocket at one time</div></div>
+        <div class="kpi"><div class="k">Yearly return on your cash</div><div class="v" id="kIrr">—</div><div class="s" id="kIrrS">on your cash</div></div>
         <div class="kpi"><div class="k">All-in cost</div><div class="v" id="kAllIn">—</div><div class="s" id="kAllInS">—</div></div>
       </div>
 
       <div class="solver">
-        <div class="k">Max lot price at target margin</div>
+        <div class="k">The most you should pay for the lot</div>
         <div class="v" id="solveLand">—</div>
         <div class="s" id="solveLandS">—</div>
         <div class="trow">
@@ -563,25 +611,25 @@
       </div>
 
       <div style="margin-top:16px">
-        <div style="font-size:12px;font-weight:700;margin-bottom:6px">Underwriting breakdown</div>
+        <div style="font-size:12px;font-weight:700;margin-bottom:6px">Where the money goes</div>
         <div id="breakdown"></div>
       </div>
 
       <div class="split" id="partnerBox">
         <div class="kpi"><div class="k">My profit</div><div class="v" id="kMyProfit">—</div><div class="s" id="kMyProfitS">—</div></div>
-        <div class="kpi"><div class="k">My cash-on-cash</div><div class="v" id="kMyCoc">—</div><div class="s" id="kMyCocS">—</div></div>
+        <div class="kpi"><div class="k">My return on my cash</div><div class="v" id="kMyCoc">—</div><div class="s" id="kMyCocS">—</div></div>
       </div>
 
       <div class="accordion" style="margin-top:14px">
         <details>
-          <summary>Sensitivity — margin % by build cost × sale price ▾</summary>
+          <summary>What if costs or prices change? ▾</summary>
           <div style="overflow:auto;margin-top:8px" id="sensTable"></div>
         </details>
       </div>
 
       <div class="accordion">
         <details>
-          <summary>Monthly cash schedule ▾</summary>
+          <summary>Month-by-month cash ▾</summary>
           <div style="max-height:320px;overflow:auto;margin-top:8px" id="schedule"></div>
         </details>
       </div>
@@ -592,15 +640,25 @@
       </div>
     </div>
   </div>
+  <div class="nextstep"><button class="btn gold" data-go="contract">Next: How do I pay my builder? →</button><span>Step 2 · Hire a GC. Your build cost carries over.</span></div>
   </div><!-- /specView -->
 
   <!-- ============ CONTRACT PRICING ============ -->
   <div id="contractView" hidden>
+  <div class="flowh">How this step works</div>
+  <div class="flow">
+    <div><b><i>1</i>Check the job cost</b>It comes from Spec Build. Type over it if you have a real number.</div>
+    <div><b><i>2</i>Type the GC’s terms</b>Their fee, their markup, and the price cap if they gave one.</div>
+    <div><b><i>3</i>Test a surprise</b>Tap +10% to see what happens if the job costs more.</div>
+    <div><b><i>4</i>Compare “You pay”</b>Gold is cheapest. Check the most you could be billed.</div>
+  </div>
   <div class="cols">
     <div class="card" id="cInputs">
       <h3>1 · The job</h3>
       <p class="hint">You are the owner and you hire a general contractor (GC) to build it. These boxes start from your Spec Build numbers.
         Type over any box to use your own number. Clear a box to link it back.</p>
+      <div class="note"><b style="color:var(--txt)">Heads up.</b> If your Spec Build cost per sqft is already a GC’s bid with their fee inside,
+        type the cost <b style="color:var(--txt)">without</b> the fee in “Cost of the work.” If you don’t, the fee gets counted twice.</div>
 
       <div class="two">
         <div class="field">
@@ -685,10 +743,18 @@
       </div>
     </div>
   </div>
+  <div class="nextstep"><button class="btn gold" data-go="lender">Next: What will my loan cost? →</button><span>Step 3 · Lender Terms. Your lot, budget and sale price carry over.</span></div>
   </div><!-- /contractView -->
 
   <!-- ============ LENDER TERMS ============ -->
   <div id="lenderView" hidden>
+  <div class="flowh">How this step works</div>
+  <div class="flow">
+    <div><b><i>1</i>Pick the loan</b>Build and sell, or a loan that turns into a mortgage.</div>
+    <div><b><i>2</i>Own the lot?</b>Flip the switch and type what it is worth and what you owe.</div>
+    <div><b><i>3</i>Type the lender’s quote</b>Their percents, rate, points and fees.</div>
+    <div><b><i>4</i>Read your cash</b>See what you bring to closing and what the money costs.</div>
+  </div>
   <div class="cols">
     <div class="card" id="lInputs">
       <h3>1 · The loan</h3>
@@ -812,10 +878,18 @@
       </div>
     </div>
   </div>
+  <div class="nextstep"><button class="btn gold" data-go="loi">Next: How do I make my offer? →</button><span>Step 4 · LOI &amp; Due Diligence. Your lot price carries over.</span></div>
   </div><!-- /lenderView -->
 
   <!-- ============ LOI + DUE DILIGENCE ============ -->
   <div id="loiView" hidden>
+  <div class="flowh">How this step works</div>
+  <div class="flow">
+    <div><b><i>1</i>Fill in your offer</b>Who, what, how much, and your dates.</div>
+    <div><b><i>2</i>Pick your outs</b>Switch on the conditions that let you walk away.</div>
+    <div><b><i>3</i>Copy the letter</b>It writes itself. Have an attorney read it.</div>
+    <div><b><i>4</i>Check the land</b>Work the checklist before your deposit is locked in.</div>
+  </div>
   <div class="cols">
     <div class="card" id="oInputs">
       <h3>1 · Your offer</h3>
@@ -957,6 +1031,7 @@
         Jerome Maldonado did not write, review or endorse this tool.
     </div>
   </div>
+  <div class="nextstep"><button class="btn " data-go="spec">← Back to step 1: Is it a good deal?</button><span>Change a number there and every step updates.</span></div>
   </div><!-- /loiView -->
 </div>
 
@@ -1726,12 +1801,12 @@
     ['swLoan','swPartner','swMethod'].forEach(function(id){ var e = $(id); if (e) e.setAttribute('aria-checked', e.classList.contains('on') ? 'true' : 'false'); });
     $('demoField').style.display = state.dealType === 'teardown' ? 'block' : 'none';
     $('lblLand').querySelector('.lt').textContent = state.dealType === 'teardown' ? 'House + lot price' : 'Lot purchase price';
-    $('modeHint').textContent = full ? 'Full underwrite — every assumption is yours to set.'
-      : 'Quick look — market averages for soft 8%, contingency 6%, permits $25k, buy closing 1.5%, carry $1,200/mo, lender 80% LTC / 72% LTV at 10.5% + 2 pts + $4,500 fee, selling 6%, $60k demo on a tear-down'
+    $('modeHint').textContent = full ? 'Full Underwrite. Every number is yours to set.'
+      : 'Quick Look fills in the rest with typical numbers: soft costs 8%, contingency 6%, permits $25k, buy closing 1.5%, carry $1,200/mo, a loan for 80% of cost (up to 72% of value) at 10.5% + 2 points + $4,500 fee, selling 6%, $60k demo on a tear-down'
         + (state.useLoan ? '' : ' Loan off (all cash).')
         + (state.interestMethod === 'flat' ? ' Flat interest.' : '')
         + (state.hasPartner ? '. Partner on: ' + state.myProfitShare + '% profit / ' + state.myCashShare + '% cash.' : ', no partner.')
-        + ' Switch to Full underwrite to change them.';
+        + ' Switch to Full Underwrite to change them.';
     // these controls are ignored in Quick look, so do not show values that the math is not using
     $('advDetails').style.display = full ? '' : 'none';
   }
@@ -1774,8 +1849,8 @@
     var unreachable = (maxLand === null);
 
     // hero
-    $('heroMargin').innerHTML = pct(r.margin) + ' <small>net margin</small>';
-    if ($('heroProfit')) { $('heroProfit').textContent = fmtM(r.profit) + ' profit at your ' + fmtM(calcInput.purchasePrice) + ' land'; }
+    $('heroMargin').innerHTML = pct(r.margin) + ' <small>of the sale price is profit</small>';
+    if ($('heroProfit')) { $('heroProfit').textContent = fmtM(r.profit) + ' profit at your ' + fmtM(calcInput.purchasePrice) + ' lot price'; }
     var pill = $('heroPill');
     if (r.margin !== null && r.margin <= 0) {
       pill.className = 'pill p-dead';
@@ -1794,19 +1869,19 @@
     $('kProfit').textContent = fmtM(r.profit);
     $('kProfit').className = 'v ' + (r.profit >= 0 ? 'pos' : 'neg');
     $('kProfit').closest('.kpi').className = 'kpi ' + (r.profit >= 0 ? 'gold' : 'bad');
-    $('kProfitS').textContent = 'at your ' + fmtM(calcInput.purchasePrice) + ' land, after financing + selling';
+    $('kProfitS').textContent = 'at your ' + fmtM(calcInput.purchasePrice) + ' lot price, after every cost';
     var retPct = calcInput.hasPartner ? r.myIrr : r.irr;
     $('kCash').textContent = fmtM(calcInput.hasPartner ? r.myCash : r.peakEquity);
     $('kCash').closest('.kpi').querySelector('.k').textContent = calcInput.hasPartner ? 'Your cash in' : 'Cash you need';
-    $('kCash').nextElementSibling.textContent = calcInput.hasPartner ? 'your ' + pct(calcInput.myCashShare,0) + ' share of peak equity' : 'peak equity, incl. interest';
+    $('kCash').nextElementSibling.textContent = calcInput.hasPartner ? 'your ' + pct(calcInput.myCashShare,0) + ' share of the cash needed' : 'the most out of your pocket at one time';
     var irrSilly = retPct !== null && Math.abs(retPct) > 999;
     $('kIrr').textContent = retPct === null ? '—' : irrSilly ? (retPct > 0 ? '>999%' : '<-99%') : pct(retPct, 0);
     $('kIrrS').textContent = irrSilly
       ? 'annualized over ' + r.months + ' mo — too short to read'
-      : (r.myCoc === null ? 'on your cash' : pct(r.myCoc,0)+' cash-on-cash over '+r.months+' mo');
+      : (r.myCoc === null ? 'what your cash earns in a year' : pct(r.myCoc,0)+' total on your cash in '+r.months+' months');
     $('kIrr').className = 'v ' + ((retPct||0) >= 25 ? 'pos' : (retPct||0) >= 12 ? '' : 'neg');
     $('kAllIn').textContent = fmtM(r.allInCost);
-    $('kAllInS').textContent = fmtM(r.allInPerSqft) + '/sf all-in vs ' + fmtM(r.salePerSqft) + '/sf sale';
+    $('kAllInS').textContent = fmtM(r.allInPerSqft) + ' per sqft to build · ' + fmtM(r.salePerSqft) + ' per sqft to sell';
 
     // ---- sanity checks: catch typos that make the model lie
     var warns = [];
@@ -2660,6 +2735,10 @@
   $('segTab').addEventListener('click', function(e){
     var b = e.target.closest('button'); if (b) setTab(b.dataset.tab);
   });
+  // workflow map and next-step buttons: open that step and bring the tabs into view
+  [].forEach.call(document.querySelectorAll('[data-go]'), function(b){
+    b.addEventListener('click', function(){ setTab(b.dataset.go); $('segTab').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+  });
 
   /* boot: last used inputs, else sample */
   var lastRaw = null;
@@ -2703,7 +2782,7 @@
   var heroBtn=$('heroOpen');
   if(heroBtn)heroBtn.addEventListener('click',function(){
     try{var st=localStorage.getItem(KEY); if(st) saved=JSON.parse(st);}catch(e){}
-    if(unlocked()){$('resultsCard').scrollIntoView({behavior:'smooth',block:'start'});}
+    if(unlocked()){$('segTab').scrollIntoView({behavior:'smooth',block:'start'});}
     else openGate();
   });
   $('gateForm').addEventListener('submit',function(e){
@@ -2723,7 +2802,7 @@
     try{$('leadRelay').submit();}catch(e3){}
     closeGate();
     paintTrial();
-    $('resultsCard').scrollIntoView({behavior:'smooth',block:'start'});
+    $('segTab').scrollIntoView({behavior:'smooth',block:'start'});
     var t=$('toast');t.textContent='You are in. Your numbers are live below.';
     t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2800);
   });
