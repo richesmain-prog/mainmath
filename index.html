@@ -192,6 +192,28 @@
     border-radius:var(--r);background:linear-gradient(135deg,rgba(var(--c),.09),transparent 60%),var(--panel)}
   .nextstep .btn{padding:11px 16px;font-size:14px}
   .nextstep span{font-size:12.5px;color:var(--mut)}
+  /* color-coded blocks: each group of boxes, and the answers that go with it, share a color */
+  .blk{--b:242,182,50;border:1px solid rgba(var(--b),.3);border-left:5px solid rgb(var(--b));border-radius:14px;
+    padding:12px 12px 3px;margin-bottom:12px;background:linear-gradient(135deg,rgba(var(--b),.1),rgba(var(--b),.02) 70%)}
+  .blk[hidden]{display:none}
+  .blk .bh{display:flex;align-items:center;gap:10px;margin-bottom:11px}
+  .blk .bi{flex:none;width:34px;height:34px;border-radius:10px;background:rgba(var(--b),.2);font-size:18px;line-height:1;
+    display:flex;align-items:center;justify-content:center}
+  .blk .bt{display:block;font-size:14.5px;font-weight:800;color:rgb(var(--b));letter-spacing:-.2px}
+  .blk .bs{display:block;font-size:11.5px;color:var(--mut);line-height:1.35}
+  .blk .row:last-child{padding-bottom:9px}
+  .b-land{--b:242,182,50} .b-house{--b:125,211,252} .b-bank{--b:52,211,153} .b-perm{--b:196,181,253} .b-cost{--b:251,146,180}
+  .blk .seg{margin-bottom:11px} .blk .ddgrid{margin-bottom:9px}
+  details.blk{padding:12px;margin-top:0} details.blk>summary{color:rgb(var(--b));font-size:14.5px;font-weight:800}
+  .kc{border-top:3px solid rgb(var(--b))} .kc .k{color:rgb(var(--b))}
+  .mbar{display:flex;height:18px;border-radius:999px;overflow:hidden;margin-top:13px;background:#26262b}
+  .mbar i{display:block;min-width:3px} .mbar .bk{background:#34D399} .mbar .yu{background:var(--gold)}
+  .mleg{display:flex;gap:6px 16px;flex-wrap:wrap;font-size:12.5px;color:#C9C6C0;margin-top:8px}
+  .mleg b{color:var(--txt)} .mleg .dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}
+  .grand{display:flex;align-items:baseline;justify-content:space-between;gap:6px 12px;flex-wrap:wrap;margin-top:4px;padding:14px 15px;
+    border-radius:14px;border:1px solid rgba(255,255,255,.2);background:linear-gradient(135deg,rgba(255,255,255,.09),rgba(255,255,255,.02))}
+  .grand span{font-size:14px;font-weight:800} .grand b{font-size:24px;font-weight:800;letter-spacing:-.7px}
+  .grand em{flex-basis:100%;font-style:normal;font-size:11.5px;color:var(--mut)}
   /* LOI + due diligence tab */
   input[type=date]{color-scheme:dark;font-size:14px}
   .chk{display:flex;gap:10px;align-items:flex-start;width:100%;text-align:left;background:var(--panel2);border:1px solid var(--line);
@@ -426,51 +448,54 @@
         <button data-mode="full"><b>Full Underwrite</b>Change every number yourself</button>
       </div>
 
-      <div class="seg" id="segType">
-        <button data-type="lot" class="on"><b>Empty Lot</b>Ground-up build</button>
-        <button data-type="teardown"><b>Tear-Down</b>Demo + rebuild</button>
-      </div>
-
       <div class="field">
         <label>Deal name <span class="tag">for saving</span></label>
         <input type="text" id="dealName" placeholder="e.g. Via De Oro spec" />
       </div>
 
-      <div class="two">
+      <div class="blk b-land">
+        <div class="bh"><span class="bi" aria-hidden="true">🌳</span><span style="flex:1"><span class="bt">The land</span><span class="bs">What you pay for the dirt.</span></span></div>
+        <div class="seg" id="segType">
+        <button data-type="lot" class="on"><b>Empty Lot</b>Ground-up build</button>
+        <button data-type="teardown"><b>Tear-Down</b>Demo + rebuild</button>
+      </div>
         <div class="field">
           <label id="lblLand"><span class="lt">Lot purchase price</span></label>
           <div class="inp has-pre"><span class="pre">$</span><input type="text" inputmode="decimal" autocomplete="off" id="purchasePrice" step="1000" /></div>
         </div>
-        <div class="field">
+        <div class="adv advA"><div class="three">
+          <div class="field">
+            <label>Buy closing costs <span class="tag">% of price</span></label>
+            <div class="inp has-suf"><input type="text" inputmode="decimal" autocomplete="off" id="buyClosingPct" step="0.25" /><span class="suf">%</span></div>
+          </div>
+          <div class="field">
+            <label>Monthly carry <span class="tag">tax, ins, utils</span></label>
+            <div class="inp has-pre"><span class="pre">$</span><input type="text" inputmode="decimal" autocomplete="off" id="monthlyCarry" step="100" /></div>
+          </div>
+          <div class="field" id="demoField" style="display:none">
+          <label>Demolition cost</label>
+          <div class="inp has-pre"><span class="pre">$</span><input type="text" inputmode="decimal" autocomplete="off" id="demoCost" step="5000" /></div>
+        </div>
+        </div></div>
+      </div>
+
+      <div class="blk b-house">
+        <div class="bh"><span class="bi" aria-hidden="true">🏠</span><span style="flex:1"><span class="bt">The house</span><span class="bs">How big it is, what it costs to build, and how long it takes.</span></span></div>
+        <div class="three">
+          <div class="field">
           <label>Home size (sqft) <span class="tag">heated area</span></label>
           <div class="inp"><input type="text" inputmode="decimal" autocomplete="off" id="buildableSqft" step="50" /></div>
         </div>
-      </div>
-
-      <div class="two">
-        <div class="field">
+          <div class="field">
           <label>Build cost / sqft <span class="tag">hard cost</span></label>
           <div class="inp has-pre"><span class="pre">$</span><input type="text" inputmode="decimal" autocomplete="off" id="buildCostPerSqft" step="5" /></div>
         </div>
-        <div class="field">
-          <label>Sale price / sqft <span class="tag">from sold homes</span></label>
-          <div class="inp has-pre"><span class="pre">$</span><input type="text" inputmode="decimal" autocomplete="off" id="salePerSqft" step="10" /></div>
-        </div>
-      </div>
-
-      <div class="two">
-        <div class="field">
+          <div class="field">
           <label>Build months</label>
           <div class="inp has-suf"><input type="text" inputmode="decimal" autocomplete="off" id="buildMonths" step="1" /><span class="suf">mo</span></div>
         </div>
-        <div class="field">
-          <label>Months to sell after finish</label>
-          <div class="inp has-suf"><input type="text" inputmode="decimal" autocomplete="off" id="sellMonths" step="1" /><span class="suf">mo</span></div>
         </div>
-      </div>
-
-      <div class="adv" id="advA">
-        <div class="three">
+        <div class="adv advA"><div class="three">
           <div class="field">
             <label>Soft costs <span class="tag">% of hard</span></label>
             <div class="inp has-suf"><input type="text" inputmode="decimal" autocomplete="off" id="softCostPct" step="0.5" /><span class="suf">%</span></div>
@@ -483,29 +508,31 @@
             <label>Permits &amp; fees</label>
             <div class="inp has-pre"><span class="pre">$</span><input type="text" inputmode="decimal" autocomplete="off" id="permitFees" step="1000" /></div>
           </div>
-        </div>
+        </div></div>
+      </div>
+
+      <div class="blk b-bank">
+        <div class="bh"><span class="bi" aria-hidden="true">💵</span><span style="flex:1"><span class="bt">The sale</span><span class="bs">What it sells for, and how long that takes.</span></span></div>
         <div class="two">
           <div class="field">
-            <label>Buy closing costs <span class="tag">% of price</span></label>
-            <div class="inp has-suf"><input type="text" inputmode="decimal" autocomplete="off" id="buyClosingPct" step="0.25" /><span class="suf">%</span></div>
-          </div>
+          <label>Sale price / sqft <span class="tag">from sold homes</span></label>
+          <div class="inp has-pre"><span class="pre">$</span><input type="text" inputmode="decimal" autocomplete="off" id="salePerSqft" step="10" /></div>
+        </div>
           <div class="field">
-            <label>Monthly carry <span class="tag">tax, ins, utils</span></label>
-            <div class="inp has-pre"><span class="pre">$</span><input type="text" inputmode="decimal" autocomplete="off" id="monthlyCarry" step="100" /></div>
-          </div>
+          <label>Months to sell after finish</label>
+          <div class="inp has-suf"><input type="text" inputmode="decimal" autocomplete="off" id="sellMonths" step="1" /><span class="suf">mo</span></div>
+        </div>
+        </div>
+        <div class="adv advA">
           <div class="field">
             <label>Selling costs <span class="tag">% of sale</span></label>
             <div class="inp has-suf"><input type="text" inputmode="decimal" autocomplete="off" id="sellingCostPct" step="0.5" /><span class="suf">%</span></div>
           </div>
         </div>
-        <div class="field" id="demoField" style="display:none">
-          <label>Demolition cost</label>
-          <div class="inp has-pre"><span class="pre">$</span><input type="text" inputmode="decimal" autocomplete="off" id="demoCost" step="5000" /></div>
-        </div>
       </div>
 
-      <details class="accordion" id="advDetails">
-        <summary>Loan and partner ▾</summary>
+      <details class="accordion blk b-perm" id="advDetails">
+        <summary>🏦 Loan and partner ▾</summary>
         <div style="margin-top:12px">
           <div class="switch" id="swLoan">
             <div><div class="t">Use a loan</div><div class="d">Off = you pay all cash. No points, no interest</div></div>
@@ -590,14 +617,14 @@
       <div class="warn" id="warnBox"></div>
 
       <div class="kpis">
-        <div class="kpi gold"><div class="k">Profit</div><div class="v" id="kProfit">—</div><div class="s" id="kProfitS">after every cost</div></div>
-        <div class="kpi"><div class="k">Cash you need</div><div class="v" id="kCash">—</div><div class="s">the most out of your pocket at one time</div></div>
-        <div class="kpi"><div class="k">Yearly return on your cash</div><div class="v" id="kIrr">—</div><div class="s" id="kIrrS">on your cash</div></div>
-        <div class="kpi"><div class="k">All-in cost</div><div class="v" id="kAllIn">—</div><div class="s" id="kAllInS">—</div></div>
+        <div class="kpi kc gold" style="--b:242,182,50"><div class="k">Profit</div><div class="v" id="kProfit">—</div><div class="s" id="kProfitS">after every cost</div></div>
+        <div class="kpi kc" style="--b:125,211,252"><div class="k">Cash you need</div><div class="v" id="kCash">—</div><div class="s">the most out of your pocket at one time</div></div>
+        <div class="kpi kc" style="--b:52,211,153"><div class="k">Yearly return on your cash</div><div class="v" id="kIrr">—</div><div class="s" id="kIrrS">on your cash</div></div>
+        <div class="kpi kc" style="--b:196,181,253"><div class="k">All-in cost</div><div class="v" id="kAllIn">—</div><div class="s" id="kAllInS">—</div></div>
       </div>
 
       <div class="solver">
-        <div class="k">The most you should pay for the lot</div>
+        <div class="k">🎯 The most you should pay for the lot</div>
         <div class="v" id="solveLand">—</div>
         <div class="s" id="solveLandS">—</div>
         <div class="trow">
@@ -610,8 +637,9 @@
         </div>
       </div>
 
-      <div style="margin-top:16px">
-        <div style="font-size:12px;font-weight:700;margin-bottom:6px">Where the money goes</div>
+      <div class="blk b-house" style="margin-top:16px">
+        <div class="bh"><span class="bi" aria-hidden="true">🧾</span><span style="flex:1"><span class="bt">Where the money goes</span><span class="bs">Every dollar of the sale price, and where it ends up.</span></span></div>
+        <div id="moneyBar"></div>
         <div id="breakdown"></div>
       </div>
 
@@ -660,6 +688,8 @@
       <div class="note"><b style="color:var(--txt)">Heads up.</b> If your Spec Build cost per sqft is already a GC’s bid with their fee inside,
         type the cost <b style="color:var(--txt)">without</b> the fee in “Cost of the work.” If you don’t, the fee gets counted twice.</div>
 
+      <div class="blk b-house">
+        <div class="bh"><span class="bi" aria-hidden="true">🧱</span><span style="flex:1"><span class="bt">The job</span><span class="bs">What the work costs before the GC adds a fee.</span></span></div>
       <div class="two">
         <div class="field">
           <label>Cost of the work <span class="tag" id="cHardTag"></span></label>
@@ -681,7 +711,9 @@
         </div>
       </div>
 
-      <div style="font-size:12px;font-weight:700;margin:6px 0 9px">The GC’s terms</div>
+      </div>
+      <div class="blk b-bank">
+        <div class="bh"><span class="bi" aria-hidden="true">🤝</span><span style="flex:1"><span class="bt">The GC’s terms</span><span class="bs">Type what your builder quoted you.</span></span></div>
       <div class="two">
         <div class="field">
           <label>GC fee <span class="tag">cost-plus &amp; GMP</span></label>
@@ -709,6 +741,7 @@
         </div>
       </div>
 
+      </div>
       <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap">
         <button class="btn" id="cRelink">Use Spec Build numbers</button>
         <button class="btn ghost" id="cReset">Reset terms</button>
@@ -720,7 +753,7 @@
       <p class="hint" id="cHint"></p>
 
       <div class="solver">
-        <div class="k">What if the job really costs</div>
+        <div class="k">🤔 What if the job really costs</div>
         <div class="v" id="cActual">—</div>
         <div class="s" id="cActualS">—</div>
         <div class="trow">
@@ -766,6 +799,8 @@
         <button data-loan="c2p"><b>Construction-to-perm</b>Turns into a long mortgage when the build is done</button>
       </div>
 
+      <div class="blk b-land">
+        <div class="bh"><span class="bi" aria-hidden="true">🌳</span><span><span class="bt">The land</span><span class="bs">Are you buying the lot, or is it already yours?</span></span></div>
       <div class="switch" id="swOwn">
         <div><div class="t">I already own the lot</div><div class="d">Off = the loan helps you buy it</div></div>
         <div class="tog"></div>
@@ -781,6 +816,9 @@
           <div class="inp has-pre"><span class="pre">$</span><input type="text" inputmode="decimal" autocomplete="off" id="lOwed" /></div>
         </div>
       </div>
+      </div>
+      <div class="blk b-house">
+        <div class="bh"><span class="bi" aria-hidden="true">🏠</span><span><span class="bt">The house</span><span class="bs">What it costs to build, and what it will be worth when it is done.</span></span></div>
       <div class="two">
         <div class="field">
           <label>Construction budget <span class="tag" id="lBuildTag"></span></label>
@@ -802,7 +840,9 @@
         </div>
       </div>
 
-      <div style="font-size:12px;font-weight:700;margin:6px 0 9px">What your lender charges</div>
+      </div>
+      <div class="blk b-bank">
+        <div class="bh"><span class="bi" aria-hidden="true">🏦</span><span><span class="bt">What the bank charges</span><span class="bs">Type the numbers from your lender’s quote.</span></span></div>
       <div class="three">
         <div class="field">
           <label>Loan to cost (LTC) <span class="tag" id="lLtcTag"></span></label>
@@ -843,8 +883,9 @@
         <div><div class="t">Interest reserve</div><div class="d">On = the lender holds the interest inside the loan and pays itself. Off = you pay interest monthly out of pocket</div></div>
         <div class="tog"></div>
       </div>
-      <div id="lPermBox" hidden>
-        <div style="font-size:12px;font-weight:700;margin:6px 0 9px">The mortgage after the build</div>
+      </div>
+      <div id="lPermBox" class="blk b-perm" hidden>
+        <div class="bh"><span class="bi" aria-hidden="true">🔑</span><span><span class="bt">The mortgage after the build</span><span class="bs">The loan turns into a normal house payment.</span></span></div>
         <div class="two">
         <div class="field">
           <label>Mortgage rate</label>
@@ -896,6 +937,8 @@
       <p class="hint">An LOI (letter of intent) is a short, non-binding offer. It ties up the land while you check it out.
         Fill in the boxes and the letter writes itself. The price starts from your Spec Build lot price.</p>
 
+      <div class="blk b-perm">
+        <div class="bh"><span class="bi" aria-hidden="true">👥</span><span style="flex:1"><span class="bt">Who and what</span><span class="bs">Who is buying, who is selling, and which piece of land.</span></span></div>
       <div class="two">
         <div class="field">
           <label>Buyer</label>
@@ -920,6 +963,9 @@
           <input type="text" autocomplete="off" id="oTitleCo" placeholder="Who holds the deposit" maxlength="300" />
         </div>
       </div>
+      </div>
+      <div class="blk b-land">
+        <div class="bh"><span class="bi" aria-hidden="true">💵</span><span style="flex:1"><span class="bt">The money</span><span class="bs">Your price and your deposit.</span></span></div>
       <div class="two">
         <div class="field">
           <label>Offer price <span class="tag" id="oPriceTag"></span></label>
@@ -930,6 +976,9 @@
           <div class="inp has-pre"><span class="pre">$</span><input type="text" inputmode="decimal" autocomplete="off" id="oEarnest" /></div>
         </div>
       </div>
+      </div>
+      <div class="blk b-house">
+        <div class="bh"><span class="bi" aria-hidden="true">📅</span><span style="flex:1"><span class="bt">The dates</span><span class="bs">How long the seller has to say yes, and how long you have to check the land.</span></span></div>
       <div class="two">
         <div class="field">
           <label>LOI date</label>
@@ -951,8 +1000,9 @@
         </div>
       </div>
 
-      <div style="font-size:12px;font-weight:700;margin:6px 0 4px">Your outs (contingencies)</div>
-      <p class="hint" style="margin-bottom:9px">A contingency is a condition that has to come true or you can walk away and keep your deposit.</p>
+      </div>
+      <div class="blk b-bank">
+        <div class="bh"><span class="bi" aria-hidden="true">🚪</span><span style="flex:1"><span class="bt">Your outs</span><span class="bs">An out is a condition (a “contingency”). If it does not come true, you can walk away and keep your deposit.</span></span></div>
       <div id="oConts" style="display:grid;gap:8px;margin-bottom:11px"></div>
       <div class="three">
         <div class="field">
@@ -973,6 +1023,7 @@
         <div class="inp has-suf"><input type="text" inputmode="decimal" autocomplete="off" id="oExcl" /><span class="suf">days</span></div>
       </div>
 
+      </div>
       <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap">
         <button class="btn" id="oRelink">Use Spec Build price</button>
         <button class="btn ghost" id="oClear">Clear the letter</button>
@@ -983,11 +1034,10 @@
       <h3>2 · Your LOI</h3>
       <p class="hint" id="oHint"></p>
       <div id="oOut"></div>
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin:16px 0 6px">
-        <div style="font-size:12px;font-weight:700">The letter</div>
-        <button class="btn gold" id="oCopy">Copy letter</button>
+      <div class="blk b-perm" style="margin-top:14px;padding-bottom:12px">
+        <div class="bh"><span class="bi" aria-hidden="true">✉️</span><span style="flex:1"><span class="bt">Your letter</span><span class="bs">It writes itself as you type. Copy it, then have an attorney read it.</span></span><button class="btn gold" id="oCopy">Copy letter</button></div>
+        <pre class="letter" id="oLetter"></pre>
       </div>
-      <pre class="letter" id="oLetter"></pre>
       <details class="faq" style="margin-top:12px">
         <summary>How to play it ▾</summary>
         <p><b>Offer on an LOI, not a purchase agreement.</b> It is non-binding and needs no deposit yet.<br>
@@ -1004,8 +1054,9 @@
   <div class="card" id="ddCard" style="margin-top:14px">
     <h3>3 · Due diligence checklist</h3>
     <p class="hint" id="ddHint">Check these before your deposit goes hard. Tap each one when it is done.</p>
-    <div class="ddgrid" id="ddList"></div>
-    <div style="font-size:12px;font-weight:700;margin:16px 0 9px">What checking it out costs you</div>
+    <div id="ddList"></div>
+    <div class="blk b-cost">
+      <div class="bh"><span class="bi" aria-hidden="true">💸</span><span style="flex:1"><span class="bt">What checking it out costs you</span><span class="bs">Money you spend before you own the land.</span></span></div>
     <div class="three">
       <div class="field">
         <label>Survey</label>
@@ -1023,6 +1074,7 @@
     <div class="field">
       <label>Other (architect sketch, civil, fees)</label>
       <div class="inp has-pre"><span class="pre">$</span><input type="text" inputmode="decimal" autocomplete="off" id="oOther" /></div>
+    </div>
     </div>
     <div class="foot">
         Estimates and a starting template only. Not legal advice, and not a contract. Land rules, costs and timelines change by city and state.
@@ -1795,7 +1847,7 @@
 
   function syncVisibility(){
     var full = mode === 'full';
-    $('advA').classList.toggle('show', full);
+    [].forEach.call(document.querySelectorAll('.advA'), function(e){ e.classList.toggle('show', full); });   // extra boxes live inside each colored block
     $('advB').classList.toggle('show', state.useLoan);
     $('advC').classList.toggle('show', state.hasPartner);
     ['swLoan','swPartner','swMethod'].forEach(function(id){ var e = $(id); if (e) e.setAttribute('aria-checked', e.classList.contains('on') ? 'true' : 'false'); });
@@ -1862,13 +1914,13 @@
       pill.className = 'pill p-' + r.verdict.key;
       pill.textContent = r.verdict.label + ' — ' + r.verdict.note;
     }
-    $('heroScore').textContent = r.score.points;
+    $('heroScore').textContent = (r.score.points >= 80 ? '🏆 ' : '') + r.score.points;
     $('heroGrade').textContent = 'grade ' + r.score.grade + ' · ' + r.months + ' months';
 
     // kpis
     $('kProfit').textContent = fmtM(r.profit);
     $('kProfit').className = 'v ' + (r.profit >= 0 ? 'pos' : 'neg');
-    $('kProfit').closest('.kpi').className = 'kpi ' + (r.profit >= 0 ? 'gold' : 'bad');
+    $('kProfit').closest('.kpi').className = 'kpi kc ' + (r.profit >= 0 ? 'gold' : 'bad');
     $('kProfitS').textContent = 'at your ' + fmtM(calcInput.purchasePrice) + ' lot price, after every cost';
     var retPct = calcInput.hasPartner ? r.myIrr : r.irr;
     $('kCash').textContent = fmtM(calcInput.hasPartner ? r.myCash : r.peakEquity);
@@ -1967,6 +2019,14 @@
     bd += row('Net profit', fmtM(r.profit), r.profit >= 0 ? 'pos' : 'neg', '');
     bd = bd.replace('class="row"><span class="l">Net profit', 'class="row total"><span class="l">Net profit');
     $('breakdown').innerHTML = bd;
+    // one picture: each dollar of the sale price, by where it goes
+    var segs = [['Land', calcInput.purchasePrice + L.buyClosing + L.demo, '#F2B632'], ['Build', L.buildTotal, '#7DD3FC'],
+                ['Loan and holding', L.points + L.fee + L.interestTotal + L.carryTotal, '#34D399'], ['Selling', L.sellCosts, '#C4B5FD'],
+                ['Profit', Math.max(0, r.profit), '#EDEBE8']].filter(function(g){ return g[1] > 0.5; });
+    $('moneyBar').innerHTML = !(L.arv > 0) ? '' : '<div class="mbar" style="margin-top:0" role="img" aria-label="Where each dollar of the sale price goes">' +
+      segs.map(function(g){ return '<i style="flex:' + g[1] + ';background:' + g[2] + '"></i>'; }).join('') + '</div><div class="mleg" style="margin-bottom:9px">' +
+      segs.map(function(g){ return '<span><span class="dot" style="background:' + g[2] + '"></span>' + g[0] + ' <b>' + pct(g[1] / L.arv * 100, 0) + '</b></span>'; }).join('') +
+      (r.profit < 0 ? '<span style="color:#F0A0A0">Loss <b style="color:#F0A0A0">' + pct(-r.profit / L.arv * 100, 0) + '</b></span>' : '') + '</div>';
 
     // partner box
     $('partnerBox').style.display = calcInput.hasPartner ? 'grid' : 'none';
@@ -2018,6 +2078,7 @@
     renderContract();   // the other tabs feed off these numbers
     renderLender();
     renderLoi();
+    celebrate('spec', 'spec', r.score.points >= 80, '🎉 Winner! Deal score ' + r.score.points + ' out of 100');
     try {
       var snap = E.normalize(Object.assign({}, mode === 'full' ? calcInput : state));
       snap._name = ($('dealName').value || '').trim();
@@ -2412,13 +2473,13 @@
 
   /* ---------- contract pricing tab ---------- */
   var CTEXT = {
-    costplus: { name: 'Cost-plus', risk: 'an overrun is yours',
+    costplus: { name: '🧾 Cost-plus', c: '125,211,252', risk: 'an overrun is yours',
       desc: 'You pay what the job really costs, plus the GC’s fee. There is no ceiling, so an overrun is yours.' },
-    gmp: { name: 'GMP', risk: 'the GC pays above the cap',
+    gmp: { name: '🧢 GMP', c: '52,211,153', risk: 'the GC pays above the cap',
       desc: 'Cost plus fee, but never more than the cap. Finish under it and you split the savings with the GC.' },
-    lump: { name: 'Lump sum', risk: 'the GC pays an overrun',
+    lump: { name: '🔒 Lump sum', c: '196,181,253', risk: 'the GC pays an overrun',
       desc: 'One fixed price. If the GC comes in under, the GC keeps it. If it goes over, the GC eats it.' },
-    db: { name: 'Design-build', risk: 'the GC pays an overrun',
+    db: { name: '📐 Design-build', c: '251,146,180', risk: 'the GC pays an overrun',
       desc: 'One fixed price for design and construction, and one company to call. The GC carries both.' }
   };
   function renderContract(){
@@ -2435,7 +2496,7 @@
     CFIELDS.forEach(function(f){
       var el = $(f), tag = $(f + 'Tag');
       if (tag) tag.textContent = cs[f] !== null ? 'your number' : f === 'cGmp' ? 'auto' : 'from Spec Build';
-      if (el && document.activeElement !== el) el.value = prettyNum(Math.round(val(f) * 100) / 100);
+      if (el && document.activeElement !== el) el.value = prettyNum(/^c(Hard|Permits|Design|Gmp)$/.test(f) ? Math.round(val(f)) : Math.round(val(f) * 100) / 100);
     });
     [].forEach.call(document.querySelectorAll('.trow .vchip'), function(c){
       c.classList.toggle('on', Number(c.dataset.v) === cs.cVar);
@@ -2459,8 +2520,8 @@
       var gcNote = fmtM(m.pays / sqft) + '/sf';
       if (m.key === 'gmp') gcNote += m.pays < m.price - 0.5 ? ' · ' + fmtM(m.price - m.pays) + ' under the cap' : ' · at the cap';
       var vs = m.ownerAllIn - specBudget;
-      html += '<div class="kpi ' + (cheapest ? 'gold' : '') + '">' +
-        '<div class="k">' + T.name + (cheapest ? ' · costs you least' : '') + '</div>' +
+      html += '<div class="kpi kc ' + (cheapest ? 'gold' : '') + '" style="--b:' + T.c + '">' +
+        '<div class="k">' + T.name + (cheapest ? ' · ⭐ costs you least' : '') + '</div>' +
         '<div class="v">' + fmtM(m.ownerAllIn) + ' <small>you pay</small></div>' +
         '<div class="s">' + T.desc + '</div>' +
         row('To the GC', fmtM(m.pays), '', gcNote) +
@@ -2474,6 +2535,7 @@
         '</div>';
     });
     $('cCards').innerHTML = html;
+    celebrate('gc', 'contract', specBudget > 0 && low.ownerAllIn <= specBudget + 0.5, '🎉 Your builder’s price fits your budget');
     try { localStorage.setItem(CKEY, JSON.stringify(cs)); } catch(e){}
   }
   wireBoxes(CFIELDS, cs, CDEF, CLIM, renderContract);
@@ -2489,6 +2551,7 @@
     renderContract(); toast('Terms reset');
   });
   /* ---------- lender terms tab ---------- */
+  var LDOLLAR = { lLot:1, lOwed:1, lBuild:1, lArv:1, lFees:1, lClosing:1 };   // shown in whole dollars
   function renderLender(){
     var d = window._last; if (!d || !$('lOut')) return;
     var L = d.r.lines, inp = d.input;
@@ -2507,7 +2570,7 @@
     LFIELDS.forEach(function(f){
       var el = $(f), tag = $(f + 'Tag');
       if (tag) tag.textContent = ls[f] !== null ? 'yours' : f === 'lLandAdv' ? 'auto' : 'linked';   // short: these boxes are narrow
-      if (el && document.activeElement !== el) el.value = prettyNum(Math.round(val(f) * 100) / 100);
+      if (el && document.activeElement !== el) el.value = prettyNum(LDOLLAR[f] ? Math.round(val(f)) : Math.round(val(f) * 100) / 100);
     });
     $('swOwn').classList.toggle('on', ls.own); $('swOwn').setAttribute('aria-checked', ls.own ? 'true' : 'false');
     $('swDutch').classList.toggle('on', ls.dutch); $('swDutch').setAttribute('aria-checked', ls.dutch ? 'true' : 'false');
@@ -2520,7 +2583,6 @@
     paintPressed();
 
     var p0 = function(n){ return pct(n, 0); };
-    var head = function(t){ return '<div style="font-size:12px;font-weight:700;margin:16px 0 6px">' + t + '</div>'; };
     var total = function(h){ return h.replace('class="row"', 'class="row total"'); };
     $('lHint').textContent = 'Total project cost ' + fmtM(R.cost) + ' = ' + fmtM(R.lot) + (ls.own ? ' lot value' : ' lot') + ' + ' +
       fmtM(R.build) + ' construction' + (R.reserve > 0.5 ? ' + ' + fmtM(R.reserve) + ' interest reserve' : '') + '. Finished value ' + fmtM(R.arv) + '.';
@@ -2528,51 +2590,63 @@
     var why = R.binding === 'ltc' ? 'Held back by loan to cost: ' + tpct(val('lLtc')) + ' of your ' + fmtM(R.cost) + ' cost.'
       : R.binding === 'ltv' ? 'Held back by loan to ARV: ' + tpct(val('lLtv')) + ' of the ' + fmtM(R.arv) + ' finished value. The cost test alone would allow ' + fmtM(R.byLtc) + '.'
       : 'The lender covers everything the job needs. The two tests would allow up to ' + fmtM(R.cap) + '.';
+    // one picture: of every dollar this job takes, who pays it
+    var uses = R.loan + R.cashTotal, bankShare = uses > 0 ? R.loan / uses * 100 : 0;
+    var bar = uses > 0 ? '<div class="mbar" role="img" aria-label="The bank pays ' + p0(bankShare) + ', you pay ' + p0(100 - bankShare) + '">' +
+      '<i class="bk" style="flex:' + R.loan + '"></i><i class="yu" style="flex:' + R.cashTotal + '"></i></div>' +
+      '<div class="mleg"><span><span class="dot" style="background:#34D399"></span>The bank pays <b>' + fmtM(R.loan) + '</b> (' + p0(bankShare) + ')</span>' +
+      '<span><span class="dot" style="background:var(--gold)"></span>You pay <b>' + fmtM(R.cashTotal) + '</b> (' + p0(100 - bankShare) + ')</span></div>' : '';
     var h = '<div class="solver"><div class="k">Your loan</div><div class="v">' + fmtM(R.loan) + '</div>' +
-      '<div class="s">' + pct(R.ltcActual) + ' of cost · ' + pct(R.ltvActual) + ' of finished value. ' + why + '</div></div>';
+      '<div class="s">' + pct(R.ltcActual) + ' of cost · ' + pct(R.ltvActual) + ' of finished value. ' + why + '</div>' + bar + '</div>';
 
     h += '<div class="kpis" style="margin-top:12px">' +
-      '<div class="kpi gold"><div class="k">Cash at closing</div><div class="v">' + fmtM(R.cashClose) + '</div><div class="s">lot, points, fees and closing costs</div></div>' +
-      '<div class="kpi"><div class="k">You pay during the build</div><div class="v">' + fmtM(R.gap) + '</div><div class="s">' +
+      '<div class="kpi kc" style="--b:242,182,50"><div class="k">Cash at closing</div><div class="v">' + fmtM(R.cashClose) + '</div><div class="s">lot, points, fees and closing costs</div></div>' +
+      '<div class="kpi kc" style="--b:125,211,252"><div class="k">You pay during the build</div><div class="v">' + fmtM(R.gap) + '</div><div class="s">' +
         (R.gap < 0.5 ? 'the lender covers the whole budget' : 'the part of the budget the loan does not cover') + '</div></div>' +
-      '<div class="kpi"><div class="k">Interest</div><div class="v">' + fmtM(R.interest) + '</div><div class="s">' + R.months + ' months · ' +
+      '<div class="kpi kc" style="--b:52,211,153"><div class="k">Interest</div><div class="v">' + fmtM(R.interest) + '</div><div class="s">' + R.months + ' months · ' +
         (ls.dutch ? 'on the full loan' : 'on what is drawn') + (R.reserve > 0.5 ? ' · paid from the reserve' : '') + '</div></div>' +
-      '<div class="kpi"><div class="k">Cost of the money</div><div class="v">' + fmtM(R.costOfMoney) + '</div><div class="s">points + fees + interest' +
+      '<div class="kpi kc" style="--b:251,146,180"><div class="k">Cost of the money</div><div class="v">' + fmtM(R.costOfMoney) + '</div><div class="s">points + fees + interest' +
         (R.loan > 0 ? ' · ' + pct(R.costOfMoney / R.loan * 100) + ' of the loan' : '') + '</div></div></div>';
 
-    h += head('At the closing table');
-    h += row(ls.own ? 'Pay off the lot' : 'Buy the lot', '−' + fmtM(R.lotNeed), R.lotNeed > 0 ? 'neg' : '', ls.own && R.owed === 0 ? 'owned free and clear' : '');
-    h += row('Lender puts in on day one', '+' + fmtM(R.dayOne), R.dayOne > 0 ? 'pos' : '', R.lot > 0 ? p0(R.dayOne / R.lot * 100) + ' of the lot' : '');
-    h += row('Closing costs', '−' + fmtM(R.closing), 'neg');
-    h += row('Points', '−' + fmtM(R.points), 'neg', tpct(val('lPoints')) + ' of the loan');
-    h += row('Lender fees', '−' + fmtM(R.fees), 'neg');
-    h += total(row('Cash you bring to closing', fmtM(R.cashClose), ''));
-    if (ls.own) h += row('Your lot equity', fmtM(R.lotEquity), '', 'counts as your money in the deal');
+    var blk = function(cls, icon, t, sub2, body){
+      return '<div class="blk ' + cls + '" style="margin-top:12px"><div class="bh"><span class="bi" aria-hidden="true">' + icon +
+        '</span><span><span class="bt">' + t + '</span><span class="bs">' + sub2 + '</span></span></div>' + body + '</div>';
+    };
+    var b1 = row(ls.own ? 'Pay off the lot' : 'Buy the lot', '−' + fmtM(R.lotNeed), R.lotNeed > 0 ? 'neg' : '', ls.own && R.owed === 0 ? 'owned free and clear' : '') +
+      row('The bank puts in on day one', '+' + fmtM(R.dayOne), R.dayOne > 0 ? 'pos' : '', R.lot > 0 ? p0(R.dayOne / R.lot * 100) + ' of the lot' : '') +
+      row('Closing costs', '−' + fmtM(R.closing), 'neg') +
+      row('Points', '−' + fmtM(R.points), 'neg', tpct(val('lPoints')) + ' of the loan') +
+      row('Lender fees', '−' + fmtM(R.fees), 'neg') +
+      total(row('Cash you bring to closing', fmtM(R.cashClose), '')) +
+      (ls.own ? row('Your lot equity', fmtM(R.lotEquity), '', 'counts as your money in the deal') : '');
+    h += blk('b-land', '✍️', 'At the closing table', 'The day you sign. Money out in red, money in in green.', b1);
 
-    h += head('During the build');
-    h += row('Construction budget', fmtM(R.build), '');
-    h += row('Lender pays in draws', fmtM(R.holdback), 'pos', R.build > 0 ? p0(R.holdback / R.build * 100) + ' of the budget' : '');
-    h += row('You pay', fmtM(R.gap), R.gap > 0.5 ? 'neg' : '');
-    if (R.reserve > 0.5) h += row('Interest reserve', fmtM(R.reserve), 'pos', 'held inside the loan · the lender pays itself from it');
-    h += row('Interest payment at full draw', fmtM(R.fullDrawPayment) + '/mo', '', R.reserve > 0.5 && R.interestCash < 0.5 ? 'paid from the reserve, not your pocket' : tpct(val('lRate')) + ' interest-only');
-    if (R.reserve > 0.5 && R.interestCash > 0.5) h += row('Interest you still pay', fmtM(R.interestCash), 'neg', 'the loan limit left no room for the full reserve');
-    h += row('Total interest', fmtM(R.interest), 'neg', R.buildMonths + ' mo build' + (R.holdMonths ? ' + ' + R.holdMonths + ' mo to sell' : ''));
+    var b2 = row('Construction budget', fmtM(R.build), '') +
+      row('The bank pays in draws', fmtM(R.holdback), 'pos', R.build > 0 ? p0(R.holdback / R.build * 100) + ' of the budget' : '') +
+      row('You pay', fmtM(R.gap), R.gap > 0.5 ? 'neg' : '') +
+      (R.reserve > 0.5 ? row('Interest reserve', fmtM(R.reserve), 'pos', 'held inside the loan · the bank pays itself from it') : '') +
+      row('Interest payment at full draw', fmtM(R.fullDrawPayment) + '/mo', '', R.reserve > 0.5 && R.interestCash < 0.5 ? 'paid from the reserve, not your pocket' : tpct(val('lRate')) + ' interest-only') +
+      (R.reserve > 0.5 && R.interestCash > 0.5 ? row('Interest you still pay', fmtM(R.interestCash), 'neg', 'the loan limit left no room for the full reserve') : '') +
+      row('Total interest', fmtM(R.interest), 'neg', R.buildMonths + ' mo build' + (R.holdMonths ? ' + ' + R.holdMonths + ' mo to sell' : ''));
+    h += blk('b-house', '🔨', 'During the build', 'Who pays for the house as it goes up.', b2);
 
-    h += head('The lender’s two tests');
-    h += row('Loan to cost', fmtM(R.byLtc), '', tpct(val('lLtc')) + ' × ' + fmtM(R.cost));
-    h += row('Loan to ARV', fmtM(R.byLtv), '', tpct(val('lLtv')) + ' × ' + fmtM(R.arv));
-    h += row('The smaller one is your limit', fmtM(R.cap), '');
+    var b3 = row('Loan to cost', fmtM(R.byLtc), '', tpct(val('lLtc')) + ' × ' + fmtM(R.cost)) +
+      row('Loan to ARV', fmtM(R.byLtv), '', tpct(val('lLtv')) + ' × ' + fmtM(R.arv)) +
+      total(row('The smaller one is your limit', fmtM(R.cap), ''));
+    h += blk('b-bank', '✅', 'The bank’s two tests', 'The bank checks your cost and your finished value. The smaller answer wins.', b3);
 
     if (c2p) {
-      h += head('After the build: the mortgage');
-      h += row('Mortgage balance', fmtM(R.loan), '', pct(R.ltvActual) + ' of finished value');
-      h += row('Monthly payment', money0.format(Math.round(R.permPay)) + '/mo', '', tpct(ls.lPermRate) + ' for ' + ls.lPermYears + ' yr · taxes and insurance are extra');
+      h += blk('b-perm', '🔑', 'After the build: your mortgage', 'The loan turns into a normal house payment.',
+        row('Mortgage balance', fmtM(R.loan), '', pct(R.ltvActual) + ' of finished value') +
+        row('Monthly payment', money0.format(Math.round(R.permPay)) + '/mo', '', tpct(ls.lPermRate) + ' for ' + ls.lPermYears + ' yr · taxes and insurance are extra'));
     } else {
-      h += head('At the sale');
-      h += row('Pay the lender back', fmtM(R.loan), 'neg', 'from the sale proceeds');
+      h += blk('b-perm', '💰', 'At the sale', 'When the house sells, the bank gets paid back first.',
+        row('Pay the bank back', fmtM(R.loan), 'neg', 'from the sale money'));
     }
-    h += total(row('Total cash you need', fmtM(R.cashTotal), '', R.reserve > 0.5 && R.interestCash < 0.5 ? 'closing + your part of the build · interest comes out of the reserve' : 'closing + your part of the build + interest'));
+    h += '<div class="grand"><span>Total cash you need</span><b>' + fmtM(R.cashTotal) + '</b><em>' +
+      (R.reserve > 0.5 && R.interestCash < 0.5 ? 'closing + your part of the build · interest comes out of the reserve' : 'closing + your part of the build + interest') + '</em></div>';
     $('lOut').innerHTML = h;
+    celebrate('loan', 'lender', R.loan > 0 && R.build > 0 && R.gap < 0.5, '🎉 The bank covers the whole build');
     try { localStorage.setItem(LKEY, JSON.stringify(ls)); } catch(e){}
   }
   wireBoxes(LFIELDS, ls, LDEF, LLIM, renderLender);
@@ -2671,26 +2745,30 @@
     DDLIST.forEach(function(x){ if (os.dd[x.id]) done++; });
 
     $('oHint').textContent = 'Dates count from the day the seller signs. They are shown as if that is your LOI date.';
-    var h = '<div class="solver"><div class="k">Ready to send</div><div class="v">' + have + ' of ' + MUST + ' must-haves</div>' +
+    var h = '<div class="solver"><div class="k">✅ Ready to send</div><div class="v">' + have + ' of ' + MUST + ' must-haves</div>' +
       '<div class="s">' + (need.length ? 'Still missing: ' + need.join(', ') + '.' : 'Every must-have is filled in. Read the letter once, then have an attorney look at it.') + '</div></div>';
 
     var lp = R.landPct;
     h += '<div class="kpis" style="margin-top:12px">' +
-      '<div class="kpi gold"><div class="k">Deposit</div><div class="v">' + fmtM(R.earnest) + '</div><div class="s">' + (R.earnestPct === null ? '—' : pct(R.earnestPct) + ' of the price') + ' · refundable in due diligence</div></div>' +
-      '<div class="kpi"><div class="k">Land vs. finished value</div><div class="v">' + (lp === null ? '—' : pct(lp)) + '</div><div class="s">' +
+      '<div class="kpi kc gold" style="--b:242,182,50"><div class="k">Deposit</div><div class="v">' + fmtM(R.earnest) + '</div><div class="s">' + (R.earnestPct === null ? '—' : pct(R.earnestPct) + ' of the price') + ' · refundable in due diligence</div></div>' +
+      '<div class="kpi kc" style="--b:125,211,252"><div class="k">Land vs. finished value</div><div class="v">' + (lp === null ? '—' : pct(lp)) + '</div><div class="s">' +
         (lp === null ? 'add a sale price on the Spec Build tab' : lp <= 12 ? 'at or under the 12% rule of thumb' : lp <= 20 ? 'inside the older 15–20% range, above the 12% rule' : 'above the 12–20% rules of thumb') + '</div></div>' +
-      '<div class="kpi"><div class="k">At risk before the deposit goes hard</div><div class="v">' + fmtM(R.atRiskBefore) + '</div><div class="s">survey, tests and other checks</div></div>' +
-      '<div class="kpi"><div class="k">At risk after</div><div class="v">' + fmtM(R.atRiskAfter) + '</div><div class="s">checks + your deposit</div></div></div>';
+      '<div class="kpi kc" style="--b:52,211,153"><div class="k">At risk before the deposit goes hard</div><div class="v">' + fmtM(R.atRiskBefore) + '</div><div class="s">survey, tests and other checks</div></div>' +
+      '<div class="kpi kc" style="--b:251,146,180"><div class="k">At risk after</div><div class="v">' + fmtM(R.atRiskAfter) + '</div><div class="s">checks + your deposit</div></div></div>';
 
-    h += '<div style="font-size:12px;font-weight:700;margin:16px 0 6px">Key dates</div>';
+    h += '<div class="blk b-house" style="margin-top:12px"><div class="bh"><span class="bi" aria-hidden="true">📅</span><span><span class="bt">Key dates</span>' +
+      '<span class="bs">Counted from the day the seller signs.</span></span></div>';
     h += row('Offer expires', fmtDay(R.expires), '', Math.round(v.oValid) + ' days to sign');
     h += row('Due diligence ends', fmtDay(R.ddEnd), '', Math.round(v.oDD) + ' days');
     if (R.extraDays > 0) h += row('…with every extension', fmtDay(R.ddEndMax), '', '+' + R.extraDays + ' days');
     h += row('Closing', fmtDay(R.close), '', Math.round(v.oClose) + ' days later');
     if (R.extraDays > 0) h += row('Latest closing', fmtDay(R.closeMax), '', 'if every extension is used');
     h += row('Due diligence checklist', done + ' of ' + DDLIST.length + ' done', done === DDLIST.length ? 'pos' : '', 'section 3 below');
+    h += '</div>';
     $('oOut').innerHTML = h;
     $('oLetter').textContent = loiLetter(R, v);
+    celebrate('letter', 'loi', need.length === 0, '🎉 Your letter is ready to send');
+    celebrate('checklist', 'loi', done === DDLIST.length, '🎉 Checklist done. Every box is checked');
     $('ddHint').textContent = 'Check these before your deposit goes hard on ' + fmtDay(R.ddEnd) + '. ' + done + ' of ' + DDLIST.length + ' done. Tap each one when it is finished.';
     try {
       var save = {}; OFIELDS.concat(OTEXT, ['oDate']).forEach(function(k){ save[k] = os[k]; });
@@ -2703,7 +2781,23 @@
     return '<button type="button" class="chk" id="' + id + '" role="checkbox" aria-checked="false"><span class="bx">✓</span><span><b>' + t + '</b><span class="d">' + d2 + '</span></span></button>';
   }
   $('oConts').innerHTML = OCONT.map(function(c){ return tickRow(c.id, c.t, c.d); }).join('');
-  $('ddList').innerHTML = DDLIST.map(function(x){ return tickRow('dd-' + x.id, x.t, x.d); }).join('');
+  var DDGROUPS = [
+    { c:'b-land', i:'📊', t:'The market', d:'Will it sell, and is the price right?', ids:['comps','seller','stress'] },
+    { c:'b-house', i:'🏛️', t:'The city', d:'Will they let you build what you want?', ids:['city','zoning','fees','hoa'] },
+    { c:'b-bank', i:'🔌', t:'The dirt and the pipes', d:'What is in the ground, and can you hook up?', ids:['util','sewer','flood','access','soil','enviro'] },
+    { c:'b-perm', i:'📄', t:'Papers and people', d:'The paperwork, and who to bring out.', ids:['survey','title','arch','drive'] }
+  ];
+  (function(){
+    var used = {};
+    DDGROUPS.forEach(function(g){ g.ids.forEach(function(id){ used[id] = 1; }); });
+    DDLIST.forEach(function(x){ if (!used[x.id]) DDGROUPS[DDGROUPS.length - 1].ids.push(x.id); });   // a new item still shows up
+    $('ddList').innerHTML = DDGROUPS.map(function(g){
+      var items = DDLIST.filter(function(x){ return g.ids.indexOf(x.id) >= 0; });
+      return '<div class="blk ' + g.c + '"><div class="bh"><span class="bi" aria-hidden="true">' + g.i + '</span><span><span class="bt">' + g.t +
+        '</span><span class="bs">' + g.d + '</span></span></div><div class="ddgrid">' +
+        items.map(function(x){ return tickRow('dd-' + x.id, x.t, x.d); }).join('') + '</div></div>';
+    }).join('');
+  })();
   OCONT.forEach(function(c){ $(c.id).addEventListener('click', function(){ os[c.id] = !os[c.id]; renderLoi(); }); });
   DDLIST.forEach(function(x){ $('dd-' + x.id).addEventListener('click', function(){ os.dd[x.id] = !os.dd[x.id]; renderLoi(); }); });
   wireBoxes(OFIELDS, os, ODEF, OLIM, renderLoi);
@@ -2724,6 +2818,41 @@
     else fallback();
   });
 
+  /* ---------- confetti: a small party when a step becomes a winner ---------- */
+  function confetti(){
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;   // the toast still says it
+    var c = document.createElement('canvas'), x = c.getContext && c.getContext('2d'); if (!x) return;
+    var W = c.width = window.innerWidth, H = c.height = window.innerHeight;
+    c.style.cssText = 'position:fixed;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:95';
+    c.setAttribute('aria-hidden', 'true'); document.body.appendChild(c);
+    var cols = ['#F2B632', '#7DD3FC', '#34D399', '#C4B5FD', '#FB92B4', '#EDEBE8'], P = [], t0 = null, LIFE = 3200;
+    for (var i = 0; i < 150; i++) P.push({ x: W / 2 + (Math.random() - .5) * W * .5, y: H * .38, vx: (Math.random() - .5) * 15,
+      vy: -Math.random() * 13 - 5, s: Math.random() * 7 + 5, r: Math.random() * 6.3, vr: (Math.random() - .5) * .4, c: cols[i % cols.length] });
+    requestAnimationFrame(function frame(ts){
+      if (t0 === null) t0 = ts;
+      var t = ts - t0; x.clearRect(0, 0, W, H); x.globalAlpha = Math.max(0, Math.min(1, (LIFE - t) / (LIFE * .3)));   // bright, then fade at the end
+      P.forEach(function(q){
+        q.vy += .22; q.vx *= .99; q.x += q.vx; q.y += q.vy; q.r += q.vr;
+        x.save(); x.translate(q.x, q.y); x.rotate(q.r); x.fillStyle = q.c; x.fillRect(-q.s / 2, -q.s / 4, q.s, q.s / 2); x.restore();
+      });
+      if (t < LIFE) requestAnimationFrame(frame); else c.remove();
+    });
+  }
+  // Fires once when a step BECOMES a winner: not on every keystroke, not on page load, and only while that tab is on screen.
+  // A win that happens on a hidden tab waits until the tab is opened.
+  var WON = {}, booted = false;
+  function party(w){ w.s = 'done'; confetti(); toast(w.msg); }
+  function celebrate(key, tab, isWin, msg){
+    var w = WON[key] || (WON[key] = { s: 'no' });
+    w.tab = tab; w.msg = msg;
+    if (!isWin) { w.s = 'no'; clearTimeout(w.t); return; }
+    if (w.s === 'done' || w.s === 'wait') return;
+    if (!booted) { w.s = 'done'; return; }
+    if ($(VIEWS[tab]).hidden) { w.s = 'pending'; return; }
+    w.s = 'wait';                                   // let the typing settle, then check it is still a winner
+    w.t = setTimeout(function(){ if (w.s === 'wait') party(w); }, 600);
+  }
+
   var VIEWS = { spec: 'specView', contract: 'contractView', lender: 'lenderView', loi: 'loiView' };
   function setTab(t){
     if (!VIEWS[t]) t = 'spec';
@@ -2731,6 +2860,7 @@
     [].forEach.call($('segTab').children, function(c){ c.classList.toggle('on', c.dataset.tab === t); });
     try { localStorage.setItem('mm_tab_v1', t); } catch(e){}
     paintPressed();
+    Object.keys(WON).forEach(function(k){ var w = WON[k]; if (booted && w.tab === t && w.s === 'pending') party(w); });
   }
   $('segTab').addEventListener('click', function(e){
     var b = e.target.closest('button'); if (b) setTab(b.dataset.tab);
@@ -2753,6 +2883,7 @@
   syncType(); writeForm();
   if (lastRaw && lastRaw._name) $('dealName').value = lastRaw._name;
   render();
+  booted = true;
   try { var tab0 = localStorage.getItem('mm_tab_v1'); if (tab0 && tab0 !== 'spec') setTab(tab0); } catch(e){}
 })();
 </script>
