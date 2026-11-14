@@ -399,7 +399,7 @@
         <div><b>Soft cost</b> — what you pay for that is not building: plans, engineering, design.</div>
         <div><b>Contingency (in a budget)</b> — extra money set aside for surprises.</div>
         <div><b>Contingency (in an offer)</b> — a condition. If it does not come true, you can walk away.</div>
-        <div><b>All-in cost</b> — every cost to buy the lot and build the house, before selling costs.</div>
+        <div><b>Cost before selling</b> — every cost to buy the lot and build the house, before selling costs.</div>
         <div><b>Cash you need</b> — the most money out of your own pocket at any one time.</div>
         <div><b>Max lot price</b> — the highest you can pay for the lot and still hit your profit target.</div>
         <div><b>GC</b> — general contractor. The builder who runs the job.</div>
@@ -634,7 +634,7 @@
         <div class="kpi kc gold" style="--b:242,182,50"><div class="k">Profit</div><div class="v" id="kProfit">—</div><div class="s" id="kProfitS">after every cost</div></div>
         <div class="kpi kc" style="--b:125,211,252"><div class="k">Cash you need</div><div class="v" id="kCash">—</div><div class="s">the most out of your pocket at one time</div></div>
         <div class="kpi kc" style="--b:52,211,153"><div class="k">Yearly return on your cash</div><div class="v" id="kIrr">—</div><div class="s" id="kIrrS">on your cash</div></div>
-        <div class="kpi kc" style="--b:196,181,253"><div class="k">All-in cost</div><div class="v" id="kAllIn">—</div><div class="s" id="kAllInS">—</div></div>
+        <div class="kpi kc" style="--b:196,181,253"><div class="k">Cost before selling</div><div class="v" id="kAllIn">—</div><div class="s" id="kAllInS">—</div></div>
       </div>
 
       <div class="solver">
@@ -1313,8 +1313,8 @@
 
     var basis = i.purchasePrice + demo + hard + soft + contingency + i.permitFees +
                 (i.includeCarryInBasis ? carryTotal : 0);
-    var byLtc = basis * i.ltcPct / 100;
-    var byLtv = arv * i.maxLtvPct / 100;
+    var byLtc = basis * (i.ltcPct / 100);
+    var byLtv = arv * (i.maxLtvPct / 100);
     var loan = i.useLoan ? Math.max(0, Math.min(byLtc, byLtv)) : 0;
     var binding = !i.useLoan ? 'cash' : (byLtv < byLtc ? 'ltv' : 'ltc');
     var points = loan * i.pointsPct / 100;
@@ -1323,7 +1323,8 @@
     var t0Draw = 0, drawPerMonth = 0, interestByMonth = [], interestTotal = 0, bal = 0;
     if (loan > 0) {
       t0Draw = Math.min(loan, i.ltcPct / 100 * (i.purchasePrice + demo));
-      drawPerMonth = (loan - t0Draw) / i.buildMonths;
+      // A fully funded build has no equity gap; avoid subtraction residue creating a fictitious investment.
+      drawPerMonth = (loan === basis ? buildTotal + (i.includeCarryInBasis ? carryTotal : 0) : loan - t0Draw) / i.buildMonths;
       bal = t0Draw;
     }
     var constructionPerMonth = buildTotal / i.buildMonths;
@@ -1504,9 +1505,9 @@
     var kLtv = capLoan / (i.ltcPct / 100) - otherBasis;  // LTV cap starts to bind
     var kDraw = capLoan / (i.ltcPct / 100) - demo;       // closing draw reaches the whole loan
     [kLtv, kDraw].forEach(function (k) {
-      if (isFinite(k) && k > 0 && k < MAX_LAND) out.push(k, k * (1 + 1e-9) + 1e-3, k + 1, k * 1.0001 + 1);
+      if (isFinite(k) && k > 0 && k < MAX_LAND) out.push(k, k + Math.max(Number.MIN_VALUE, k * Number.EPSILON * 8), k + 1, k * 1.0001 + 1);
     });
-    return out;
+    return out.filter(function (price) { return price <= MAX_LAND; });
   }
 
   /* Scan for the highest land price that still clears the target.
@@ -1565,13 +1566,14 @@
      actual   = what the work really costs = cost moved by variancePct
      Lump sum and design-build are modelled as fixed prices: the builder keeps an underrun and eats an overrun. */
   function contracts(c) {
-    var cost = clamp(num(c.cost), 0, 1e10), design = clamp(num(c.design), 0, 1e10);
+    // Cover the maximum work, demolition, permits and design amounts supported by Spec Build.
+    var cost = clamp(num(c.cost), 0, 1e13 + 2e9), design = clamp(num(c.design), 0, 1e13);
     var f = clamp(num(c.feePct), 0, 100) / 100, m = clamp(num(c.lumpPct), 0, 100) / 100;
     var d = clamp(num(c.dbPct), 0, 100) / 100, share = clamp(num(c.sharePct), 0, 100) / 100;
     var budget = cost * (1 + clamp(num(c.contPct), 0, 100) / 100);      // estimate + contingency
     var actual = cost * (1 + clamp(num(c.variancePct), -90, 300) / 100);
     var gmpAuto = budget * (1 + f);
-    var gmp = num(c.gmp) > 0 ? num(c.gmp) : gmpAuto;
+    var gmp = num(c.gmp) > 0 ? clamp(num(c.gmp), 0, 4e13 + 8e9) : gmpAuto;
 
     function line(key, price, pays, profit, breakCost) {
       return { key: key, price: price, pays: pays, profit: profit,
@@ -1607,7 +1609,7 @@
      upfrontWork = part of build paid at closing (e.g. demolition), funded at LTC before later build draws
      The loan is the smaller of the two lender tests, and never more than the job needs. */
   function lender(c) {
-    var lot = clamp(num(c.lot), 0, 1e10), build = clamp(num(c.build), 0, 1e10), arv = clamp(num(c.arv), 0, 1e11);
+    var lot = clamp(num(c.lot), 0, 1e10), build = clamp(num(c.build), 0, 4e13 + 2e9), arv = clamp(num(c.arv), 0, 1e13);
     var upfrontWork = clamp(num(c.upfrontWork), 0, build);
     var own = !!c.own, owed = own ? clamp(num(c.owed), 0, 1e10) : 0;
     var ltc = clamp(num(c.ltcPct), 0, 100) / 100, ltv = clamp(num(c.ltvPct), 0, 100) / 100;
@@ -1677,11 +1679,16 @@
   /* ---------- land offer (LOI): the numbers and dates behind a letter of intent ----------
      c: { price, arv, earnest (null = auto), date ('YYYY-MM-DD'), validDays, ddDays, closeDays, extCount, extDays, ddCosts }
      Dates count from c.date, as if the seller signed that day. Extensions push due diligence, and closing follows it. */
+  function roundCents(n) {
+    // Shift decimal places before rounding so 1.005 and 10.075 round up correctly.
+    var parts = String(n).split('e');
+    return Math.round(Number(parts[0] + 'e' + ((Number(parts[1]) || 0) + 2))) / 100;
+  }
   function offer(c) {
-    var price = clamp(num(c.price), 0, 1e10), arv = clamp(num(c.arv), 0, 1e11);
+    var price = roundCents(clamp(num(c.price), 0, 1e10)), arv = clamp(num(c.arv), 0, 1e13);
     var autoEarnest = price > 0 ? Math.min(price, Math.max(1000, Math.round(price * 0.015 / 500) * 500)) : 0; // about 1.5%, capped at the price
     var typed = !(c.earnest === null || c.earnest === undefined || c.earnest === '');
-    var earnest = typed ? clamp(num(c.earnest), 0, 1e9) : autoEarnest;
+    var earnest = typed ? roundCents(clamp(num(c.earnest), 0, 1e9)) : autoEarnest;
     var dd = clamp(Math.round(num(c.ddDays)), 0, 730), cl = clamp(Math.round(num(c.closeDays)), 0, 730);
     var extra = clamp(Math.round(num(c.extCount)), 0, 12) * clamp(Math.round(num(c.extDays)), 0, 365);
     var valid = clamp(Math.round(num(c.validDays)), 0, 365), costs = clamp(num(c.ddCosts), 0, 1e9);
@@ -1698,7 +1705,7 @@
              extraDays: extra, atRiskBefore: costs, atRiskAfter: costs + earnest };
   }
 
-  var API = { DEFAULTS: DEFAULTS, MAX_LAND: MAX_LAND, normalize: normalize, run: run, core: core, contracts: contracts, lender: lender, offer: offer,
+  var API = { DEFAULTS: DEFAULTS, MAX_LAND: MAX_LAND, normalize: normalize, run: run, core: core, contracts: contracts, lender: lender, offer: offer, roundCents: roundCents,
               monthlyIrr: monthlyIrr, annualize: annualize, npv: npv,
               maxLandForMargin: maxLandForMargin, maxLandForIrr: maxLandForIrr,
               sensitivity: sensitivity, verdictFor: verdictFor, scoreDeal: scoreDeal };
@@ -1752,7 +1759,7 @@
   var CFIELDS = ['cHard','cPermits','cContPct','cDesign','cFeePct','cSharePct','cGmp','cLumpPct','cDbPct','cVar'];
   var CDEF = { cHard:null, cPermits:null, cContPct:null, cDesign:null, cGmp:null,
                cFeePct:15, cSharePct:50, cLumpPct:20, cDbPct:20, cVar:0 };
-  var CLIM = { cHard:[0,1e9], cPermits:[0,1e9], cDesign:[0,1e9], cGmp:[0,1e10], cContPct:[0,100],
+  var CLIM = { cHard:[0,1e13 + 1e9], cPermits:[0,1e9], cDesign:[0,1e13], cGmp:[0,4e13 + 8e9], cContPct:[0,100],
                cFeePct:[0,100], cSharePct:[0,100], cLumpPct:[0,100], cDbPct:[0,100], cVar:[-90,300] };
   var CKEY = 'mm_contract_v1';
   var cs = loadBoxes(CKEY, CFIELDS, CDEF, CLIM);
@@ -1763,7 +1770,7 @@
   var LDEF = { lLot:null, lBuild:null, lArv:null, lMonths:null, lSell:null, lLtc:null, lLtv:null, lLandAdv:null,
                lRate:null, lPoints:null, lFees:null, lClosing:null, lOwed:0, lPermRate:7, lPermYears:30,
                type:'ac', own:false, dutch:null, reserve:false };
-  var LLIM = { lLot:[0,1e9], lOwed:[0,1e9], lBuild:[0,1e9], lArv:[0,1e10], lMonths:[1,60], lSell:[0,36],
+  var LLIM = { lLot:[0,1e9], lOwed:[0,1e9], lBuild:[0,4e13 + 2e9], lArv:[0,1e13], lMonths:[1,60], lSell:[0,36],
                lLtc:[0,100], lLtv:[0,100], lLandAdv:[0,100], lRate:[0,40], lPoints:[0,10], lFees:[0,1e8],
                lClosing:[0,1e9], lPermRate:[0,30], lPermYears:[1,40] };
   var LKEY = 'mm_lender_v1';
@@ -1803,7 +1810,7 @@
     { id:'title', src:'own', t:'Title report', d:'Read the exceptions (Schedule B). They must be clean by closing.' },
     { id:'arch', src:'jm', t:'Local architect', d:'Hire one with projects in that city. Public permit records show who builds there.' },
     { id:'drive', src:'jm', t:'Drive the lot', d:'Boots on the ground. Look at the neighbors, the slope, power lines and traffic.' },
-    { id:'stress', src:'jm', t:'Stress-test the deal', d:'Run it with delays, higher costs and a lower sale price. The Spec Build tab has that table.' }
+    { id:'stress', src:'jm', t:'Stress-test the deal', d:'Change build or sale months to test delays. Use the Spec Build sensitivity table to test higher construction costs and lower sale prices.' }
   ];
   var ODEF = { oPrice:null, oEarnest:null, oValid:7, oDD:60, oClose:60, oUnits:8, oExtN:2, oExtDays:30, oExcl:60,
                oSurvey:1000, oSoil:1500, oEnviro:2500, oOther:0 };
@@ -1830,7 +1837,7 @@
     var st = Object.assign({}, def);
     if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
       fields.forEach(function(f){
-        if (typeof raw[f] === 'number' && isFinite(raw[f])) st[f] = Math.min(lim[f][1], Math.max(lim[f][0], WHOLE_BOX.test(f) ? Math.round(raw[f]) : Number(raw[f].toFixed(4))));
+        if (typeof raw[f] === 'number' && isFinite(raw[f])) st[f] = Math.min(lim[f][1], Math.max(lim[f][0], WHOLE_BOX.test(f) ? Math.round(raw[f]) : /^(oPrice|oEarnest)$/.test(f) ? E.roundCents(raw[f]) : Number(raw[f].toFixed(4))));
         if (f === 'cGmp' && st[f] <= 0) st[f] = null;
       });
       if ('type' in def && raw.type === 'c2p') st.type = 'c2p';
@@ -1861,7 +1868,7 @@
       el.addEventListener('input', function(){
         var n = cleanNum(el.value);
         if (n === null) return;                       // half-typed: keep the last good number
-        n = whole ? Math.round(n) : Number(n.toFixed(4));
+        n = whole ? Math.round(n) : /^(oPrice|oEarnest)$/.test(f) ? E.roundCents(n) : Number(n.toFixed(4));
         st[f] = Math.min(lim[f][1], Math.max(lim[f][0], n));
         if (f === 'cGmp' && n <= 0) st[f] = null;
         rerender();
@@ -1962,7 +1969,7 @@
     $('heroMargin').innerHTML = pct(r.margin) + ' <small>of the sale price is profit</small>';
     if ($('heroProfit')) { $('heroProfit').textContent = fmtM(r.profit) + ' profit at your ' + fmtM(calcInput.purchasePrice) + ' lot price'; }
     var pill = $('heroPill');
-    if (r.margin !== null && r.margin <= 0) {
+    if (r.margin === null || r.margin <= 0) {
       pill.className = 'pill p-dead';
       pill.textContent = r.verdict.label + ' — ' + r.verdict.note;
     } else if (unreachable) {
@@ -1991,7 +1998,7 @@
       : (r.myCoc === null ? 'what your cash earns in a year' : pct(r.myCoc,0)+' total on your cash in '+r.months+' months');
     $('kIrr').className = 'v ' + ((retPct||0) >= 25 ? 'pos' : (retPct||0) >= 12 ? '' : 'neg');
     $('kAllIn').textContent = fmtM(r.allInCost);
-    $('kAllInS').textContent = fmtM(r.allInPerSqft) + ' per sqft to build · ' + fmtM(r.salePerSqft) + ' per sqft to sell';
+    $('kAllInS').textContent = fmtM(r.allInPerSqft) + '/sf before selling costs · ' + fmtM(r.salePerSqft) + '/sf sale price';
 
     // ---- sanity checks: catch typos that make the model lie
     var warns = [];
@@ -2123,7 +2130,6 @@
       var draw = (t >= 1 && t <= r.buildMonths) ? r.drawPerMonth : 0;
       var buildSpend = (t >= 1 && t <= r.buildMonths) ? L.buildTotal / r.buildMonths : 0;
       var interest = (t >= 1 ? (r.interestByMonth[t - 1] || 0) : 0);
-      if (r.interestMethod === 'flat') interest = (t === r.months ? L.interestTotal : 0);
       var eq = r.flows[t];   // the last month includes the sale receipt, so Cumulative reconciles
       sch += '<tr><td>'+t+'</td><td>'+phase+'</td><td>'+(draw?fmtM(draw):'—')+'</td><td>'+(interest?fmtM(interest):'—')+
              '</td><td>'+fmtM(calcInput.monthlyCarry)+'</td><td class="'+(eq<0?'cell-r':'cell-g')+'">'+fmtM(eq)+
@@ -2391,11 +2397,17 @@
     });
   });
   if ($('btnImport')) $('btnImport').addEventListener('click', function(){ $('importFile').click(); });
+  var importSequence = 0;
   if ($('importFile')) $('importFile').addEventListener('change', function(e){
     var f = e.target.files && e.target.files[0]; if (!f) return;
+    var sequence = ++importSequence, importState = state;
+    function draftSnapshot(){ return JSON.stringify({ inputs:readForm(), tools:toolState(), mode:mode }); }
+    var importDraft = draftSnapshot();
+    function pendingImport(){ return sequence === importSequence && state === importState && draftSnapshot() === importDraft; }
     var rd = new FileReader();
-    rd.onerror = function(){ toast('Could not read that file — nothing changed'); };
+    rd.onerror = function(){ if (pendingImport()) toast('Could not read that file — nothing changed'); };
     rd.onload = function(){
+      if (!pendingImport()) return;
       try {
         var d = JSON.parse(String(rd.result));
         var inp = d && d.inputs ? d.inputs : (d && d.effective ? d.effective : d);
@@ -2404,7 +2416,7 @@
           known.some(function(k){ return typeof inp[k] === 'number'; });
         if (!looksLikeDeal) { toast('That file is not a MainMath export — nothing changed'); return; }
         state = E.normalize(inp);
-        state._name = typeof d.name === 'string' ? d.name.slice(0, 300) : '';
+        state._name = typeof d.name === 'string' ? d.name : '';
         restoreTools(d.tools);
         mode = d && d.mode === 'full' ? 'full' : 'quick';
         try { localStorage.setItem('dmp_mode_v1', mode); } catch(e3){}
@@ -2433,7 +2445,7 @@
     return [
       nm + ' \u2014 MainMath',
       'Sale ' + fmtM(r.lines.arv) + ' (' + fmtM(r.salePerSqft) + '/sf \u00d7 ' + Math.round(r.inputs.buildableSqft) + ' sf)',
-      'Land ' + fmtM(r.inputs.purchasePrice) + ' \u00b7 Build ' + fmtM(r.lines.buildTotal) + ' \u00b7 All-in ' + fmtM(r.allInCost),
+      'Land ' + fmtM(r.inputs.purchasePrice) + ' \u00b7 Build ' + fmtM(r.lines.buildTotal) + ' \u00b7 Cost before selling ' + fmtM(r.allInCost),
       (p ? 'My profit ' : 'Net profit ') + fmtM(profit) + ' (' + pct(p ? (r.myCash > 0 ? r.myProfit / r.myCash * 100 : null) : r.margin) + (p ? ' on my cash' : ' margin') + ')',
       'Cash ' + fmtM(cash) + ' \u00b7 Return ' + (ret === null ? '\u2014'
         : Math.abs(ret) > 999 ? (ret > 0 ? '>999%' : '<-99%') : pct(ret, 0)) + ' annualized',
@@ -2705,7 +2717,7 @@
       '<div class="kpi kc" style="--b:125,211,252"><div class="k">You pay during the build</div><div class="v">' + fmtM(R.gap) + '</div><div class="s">' +
         (R.gap < 0.5 ? 'the lender covers the budget after closing' : 'your share of work after closing') + '</div></div>' +
       '<div class="kpi kc" style="--b:52,211,153"><div class="k">Interest</div><div class="v">' + fmtM(R.interest) + '</div><div class="s">' + R.months + ' months · ' +
-        (dutch ? 'on the full loan' : 'on what is drawn') + (R.reserve > 0.5 ? ' · paid from the reserve' : '') + '</div></div>' +
+        (dutch ? 'on the full loan' : 'on what is drawn') + (R.reserve > 0.5 ? (R.interestCash > 0.5 ? ' · partly paid from the reserve' : ' · paid from the reserve') : '') + '</div></div>' +
       '<div class="kpi kc" style="--b:251,146,180"><div class="k">Cost of the money</div><div class="v">' + fmtM(R.costOfMoney) + '</div><div class="s">points + fees + interest' +
         (R.loan > 0 ? ' · ' + pct(R.costOfMoney / R.loan * 100) + ' of the loan' : '') + '</div></div></div>';
 
@@ -2751,7 +2763,7 @@
     h += '<div class="grand"><span>Total cash you need</span><b>' + fmtM(R.cashTotal) + '</b><em>' +
       (R.reserve > 0.5 && R.interestCash < 0.5 ? 'closing + your part of the build · interest comes out of the reserve' : 'closing + your part of the build + interest') + '</em></div>';
     $('lOut').innerHTML = h;
-    celebrate('loan', 'lender', R.loan > 0 && R.build > 0 && R.gap < 0.5, '🎉 The bank covers the whole build');
+    celebrate('loan', 'lender', R.loan > 0 && R.build > 0 && R.gap + R.upfrontWork - R.upfrontDraw < 0.5, '🎉 The bank covers the whole build');
     try { localStorage.setItem(LKEY, JSON.stringify(ls)); } catch(e){}
   }
   wireBoxes(LFIELDS, ls, LDEF, LLIM, renderLender);
@@ -2817,9 +2829,8 @@
   }
   function renderLoi(){
     var d = window._last; if (!d || !$('oOut')) return;
-    var src = { oPrice: d.input.purchasePrice };
-    var R0 = E.offer({ price: os.oPrice !== null ? os.oPrice : src.oPrice });
-    src.oEarnest = R0.autoEarnest;
+    var R0 = E.offer({ price: os.oPrice !== null ? os.oPrice : d.input.purchasePrice });
+    var src = { oPrice: R0.price, oEarnest: R0.autoEarnest };
     var val = function(f){ return os[f] !== null ? os[f] : src[f]; };
     var v = {}; OFIELDS.forEach(function(f){ v[f] = val(f); });
     var R = E.offer({ price: v.oPrice, arv: d.r.lines.arv, earnest: os.oEarnest, date: os.oDate, validDays: v.oValid, ddDays: v.oDD,

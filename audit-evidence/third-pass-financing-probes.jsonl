@@ -1,0 +1,3 @@
+{"gcUiCases":32,"result":"all four contract outputs agree"}
+{"lenderUiCases":16,"result":"all displayed financing rows and KPIs agree"}
+{"lenderLedgerCases":2500,"result":"all ledger/cap/interest/amortization checks pass","covered":{"owned":1249,"negativeEquity":567,"partialReserve":43,"fullReserve":110,"permanent":1248,"fullInterest":1240}}
