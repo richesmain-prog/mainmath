@@ -1,6 +1,7 @@
 // Isolated browser check; every HTTP request is intercepted. No production writes.
 // Optional PLAYWRIGHT_MODULE and CHROME_EXECUTABLE select installed tools; default is Playwright's Chromium.
 // PDF text/image inspection uses macOS Swift + PDFKit. This script is optional, outside npm test.
+// --save-race-only refreshes that regression in results JSON without regenerating PDFs/screenshots.
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -8,6 +9,7 @@ const crypto = require('node:crypto');
 const { execFileSync } = require('node:child_process');
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const root = path.resolve(__dirname, '..'), html = fs.readFileSync(path.join(root, 'index.html'));
+const saveRaceOnly = process.argv.includes('--save-race-only');
 const evidence = { started: new Date().toISOString(), sourceSha256: crypto.createHash('sha256').update(html).digest('hex'),
   errors: [], consoleErrors: [], blockedRequests: [], downloads: [], imports: [], prints: [] };
 const target = 'https://math.therichmain.com/';
@@ -20,6 +22,35 @@ const state = page => page.evaluate(() => ({
   lender: JSON.parse(localStorage.getItem('mm_lender_v1')),
   offer: JSON.parse(localStorage.getItem('mm_loi_v1'))
 }));
+async function saveRace(page) {
+  const result = evidence.saveRace = { started: new Date().toISOString(), sourceSha256: evidence.sourceSha256,
+    browser: evidence.browser, status: 'running', lock: 'mainmath-saved-deals' };
+  assert.equal(await page.evaluate(() => !!navigator.locks?.request), true);
+  await field(page, 'dealName', '');
+  await field(page, 'purchasePrice', 100000);
+  await page.evaluate(() => {
+    navigator.locks.request('mainmath-saved-deals', () => new Promise(resolve => { window.auditReleaseSaveLock = resolve; }));
+  });
+  await page.waitForFunction(() => typeof window.auditReleaseSaveLock === 'function');
+  await page.locator('#btnSave').click();
+  await page.waitForFunction(async () => (await navigator.locks.query()).pending.some(lock => lock.name === 'mainmath-saved-deals'));
+  await page.locator('#btnReset').click();
+  await field(page, 'purchasePrice', 200000);
+  assert.equal(await page.locator('#dealName').inputValue(), '');
+  await page.evaluate(() => { window.auditReleaseSaveLock(); });
+  await page.waitForFunction(() => JSON.parse(localStorage.getItem('dmp_deals_v1') || '[]').length === 1);
+  assert.equal(await page.locator('#dealName').inputValue(), '', 'Old save must not rename the reset draft');
+  assert.equal((await state(page)).price, 200000);
+  assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('dmp_deals_v1'))[0].inputs.purchasePrice), 100000);
+  result.draftNameAfterOldSave = '';
+  await page.locator('#btnSave').click();
+  await page.waitForFunction(() => JSON.parse(localStorage.getItem('dmp_deals_v1') || '[]').length === 2);
+  const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('dmp_deals_v1')));
+  assert.deepEqual(saved.map(deal => deal.inputs.purchasePrice).sort((a, b) => a - b), [100000, 200000]);
+  assert.equal(new Set(saved.map(deal => deal.name)).size, 2);
+  result.savedDeals = saved.map(deal => ({ name: deal.name, price: deal.inputs.purchasePrice }));
+  result.status = 'passed'; result.finished = new Date().toISOString();
+}
 (async () => {
   const browser = await chromium.launch({ executablePath: process.env.CHROME_EXECUTABLE || undefined,
     headless: true, args: ['--no-first-run'] });
@@ -35,6 +66,14 @@ const state = page => page.evaluate(() => ({
     page.on('pageerror', error => evidence.errors.push(error.message));
     page.on('console', message => { if (message.type() === 'error') evidence.consoleErrors.push(message.text()); });
     await page.goto(target);
+    await saveRace(page);
+    if (saveRaceOnly) {
+      assert.deepEqual(evidence.errors, []);
+      assert.deepEqual(evidence.consoleErrors, []);
+      assert.equal(evidence.blockedRequests.some(r => r.method === 'POST'), false);
+      await context.close();
+      return;
+    }
     await page.locator('[data-mode="full"]').click();
     await field(page, 'dealName', 'Local Chrome Audit');
     await field(page, 'purchasePrice', 123456.78);
@@ -129,7 +168,10 @@ const state = page => page.evaluate(() => ({
   } finally {
     await browser.close();
     evidence.finished = new Date().toISOString();
-    fs.writeFileSync(path.join(__dirname, 'local-chrome-results.json'), JSON.stringify(evidence, null, 2));
+    const resultsPath = path.join(__dirname, 'local-chrome-results.json');
+    const results = saveRaceOnly ? { ...JSON.parse(fs.readFileSync(resultsPath, 'utf8')), saveRace: evidence.saveRace } : evidence;
+    fs.writeFileSync(resultsPath, JSON.stringify(results, null, 2));
+    if (saveRaceOnly) console.log(JSON.stringify(evidence.saveRace, null, 2));
   }
   console.log(JSON.stringify(evidence, null, 2));
 })().catch(error => { console.error(error); process.exitCode = 1; });

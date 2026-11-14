@@ -30,7 +30,7 @@ No production attack scan, new lead submission, customer-record query, real mess
 |---|---|---|
 | Two unnamed deals saved on the same date shared a generated name and overwrote one another. | Automatic names receive unused suffixes; the generated name populates the draft so later Save updates that deal. Explicit same-name updates retain their intended behavior. | `test-audit-workflows.cjs` automatic-name/update tests. |
 | Saved modal used list positions after another tab changed storage. Load/Delete could target a different deal. | Actions match the displayed name and timestamp, re-read current storage, and refuse stale changed records. | Prepend and changed-record tests for both Load and Delete. |
-| Two-tab read/modify/write could discard another save. | Web Locks serialize supported-browser writes; storage is re-read inside the lock. Save captures the clicked draft before waiting and preserves subsequent name edits. Lock/storage failure is reported. | Queued-save, lock failure and quota tests. Older browsers without Web Locks retain a best-effort fallback. |
+| Two-tab read/modify/write could discard another save; a queued unnamed save could rename a newly reset draft and cause its next Save to overwrite the original. | Web Locks serialize supported-browser writes; storage is re-read inside the lock. Save captures the clicked draft before waiting and only updates the name if the same draft is still open. Lock/storage failure is reported. | Queued-save, draft replacement, lock failure and quota tests. Older browsers without Web Locks retain a best-effort fallback. |
 | Invalid nonempty text in a linked box silently restored linkage on blur. | Invalid text retains the last explicit value. An empty linked box intentionally relinks; GMP zero retains its documented automatic behavior. | Invalid-versus-empty linked-input tests. |
 | Secondary input precision could exceed the four decimal places displayed. | Typed/imported secondary values use the same four-decimal precision shown; whole-unit fields remain integers. | Precision and imported-value tests. |
 | Non-Latin/emoji-only names exported as `.json`. | Filename uses `mainmath.json` when sanitizing leaves no usable basename. | Export-name tests. |
@@ -95,7 +95,7 @@ Single baseline Chromium lab observation: TTFB 64.1 ms, DOMContentLoaded 112.2 m
 
 ## Regression and deployment status
 
-The latest full `npm test` run passes **67 Node tests**: 23 new workflow tests, 10 new math tests, 17 API/security tests and 17 underwriting tests. The **600-case existing financing suite** and **61-numeric-control DOM suite** also pass; `git diff --check` is clean. The 599 new mathematical scenarios are contained within the new math test groups, not 599 additional Node test cases.
+The latest full `npm test` run passes **68 Node tests**: 24 new workflow tests, 10 new math tests, 17 API/security tests and 17 underwriting tests. The **600-case existing financing suite** and **61-numeric-control DOM suite** also pass; `git diff --check` is clean. The 599 new mathematical scenarios are contained within the new math test groups, not 599 additional Node test cases.
 
 Reproduce with Node 22.23.2:
 
@@ -111,6 +111,6 @@ Read-only baseline GitHub metadata showed HTTPS enforced, Pages built from maste
 
 ## Release verification
 
-Source and browser verification are complete: 67 passing Node tests, 600 existing financing scenarios, 599 new independent mathematical cases, the 61-field DOM suite, all 16 expanded responsive/axe combinations, conditional loan/partner states, multi-tab persistence, native downloads/uploads and four printable reports. Worker `/health` returned HTTP 200 with `{"ok":true}`. Worker source is unchanged, so no backend redeployment is required.
+Source and browser verification are complete: 68 passing Node tests, 600 existing financing scenarios, 599 new independent mathematical cases, the 61-field DOM suite, all 16 expanded responsive/axe combinations, conditional loan/partner states, multi-tab persistence, native downloads/uploads and four printable reports. Worker `/health` returned HTTP 200 with `{"ok":true}`. Worker source is unchanged, so no backend redeployment is required.
 
-Hosted CI, Pages publication and live source parity will be recorded here after the release check. Source HTML SHA-256: `74160461560a68c40d3076085d9fbc5680da25431dc3b70b31655626ce3dc418`.
+Hosted CI, Pages publication and live source parity will be recorded here after the release check. Source HTML SHA-256: `c0f73d82358f827e5dc50e6084e6c2a3b02f09651ee1062a9f3411b9d5fde4f1`.

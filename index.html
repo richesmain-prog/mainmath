@@ -2495,7 +2495,7 @@
     } else update();
   }
   $('btnSave').addEventListener('click', function(){
-    var draftName = $('dealName').value, name = draftName.trim();
+    var draftState = state, draftName = $('dealName').value, name = draftName.trim();
     var inputs = readForm(), savedTools = JSON.parse(JSON.stringify(toolState())), savedMode = mode, r = window._last.r;
     changeDeals(function(list){
       if (!name) {
@@ -2507,7 +2507,7 @@
       list.unshift({ version:2, name: name, ts: Date.now(), mode: savedMode, inputs: inputs, tools: savedTools,
         snap: { margin: r.margin, profit: r.profit, cash: r.peakEquity, score: r.score.points } });
       if (saveDeals(list)) {
-        if ($('dealName').value === draftName) {
+        if (state === draftState && $('dealName').value === draftName) {
           $('dealName').value = name; state._name = name; $('dealName').dispatchEvent(new Event('input'));
         }
         toast('Saved "' + name + '"');

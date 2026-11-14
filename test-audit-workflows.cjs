@@ -126,6 +126,24 @@ test('storage lock failure reports failure without silently changing saved data'
   assert.equal(b.saved().length, 0); assert.match(b.get('toast').textContent, /Could not update saved deals/);
 });
 
+test('queued unnamed save cannot name a reset or imported draft and overwrite it on the next save', async t => {
+  for (const replacement of ['reset', 'import']) {
+    const queue = [], locks = { request:(_name, callback) => new Promise(resolve => queue.push(() => resolve(callback()))) };
+    const b = boot(t, { locks }); b.save('', 100000);
+    assert.equal(queue.length, 1);
+    if (replacement === 'reset') { b.click('btnReset'); b.input('purchasePrice', 200000); }
+    else await b.imported({ inputs:{ purchasePrice:200000 } });
+    queue.shift()(); await pause(0);
+    assert.equal(b.get('dealName').value, '', 'previous save completion must not name the ' + replacement + ' draft');
+    assert.equal(b.get('purchasePrice').value, '200,000');
+    assert.equal(b.saved().length, 1); assert.equal(b.saved()[0].inputs.purchasePrice, 100000);
+    b.click('btnSave'); queue.shift()(); await pause(0);
+    assert.equal(b.saved().length, 2);
+    assert.deepEqual(b.saved().map(d => d.inputs.purchasePrice).sort(), [100000, 200000]);
+    assert.notEqual(b.saved()[0].name, b.saved()[1].name);
+  }
+});
+
 test('invalid nonempty linked input preserves its last explicit value; empty input relinks', t => {
   const b = boot(t);
   for (const [id, value, key] of [['cHard', 123456, 'mm_contract_v1'], ['lRate', 8.5, 'mm_lender_v1'], ['oPrice', 234567, 'mm_loi_v1']]) {

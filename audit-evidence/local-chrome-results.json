@@ -59,5 +59,24 @@
   ],
   "browser": "157.0.8103.78",
   "printButtonTriggered": true,
-  "finished": "2026-11-14T21:54:15.749Z"
+  "finished": "2026-11-14T21:54:15.749Z",
+  "saveRace": {
+    "started": "2026-11-14T21:58:26.011Z",
+    "sourceSha256": "c0f73d82358f827e5dc50e6084e6c2a3b02f09651ee1062a9f3411b9d5fde4f1",
+    "browser": "157.0.8103.78",
+    "status": "passed",
+    "lock": "mainmath-saved-deals",
+    "draftNameAfterOldSave": "",
+    "savedDeals": [
+      {
+        "name": "Deal 11/14/2026 (2)",
+        "price": 200000
+      },
+      {
+        "name": "Deal 11/14/2026",
+        "price": 100000
+      }
+    ],
+    "finished": "2026-11-14T21:58:26.443Z"
+  }
 }
