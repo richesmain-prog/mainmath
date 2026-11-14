@@ -174,3 +174,99 @@ const dep = E.offer({ price: 600000, earnest: null });
 near(dep.earnest / dep.price * 100, dep.earnestPct, 1e-9, 'deposit ÷ price = the percent shown');
 
 console.log('audit OK: forward and reverse checks agree on all four tabs');
+
+// Shared savings are measured after the fee; markup and margin are different quantities.
+for (const sharePct of [0, 25, 100]) {
+  const C = E.contracts({ ...job, sharePct, variancePct: -10 });
+  const gmp = C.list.find((m) => m.key === 'gmp');
+  eq(gmp.pays, 990000 + 165000 * sharePct / 100, 'GMP splits savings after the fee');
+  eq(gmp.ownerAllIn, gmp.pays + 100000, 'GMP owner still pays design separately');
+  eq(gmp.margin, gmp.profit / gmp.pays * 100, 'GC margin uses revenue, not cost');
+}
+const capped = E.contracts({ ...job, gmp: 800000, variancePct: 0 }).list.find((m) => m.key === 'gmp');
+eq(capped.pays, 800000, 'an underwater cap remains the owner payment limit');
+eq(capped.profit, -200000, 'GC absorbs cost above an underwater cap');
+const zero = E.contracts({ cost: 0, design: 0 });
+assert.ok(zero.list.every((m) => m.pays === 0 && m.profit === 0 && m.margin === null && m.cushion === null));
+
+// Independently solve the compounded draw balance for an LTV-limited reserve.
+// B_final = dirt*q^months + draws/bm * sum(q^(months-j+1)); reserve = B_final - dirt - draws.
+const longLoan = { ...loanIn, ratePct: 30, buildMonths: 40, holdMonths: 18, reserve: true };
+const longR = E.lender(longLoan), q = 1 + .30 / 12, count = 58;
+let growth = 0;
+for (let j = 1; j <= 40; j++) growth += Math.pow(q, count - j + 1) / 40;
+const expectedReserve = (280000 * (Math.pow(q, count) - 1) + (growth - 1) * (1400000 - 280000)) / growth;
+eq(longR.loan, 1400000, 'long reserve loan is LTV-limited');
+eq(longR.reserve, expectedReserve, 'reserve equals independent compounded-balance solution');
+eq(longR.reserve, longR.interest, 'long reserve does not oscillate or overfund interest');
+eq(longR.cost, 1400000 + expectedReserve, 'LTC cost uses the final reserve');
+
+// A fully financed acquisition can fund interest even without construction draws.
+const onlyLand = E.lender({ lot: 100000, build: 0, arv: 200000, ltcPct: 100, ltvPct: 100,
+  landAdvPct: 100, ratePct: 12, buildMonths: 1, holdMonths: 11, reserve: true, dutch: true });
+eq(onlyLand.reserve, 12000 / .88, '100% LTC acquisition reserve includes interest on itself');
+eq(onlyLand.interestCash, 0, 'available reserve covers acquisition interest');
+
+// Deterministic cases cover both interest methods, ownership/payoffs, zero caps and long terms.
+let seed = 7349;
+const random = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 2 ** 32; };
+for (let k = 0; k < 600; k++) {
+  const c = { lot: random() * 1e6, build: random() * 2e6, arv: random() * 5e6,
+    own: k % 3 === 0, owed: random() * 1e6, ltcPct: k % 10 === 0 ? 0 : random() * 100,
+    ltvPct: random() * 100, landAdvPct: random() * 100, ratePct: random() * 40,
+    pointsPct: 2, fees: 2000, closing: 6000, buildMonths: Math.ceil(random() * 60),
+    holdMonths: Math.floor(random() * 37), reserve: true, dutch: k % 2 === 0 };
+  c.upfrontWork = k % 3 === 0 ? c.build * random() : 0;
+  const R = E.lender(c);
+  near(R.cost, R.lot + R.build + R.reserve, .01, `case ${k}: cost includes final reserve`);
+  near(R.loan + R.cashTotal, R.lotNeed + R.build + R.closing + R.points + R.fees + R.interest,
+    .01, `case ${k}: all funding equals all uses`);
+  assert.ok(R.loan <= R.cap + .01 && R.reserve <= R.interest + .01, `case ${k}: reserve stays inside interest and loan limits`);
+  assert.ok(R.holdback >= 0 && R.gap >= 0 && R.interestCash >= 0, `case ${k}: no negative funding buckets`);
+  if (R.interestCash > .01) {
+    near(R.holdback, 0, .01, `case ${k}: only a full reserve bucket leaves interest unfunded`);
+  }
+}
+
+// Invalid calendar dates must not silently roll into a different month; leap years and UTC day counts remain exact.
+for (const date of ['2026-02-29', '2026-02-31', '2026-00-15', '2026-01-00', '2026-13-01', '0000-01-01', 'not-a-date']) {
+  const R = E.offer({ price: 150000, date, validDays: 7, ddDays: 60, closeDays: 60, extCount: 2, extDays: 30 });
+  for (const key of ['expires', 'ddEnd', 'ddEndMax', 'close', 'closeMax']) assert.strictEqual(R[key], null, `${date}: invalid ${key}`);
+}
+assert.strictEqual(E.offer({ date: '0099-01-01', ddDays: 1 }).ddEnd, '0099-01-02', 'years below 100 stay in their century');
+assert.strictEqual(E.offer({ date: '9999-12-31', ddDays: 1 }).ddEnd, null, 'date overflow is not a malformed ISO date');
+assert.strictEqual(E.offer({ date: '2028-02-29', ddDays: 1 }).ddEnd, '2028-03-01');
+for (const price of [0, 0.01, 1, 500, 999, 1000]) eq(E.offer({ price }).earnest, price, 'automatic deposit never exceeds a small purchase price');
+eq(E.offer({ price: 500, earnest: 750 }).earnest, 750, 'explicit deposit remains the amount entered');
+for (const rate of [0, 1e-20, 1e-14, 1e-12]) {
+  const R = E.lender({ lot: 0, build: 1000000, arv: 2000000, ltcPct: 100, ltvPct: 100,
+    type: 'c2p', permYears: 30, permRatePct: rate });
+  eq(R.permPay, 1000000 / 360, `near-zero mortgage rate ${rate} stays finite and approaches principal / months`);
+}
+// Teardown demolition is paid at closing in both tabs, never financed again in later draws.
+for (const interestMethod of ['draw', 'flat']) for (const salePerSqft of [500, 100]) {
+  const D = E.run({ ...deal, dealType: 'teardown', demoCost: 50000, interestMethod, salePerSqft });
+  for (const reserve of [false, true]) {
+    const R = E.lender({ lot: 400000, build: 763000, upfrontWork: 50000, arv: salePerSqft * 3000,
+      ltcPct: 80, ltvPct: 70, landAdvPct: 80, ratePct: 12, pointsPct: 2, fees: 3000, closing: 8000,
+      buildMonths: 10, holdMonths: 2, dutch: interestMethod === 'flat', reserve });
+    near(R.loan, R.dayOne + R.upfrontDraw + R.holdback + R.reserve, .01, 'teardown loan allocated once');
+    near(R.build, R.upfrontWork + R.holdback + R.gap, .01, 'teardown budget allocated once');
+    near(R.cashClose, 400000 - R.dayOne + 50000 - R.upfrontDraw + 8000 + R.points + R.fees,
+      .01, 'closing includes only self-funded demolition');
+    near(R.loan + R.cashTotal, 400000 + 763000 + 8000 + R.points + R.fees + R.interest,
+      .01, 'teardown sources equal uses with and without reserve');
+    assert.ok(R.loan <= R.cap + .01 && R.reserve <= R.interest + .01);
+    if (!reserve) {
+      eq(R.loan, D.loan, 'teardown cross-tab loan');
+      eq(R.dayOne + R.upfrontDraw, D.t0Draw, 'teardown cross-tab closing draw');
+      eq(R.interest, D.lines.interestTotal, 'teardown cross-tab interest');
+      eq(R.cashTotal + D.lines.carryTotal, D.peakEquity, 'teardown cross-tab borrower cash plus property carry');
+      if (salePerSqft === 500 && interestMethod === 'draw') eq(R.interest, 85980, 'teardown interest independently worked by hand');
+    }
+  }
+}
+const cappedWork = E.lender({ ...loanIn, build: 1000, upfrontWork: 5000 });
+eq(cappedWork.upfrontWork, 1000, 'upfront work is capped to the total build budget');
+eq(cappedWork.holdback, 0, 'fully upfront work has no later construction draws');
+console.log('contract, reserve and offer edge cases OK (600 deterministic lending scenarios)');

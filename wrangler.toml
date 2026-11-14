@@ -1,0 +1,17 @@
+name = "mainmath-leads"
+main = "worker/leads.mjs"
+compatibility_date = "2026-11-14"
+account_id = "f991e11f4e69edca9fcdf98abae0a9ec"
+workers_dev = false
+preview_urls = false
+routes = [{ pattern = "math-api.therichmain.com", custom_domain = true }]
+
+[[d1_databases]]
+binding = "LEADS"
+database_name = "mainmath-leads"
+database_id = "1318904c-3152-4271-8b00-7f596415d3b0"
+
+[[ratelimits]]
+name = "LEAD_RATE_LIMITER"
+namespace_id = "2026111401"
+simple = { limit = 10, period = 60 }
