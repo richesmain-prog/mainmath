@@ -90,10 +90,11 @@ const state = page => page.evaluate(() => ({
     await page.waitForFunction(() => !document.querySelector('canvas'));
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.screenshot({ path: path.join(__dirname, 'local-desktop-1440.png') });
-    await page.setViewportSize({ width: 375, height: 812 });
-    await page.evaluate(() => window.scrollTo(0, 0));
-    await page.screenshot({ path: path.join(__dirname, 'local-mobile-375.png') });
-    await page.setViewportSize({ width: 1440, height: 1000 });
+    const mobile = await context.newPage();
+    await mobile.setViewportSize({ width: 375, height: 812 });
+    await mobile.goto(target);
+    await mobile.screenshot({ path: path.join(__dirname, 'local-mobile-375.png') });
+    await mobile.close();
     for (const tab of ['spec', 'contract', 'lender', 'loi']) {
       await page.locator(`[data-tab="${tab}"]`).click();
       const filename = `local-print-${tab}.pdf`;
