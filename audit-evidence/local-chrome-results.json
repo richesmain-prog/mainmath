@@ -1,0 +1,63 @@
+{
+  "started": "2026-11-14T21:53:00.749Z",
+  "sourceSha256": "74160461560a68c40d3076085d9fbc5680da25431dc3b70b31655626ce3dc418",
+  "errors": [],
+  "consoleErrors": [],
+  "blockedRequests": [],
+  "downloads": [
+    {
+      "filename": "local-chrome-audit.json",
+      "bytes": 3377,
+      "price": 123456.78,
+      "failure": null
+    }
+  ],
+  "imports": [
+    {
+      "kind": "downloaded export",
+      "restoredAllFourTools": true,
+      "price": 123456.78
+    },
+    {
+      "kind": "malformed.json",
+      "preservedAllFourTools": true
+    },
+    {
+      "kind": "unrelated.json",
+      "preservedAllFourTools": true
+    }
+  ],
+  "prints": [
+    {
+      "tab": "spec",
+      "filename": "local-print-spec.pdf",
+      "bytes": 346119,
+      "pages": 2,
+      "firstPageCharacters": 1222
+    },
+    {
+      "tab": "contract",
+      "filename": "local-print-contract.pdf",
+      "bytes": 320426,
+      "pages": 2,
+      "firstPageCharacters": 1902
+    },
+    {
+      "tab": "lender",
+      "filename": "local-print-lender.pdf",
+      "bytes": 351375,
+      "pages": 2,
+      "firstPageCharacters": 1192
+    },
+    {
+      "tab": "loi",
+      "filename": "local-print-loi.pdf",
+      "bytes": 243565,
+      "pages": 3,
+      "firstPageCharacters": 1367
+    }
+  ],
+  "browser": "157.0.8103.78",
+  "printButtonTriggered": true,
+  "finished": "2026-11-14T21:53:09.877Z"
+}

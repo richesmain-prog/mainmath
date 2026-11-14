@@ -63,6 +63,7 @@
 
   /* layout */
   .cols{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px;align-items:start}
+  .cols>*{min-width:0}
   @media (max-width:920px){ .cols{grid-template-columns:1fr} .hero{grid-template-columns:1fr} .score{text-align:left} }
   .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:15px}
   .card h3{margin:0 0 3px;font-size:13.5px;letter-spacing:.02em}
@@ -275,6 +276,8 @@
   .sheet ul{padding-left:18px;margin:8px 0}
   .deal{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--panel2);
     border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px}
+  .deal>div:first-child{min-width:0;overflow-wrap:anywhere}
+  .deal>div:last-child{flex-shrink:0}
   .deal .n{font-size:13px;font-weight:700}
   .deal .m{font-size:11px;color:var(--mut)}
   .printonly{display:none}
@@ -314,12 +317,17 @@
   .faq{margin-top:10px;font-size:12px;color:var(--mut)}
   .faq summary{cursor:pointer;color:var(--gold);font-weight:700;font-size:12px}
   .faq p{margin:7px 0 0;line-height:1.55}
+  #copyDialog{width:min(640px,calc(100% - 32px));max-height:calc(100dvh - 32px);overflow:auto;
+    background:var(--panel);color:var(--txt);border:1px solid var(--gold);border-radius:16px;padding:20px}
+  #copyDialog::backdrop{background:rgba(0,0,0,.8)}
+  #copyText{display:block;width:100%;height:45dvh;margin:12px 0;padding:12px;background:#0E0E11;
+    color:var(--txt);border:1px solid var(--mut);border-radius:8px;font:14px/1.5 monospace;resize:vertical}
   /* gate */
   .gate{position:fixed;inset:0;z-index:80;display:none;align-items:center;justify-content:center;padding:16px;
     background:rgba(6,6,7,.86);backdrop-filter:blur(6px)}
   .gate.show{display:flex}
   .gate .box{width:100%;max-width:420px;background:var(--panel);border:1px solid rgba(242,182,50,.25);
-    border-radius:20px;padding:22px}
+    border-radius:20px;padding:22px;max-height:calc(100dvh - 32px);overflow:auto}
   .gate h2{margin:0 0 6px;font-size:19px;letter-spacing:-.3px}
   .gate p{margin:0 0 16px;font-size:13px;color:#B8B5AE;line-height:1.5}
   .gate label{display:block;font-size:11.5px;color:var(--mut);margin:0 0 4px}
@@ -335,12 +343,12 @@
   @media print{
     .chero,.how,.hero,.printonly{display:none!important}
     .printonly{display:block!important;font-size:16px;font-weight:800;margin:0 0 10px}
-    header,.btn,.seg,.modal,.gate,.toast,canvas,#inputsCard,#cInputs,#lInputs,#oInputs,#ddCard,.qh,.help{display:none!important}
+    header,.btn,.seg,.modal,.gate,.toast,dialog,canvas,#inputsCard,#cInputs,#lInputs,#oInputs,#ddCard,.qh,.help{display:none!important}
     .letter{max-height:none;border:0;padding:0;color:#000;background:#fff}
     .flow,.flowh,.nextstep{display:none!important}
     body{background:#fff;color:#000}
     body *{color:#000!important;background:transparent!important;box-shadow:none!important;text-shadow:none!important}
-    .card{break-inside:avoid;border-color:#ddd}
+    .card{break-inside:auto;border-color:#ddd}
     .cols{grid-template-columns:1fr}
   }
 </style>
@@ -657,14 +665,14 @@
       <div class="accordion" style="margin-top:14px">
         <details>
           <summary>What if costs or prices change? ▾</summary>
-          <div style="overflow:auto;margin-top:8px" id="sensTable"></div>
+          <div style="overflow:auto;margin-top:8px" id="sensTable" tabindex="0" role="region" aria-label="Sale and build cost sensitivity"></div>
         </details>
       </div>
 
       <div class="accordion">
         <details>
           <summary>Month-by-month cash ▾</summary>
-          <div style="max-height:320px;overflow:auto;margin-top:8px" id="schedule"></div>
+          <div style="max-height:320px;overflow:auto;margin-top:8px" id="schedule" tabindex="0" role="region" aria-label="Monthly cash schedule"></div>
         </details>
       </div>
 
@@ -1104,6 +1112,13 @@
   <button class="btn" id="closeSaved" style="margin-top:10px">Close</button>
 </div></div>
 
+<dialog id="copyDialog" aria-labelledby="copyTitle">
+  <h2 id="copyTitle">Copy your text</h2>
+  <p>Automatic copy is unavailable. Select and copy the text below.</p>
+  <textarea id="copyText" aria-label="Text to copy" readonly></textarea>
+  <form method="dialog"><button class="btn" type="submit">Close</button></form>
+</dialog>
+
 
 <div class="gate" id="gate" role="dialog" aria-modal="true" aria-label="Sign up for MainMath">
   <div class="box">
@@ -1255,6 +1270,7 @@
 
   function verdictFor(margin, i) {
     if (margin === null) return { key: 'dead', label: 'No Sale Price', note: 'Add a sale price before reading anything here.' };
+    if (margin === 0) return { key: 'dead', label: 'Breaks Even', note: 'The sale covers the modeled costs, with no profit.' };
     if (margin <= 0) return { key: 'dead', label: 'Loses Money', note: 'This deal does not pencil at these inputs. Something has to move a long way.' };
     // compare the number we display: a 20.0% deal must not read as "below target"
     var m = Math.round(margin * 10) / 10;
@@ -1814,7 +1830,7 @@
     var st = Object.assign({}, def);
     if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
       fields.forEach(function(f){
-        if (typeof raw[f] === 'number' && isFinite(raw[f])) st[f] = Math.min(lim[f][1], Math.max(lim[f][0], WHOLE_BOX.test(f) ? Math.round(raw[f]) : raw[f]));
+        if (typeof raw[f] === 'number' && isFinite(raw[f])) st[f] = Math.min(lim[f][1], Math.max(lim[f][0], WHOLE_BOX.test(f) ? Math.round(raw[f]) : Number(raw[f].toFixed(4))));
         if (f === 'cGmp' && st[f] <= 0) st[f] = null;
       });
       if ('type' in def && raw.type === 'c2p') st.type = 'c2p';
@@ -1845,7 +1861,7 @@
       el.addEventListener('input', function(){
         var n = cleanNum(el.value);
         if (n === null) return;                       // half-typed: keep the last good number
-        if (whole) n = Math.round(n);
+        n = whole ? Math.round(n) : Number(n.toFixed(4));
         st[f] = Math.min(lim[f][1], Math.max(lim[f][0], n));
         if (f === 'cGmp' && n <= 0) st[f] = null;
         rerender();
@@ -1853,7 +1869,7 @@
       el.addEventListener('blur', function(){
         var n = cleanNum(el.value);
         // a cleared linked box goes back to following Spec Build (or auto, for the GMP cap)
-        if (def[f] === null && (n === null || (f === 'cGmp' && n <= 0))) st[f] = null;
+        if (def[f] === null && (el.value.trim() === '' || (f === 'cGmp' && n !== null && n <= 0))) st[f] = null;
         rerender();                                   // the box now shows the number in use
       });
     });
@@ -2428,19 +2444,14 @@
       'Score ' + r.score.points + '/100 (' + r.score.grade + ') \u00b7 ' + r.months + ' months'
     ].join('\n');
   }
+  function showCopyText(txt){
+    $('copyText').value = txt;
+    if (!$('copyDialog').open) $('copyDialog').showModal();
+    $('copyText').focus(); $('copyText').select();
+  }
   $('btnCopy').addEventListener('click', function(){
     var txt = summaryText();
-    function manualCopy(){                       // no alert(): it blocks the page on some browsers
-      var ta = document.createElement('textarea');
-      ta.value = txt;
-      ta.style.position = 'fixed'; ta.style.top = '-1000px';
-      document.body.appendChild(ta);
-      ta.select();
-      var ok = false;
-      try { ok = document.execCommand('copy'); } catch(e){ ok = false; }
-      if (ok) ta.remove();
-      toast(ok ? 'Summary copied' : 'Copy was blocked — the text is selected, press Ctrl+C');
-    }
+    function manualCopy(){ showCopyText(txt); }
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(txt).then(function(){ toast('Summary copied'); }, manualCopy);
     } else {
@@ -2452,11 +2463,14 @@
     var blob = new Blob([JSON.stringify({version:2, name: (($('dealName').value || '').trim() || 'deal'), mode: mode, inputs: E.normalize(state), tools: toolState(), effective: eff, exported: new Date().toISOString()}, null, 2)], {type:'application/json'});
     var a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = (($('dealName').value || '').trim() || 'mainmath').replace(/[^a-z0-9\-_ ]/gi,'').replace(/\s+/g,'-').toLowerCase() + '.json';
+    var filename = ($('dealName').value || '').replace(/[^a-z0-9\-_ ]/gi,'').trim().replace(/\s+/g,'-').toLowerCase();
+    a.download = (filename || 'mainmath') + '.json';
     a.click(); URL.revokeObjectURL(a.href); toast('Exported');
   });
 
   var KEY = 'dmp_deals_v1';
+  var shownDeals = [];
+  function hideSaved(){ $('modalSaved').classList.remove('show'); $('btnSaved').focus(); }
   function deals(){
     var list = JSON.parse(localStorage.getItem(KEY) || '[]');
     if (!Array.isArray(list) || list.some(function(d){
@@ -2474,18 +2488,35 @@
     try { localStorage.setItem(KEY, JSON.stringify(list)); return true; }
     catch(e) { toast('Could not save on this device — storage is full or blocked'); return false; }
   }
+  function changeDeals(change){
+    function update(){ var list = readDeals(); if (list) change(list); }
+    if (navigator.locks && navigator.locks.request) {
+      navigator.locks.request('mainmath-saved-deals', update).catch(function(){ toast('Could not update saved deals — please try again'); });
+    } else update();
+  }
   $('btnSave').addEventListener('click', function(){
-    var name = $('dealName').value.trim() || ('Deal ' + new Date().toLocaleDateString());
-    state._name = name;
-    var list = readDeals(); if (!list) return;
-    list = list.filter(function(d){ return d.name !== name; });
-    var r = window._last.r;
-    list.unshift({ version:2, name: name, ts: Date.now(), mode: mode, inputs: readForm(), tools: toolState(),
-      snap: { margin: r.margin, profit: r.profit, cash: r.peakEquity, score: r.score.points } });
-    if (saveDeals(list)) toast('Saved "' + name + '"');
+    var draftName = $('dealName').value, name = draftName.trim();
+    var inputs = readForm(), savedTools = JSON.parse(JSON.stringify(toolState())), savedMode = mode, r = window._last.r;
+    changeDeals(function(list){
+      if (!name) {
+        var base = 'Deal ' + new Date().toLocaleDateString(), suffix = 2;
+        name = base;
+        while (list.some(function(d){ return d.name === name; })) name = base + ' (' + suffix++ + ')';
+      }
+      list = list.filter(function(d){ return d.name !== name; });
+      list.unshift({ version:2, name: name, ts: Date.now(), mode: savedMode, inputs: inputs, tools: savedTools,
+        snap: { margin: r.margin, profit: r.profit, cash: r.peakEquity, score: r.score.points } });
+      if (saveDeals(list)) {
+        if ($('dealName').value === draftName) {
+          $('dealName').value = name; state._name = name; $('dealName').dispatchEvent(new Event('input'));
+        }
+        toast('Saved "' + name + '"');
+      }
+    });
   });
   $('btnSaved').addEventListener('click', function(){
     var list = readDeals(), html = ''; if (!list) return;
+    shownDeals = list;
     if (!list.length) html = '<p style="color:#9C9A96">No saved deals yet.</p>';
     list.forEach(function(d, idx){
       html += '<div class="deal"><div><div class="n">'+esc(d.name)+'</div><div class="m">'+
@@ -2495,30 +2526,39 @@
     });
     $('savedList').innerHTML = html;
     $('modalSaved').classList.add('show');
-    setTimeout(function(){ var b = $('modalSaved').querySelector('button'); if (b) b.focus(); }, 40);
+    setTimeout(function(){ var b = $('modalSaved').querySelector('button'); if (b && $('modalSaved').classList.contains('show')) b.focus(); }, 40);
   });
   $('savedList').addEventListener('click', function(e){
     var b = e.target.closest('button'); if (!b) return;
+    var displayed = shownDeals[Number(b.dataset.load !== undefined ? b.dataset.load : b.dataset.del)];
+    if (!displayed) return;
+    if (b.dataset.del !== undefined){
+      changeDeals(function(list){
+        var at = list.findIndex(function(d){ return d.name === displayed.name && d.ts === displayed.ts; });
+        if (at < 0) { $('btnSaved').click(); toast('Saved deals changed in another tab. Please choose again.'); return; }
+        list.splice(at, 1); saveDeals(list); $('btnSaved').click();
+      });
+      return;
+    }
     var list = readDeals(); if (!list) return;
+    var at = list.findIndex(function(d){ return d.name === displayed.name && d.ts === displayed.ts; });
+    if (at < 0) { $('btnSaved').click(); toast('Saved deals changed in another tab. Please choose again.'); return; }
     if (b.dataset.load !== undefined){
-      var d = list[Number(b.dataset.load)];
-      if (!d) return;
+      var d = list[at];
       state = E.normalize(d.inputs); state._name = d.name;
       restoreTools(d.tools);
       mode = d.mode === 'full' ? 'full' : 'quick';
       try { localStorage.setItem('dmp_mode_v1', mode); } catch(e){}
       [].forEach.call($('segMode').children, function(c){ c.classList.toggle('on', c.dataset.mode === mode); });
       syncType();
-      writeForm(); render(); $('modalSaved').classList.remove('show'); toast('Loaded "'+d.name+'"');
-    } else if (b.dataset.del !== undefined){
-      list.splice(Number(b.dataset.del), 1); saveDeals(list); $('btnSaved').click();
+      writeForm(); render(); hideSaved(); toast('Loaded "'+d.name+'"');
     }
   });
-  $('closeSaved').addEventListener('click', function(){ $('modalSaved').classList.remove('show'); });
+  $('closeSaved').addEventListener('click', hideSaved);
   document.addEventListener('keydown', function(e){
     var m = $('modalSaved');
     if (!m || !m.classList.contains('show')) return;
-    if (e.key === 'Escape') { m.classList.remove('show'); $('btnSaved').focus(); return; }
+    if (e.key === 'Escape') { hideSaved(); return; }
     if (e.key !== 'Tab') return;
     var f = [].slice.call(m.querySelectorAll('button, [href]')).filter(function(el){ return !el.disabled; });
     if (!f.length) return;
@@ -2528,7 +2568,7 @@
     else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
   });
   [ 'modalSaved' ].forEach(function(id){
-    $(id).addEventListener('click', function(e){ if (e.target === this) this.classList.remove('show'); });
+    $(id).addEventListener('click', function(e){ if (e.target === this) hideSaved(); });
   });
 
   /* ---------- contract pricing tab ---------- */
@@ -2650,7 +2690,7 @@
 
     var why = R.binding === 'ltc' ? 'Held back by loan to cost: ' + tpct(val('lLtc')) + ' of your ' + fmtM(R.cost) + ' cost.'
       : R.binding === 'ltv' ? 'Held back by loan to ARV: ' + tpct(val('lLtv')) + ' of the ' + fmtM(R.arv) + ' finished value. The cost test alone would allow ' + fmtM(R.byLtc) + '.'
-      : 'The lender covers everything the job needs. The two tests would allow up to ' + fmtM(R.cap) + '.';
+      : 'The loan is below the overall limit. Actual funding depends on the land advance, construction draws and any interest reserve. The two tests would allow up to ' + fmtM(R.cap) + '.';
     // one picture: of every dollar this job takes, who pays it
     var uses = R.loan + R.cashTotal, bankShare = uses > 0 ? R.loan / uses * 100 : 0;
     var bar = uses > 0 ? '<div class="mbar" role="img" aria-label="The bank pays ' + p0(bankShare) + ', you pay ' + p0(100 - bankShare) + '">' +
@@ -2731,11 +2771,11 @@
   /* ---------- LOI + due diligence tab ---------- */
   var fmtDay = function(iso){
     if (!iso) return '—';
-    var p = iso.split('-');
-    return new Date(Date.UTC(+p[0], +p[1] - 1, +p[2])).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric', timeZone:'UTC' });
+    return new Date(iso + 'T00:00:00.000Z').toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric', timeZone:'UTC' });
   };
   function loiLetter(R, v){
     var blank = function(x, what){ return (x || '').trim() || '[' + what + ']'; };
+    var exactMoney = function(n){ return Number.isInteger(n) ? fmtM(n) : money2.format(n); };
     var buyer = blank(os.oBuyer, 'Buyer name'), seller = blank(os.oSeller, 'Seller name'), prop = blank(os.oProp, 'Property address, APN or legal description');
     var use = (os.oUse || '').trim(), title = blank(os.oTitleCo, 'title company');
     var n = 0, out = [], sec = function(h, body){ n++; out.push(n + '. ' + h + '. ' + body); };
@@ -2750,8 +2790,8 @@
     sec('Buyer', buyer + (os.kAssign ? ', or its assigns.' : '.'));
     sec('Seller', seller + '.');
     sec('Property', prop + '.' + (use ? ' Buyer intends to build ' + use.replace(/\.$/, '') + '.' : ''));
-    sec('Purchase price', fmtM(R.price) + ', paid at closing.');
-    sec('Earnest money', fmtM(R.earnest) + ', deposited with ' + title + ' within three business days after a purchase agreement is signed. ' +
+    sec('Purchase price', exactMoney(R.price) + ', paid at closing.');
+    sec('Earnest money', exactMoney(R.earnest) + ', deposited with ' + title + ' within three business days after a purchase agreement is signed. ' +
       'The deposit is fully refundable until the due diligence period ends and the contingencies below are met. After that it applies to the purchase price.');
     sec('Due diligence', Math.round(v.oDD) + ' days from the date a purchase agreement is signed. Buyer may review title, survey, soils, environmental conditions, ' +
       'zoning, utilities, access and anything else it chooses. Buyer may cancel for any reason during this period and receive its deposit back.');
@@ -2804,10 +2844,12 @@
     if (!os.oProp.trim()) need.push('property address or parcel number');
     if (!(R.price > 0)) need.push('offer price');
     if (!(R.earnest > 0)) need.push('earnest money');
+    else if (R.earnest > R.price) need.push('deposit no greater than offer price');
     if (!(v.oDD > 0)) need.push('due diligence days');
     if (!os.oTitleCo.trim()) need.push('title company');
     if (!(os.kPermit || os.kApprovals || os.kDensity || os.kLoan)) need.push('at least one approval or loan contingency');
-    var MUST = 8, have = MUST - need.length, done = 0;
+    if ([R.expires, R.ddEnd, R.ddEndMax, R.close, R.closeMax].some(function(date){ return !date; })) need.push('dates within supported calendar range');
+    var MUST = 9, have = MUST - need.length, done = 0;
     DDLIST.forEach(function(x){ if (os.dd[x.id]) done++; });
 
     $('oHint').textContent = 'Offer expiration counts from the LOI date. Other dates are projections assuming the purchase agreement is signed that same day; actual deadlines start when the purchase agreement is signed and may depend on approvals.';
@@ -2879,11 +2921,7 @@
   });
   $('oCopy').addEventListener('click', function(){
     var txt = $('oLetter').textContent;
-    var fallback = function(){
-      var r = document.createRange(); r.selectNodeContents($('oLetter'));
-      var sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(r);
-      toast('Copy was blocked — the letter is selected, press Ctrl+C');
-    };
+    var fallback = function(){ showCopyText(txt); };
     if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(function(){ toast('Letter copied'); }, fallback);
     else fallback();
   });
@@ -2987,7 +3025,15 @@
     if(unlocked()){$('segTab').scrollIntoView({behavior:'smooth',block:'start'});}
     else openGate();
   });
-  var sending=false, attempt=null;
+  var sending=false, attempt=null, ATTEMPT_KEY='mm_lead_attempt_v1';
+  try{
+    var pending=JSON.parse(sessionStorage.getItem(ATTEMPT_KEY)||'null');
+    if(pending&&/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(pending.id)&&
+       typeof pending.name==='string'&&pending.name.length<=120&&typeof pending.email==='string'&&pending.email.length<=254){
+      attempt={id:pending.id,name:pending.name,email:pending.email};
+      if(!saved){$('gName').value=attempt.name;$('gEmail').value=attempt.email;}
+    }
+  }catch(e){}
   $('gateForm').addEventListener('submit',async function(e){
     e.preventDefault();
     if(sending)return;
@@ -3002,14 +3048,19 @@
     var controller=new AbortController(), timer=setTimeout(function(){controller.abort();},15000);
     try{
       if(!attempt||attempt.name!==name||attempt.email!==email)attempt={id:crypto.randomUUID(),name:name,email:email};
+      try{sessionStorage.setItem(ATTEMPT_KEY,JSON.stringify(attempt));}catch(e4){}
       var response=await fetch('https://math-api.therichmain.com/leads',{
         method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(attempt),signal:controller.signal
       });
+      if(response.status===400){
+        err.textContent='Check your name and email address, correct any typos, then try again.';err.style.display='block';return;
+      }
       var receipt=await response.json();
       if(!response.ok||receipt.ok!==true||receipt.id!==attempt.id)throw new Error('Unconfirmed receipt');
       var lead={id:receipt.id,name:name,email:email,ts:new Date().toISOString()};
       saved=lead;
       try{localStorage.setItem(KEY,JSON.stringify(lead));}catch(e2){}
+      try{sessionStorage.removeItem(ATTEMPT_KEY);}catch(e4){}
       closeGate();paintTrial();
       $('segTab').scrollIntoView({behavior:'smooth',block:'start'});
       var t=$('toast');t.textContent='You are in. Your numbers are live below.';
