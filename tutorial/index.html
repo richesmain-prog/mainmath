@@ -97,7 +97,7 @@
   .top { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; font-size: 11pt; }
   .top a, .cover .foot a { color: inherit; }
   .top a.go { background: #F2B632; color: #15140f; font-weight: 800; text-decoration: none; border-radius: 10px; padding: 7px 13px; white-space: nowrap; }
-  img { max-width: 100%; height: auto; }
+  img { max-width: 100%; height: auto; background: #15140f; }
   .step img.crop { height: 2.2in; }
   .cover { height: auto; min-height: 0; padding: 40px 28px 24px; border-radius: 18px; }
   .cover h1 { font-size: clamp(34pt, 11vw, 50pt); margin-top: 24px; }
@@ -114,6 +114,17 @@
 </style>
 </head>
 <body>
+<script>
+// If a picture fails to load (slow phone, in-app browser), try it again, up to 3 times.
+document.addEventListener('error', function (e) {
+  var img = e.target;
+  if (!img || img.tagName !== 'IMG') return;
+  var tries = Number(img.dataset.tries || 0);
+  if (tries >= 3) return;
+  img.dataset.tries = tries + 1;
+  setTimeout(function () { img.src = img.src.split('?')[0] + '?v=2&retry=' + (tries + 1) + '-' + Date.now(); }, 800 * (tries + 1));
+}, true);
+</script>
 <div class="wrap">
 <div class="top"><a href="../">← Main Math</a><a class="go" href="../" target="_blank" rel="noopener">Open the calculator</a></div>
 <section class="cover">
@@ -198,7 +209,7 @@
         Leave <b>Build months</b> at 12 and <b>Months to sell</b> at 2.</div>
       <div class="why"><b class="l">💡 Why it matters</b>These four numbers are all the app needs to judge a deal. It fills in the rest with sample numbers.</div>
     </div>
-    <div><img loading="lazy" src="img/t1-land.png" alt="Lot price of 200,000 typed in"><img loading="lazy" src="img/t1-house.png" alt="Home size 2,000 and build cost 150 typed in"><img loading="lazy" src="img/t1-sale.png" alt="Sale price 400 typed in"></div>
+    <div><img src="img/t1-land.png?v=2" width="1080" height="404" decoding="async" alt="Lot price of 200,000 typed in"><img src="img/t1-house.png?v=2" width="1080" height="312" decoding="async" alt="Home size 2,000 and build cost 150 typed in"><img src="img/t1-sale.png?v=2" width="1080" height="278" decoding="async" alt="Sale price 400 typed in"></div>
   </div>
 
   <div class="step">
@@ -209,7 +220,7 @@
       <div class="why"><b class="l">💡 Why it matters</b>Margin is the part of the sale price you keep. Your goal is 20%. At $200,000 for the lot, you only keep 13.4%. That is not enough.</div>
       <div class="eg"><b class="l">🍋 Example</b>You run a lemonade stand. You sell a cup for $1.00. The lemons, sugar and cup cost you 80¢. You keep 20¢. Your margin is 20%. If your costs were 87¢, you would keep only 13¢. That is a tight stand.</div>
     </div>
-    <div><img loading="lazy" src="img/t1-hero-a.png" alt="13.4 percent margin, Tight, score 68"></div>
+    <div><img src="img/t1-hero-a.png?v=2" width="1144" height="442" decoding="async" alt="13.4 percent margin, Tight, score 68"></div>
   </div>
 
   <div class="step">
@@ -220,7 +231,7 @@
       <div class="why"><b class="l">💡 Why it matters</b>This is the most you should pay for the lot. The seller wants $200,000. That is too much. Now you know what to offer.</div>
       <div class="eg"><b class="l">🍋 Example</b>You fix up old bikes and sell them for $100. The fixing costs $50. You want to keep $20. So the most you can pay for an old bike is $30. If the owner wants $45, it is too much.</div>
     </div>
-    <div><img loading="lazy" src="img/t1-gold-a.png" alt="Gold box showing 153,448"></div>
+    <div><img src="img/t1-gold-a.png?v=2" width="1080" height="426" decoding="async" alt="Gold box showing 153,448"></div>
   </div>
 
   <div class="step">
@@ -231,7 +242,7 @@
       <div class="why"><b class="l">💡 Why it matters</b>Nothing about the house changed. Only the land price changed. A lower land price turned a tight deal into a strong one.</div>
       <div class="eg"><b class="l">🍋 Example</b>The bike owner wanted $45. You offered $30, and they said yes. The fixing still costs $50. The bike still sells for $100. But now you keep $20, not $5.</div>
     </div>
-    <div><img loading="lazy" src="img/t1-hero-b.png" alt="20.5 percent margin, Strong Deal, trophy 80"></div>
+    <div><img src="img/t1-hero-b.png?v=2" width="1144" height="442" decoding="async" alt="20.5 percent margin, Strong Deal, trophy 80"></div>
   </div>
 
   <div class="step">
@@ -242,7 +253,7 @@
       <div class="why"><b class="l">💡 Why it matters</b>The bar shows the slices. Land is 19%. Building is 46%. Your profit is 20%.</div>
       <div class="eg"><b class="l">🍋 Example</b>Cut a pizza into 10 slices. About 2 slices pay for the land. Almost 5 pay for building. About 1 pays the bank and the bills while you wait. A little more than half a slice pays for selling. The 2 slices left are yours.</div>
     </div>
-    <div><img loading="lazy" src="img/t1-money-b.png" alt="Where the money goes for Maple Street"></div>
+    <div><img src="img/t1-money-b.png?v=2" width="1080" height="918" decoding="async" alt="Where the money goes for Maple Street"></div>
   </div>
 
   <div class="step">
@@ -253,7 +264,7 @@
       <div class="why"><b class="l">💡 Why it matters</b>If you want more profit, you must pay less for the land. Now tap <b>20%</b> to go back.</div>
       <div class="eg"><b class="l">🍋 Example</b>Now you want to keep $25 on each bike, not $20. The bike still sells for $100 and fixing still costs $50. So the most you can pay drops from $30 to $25.</div>
     </div>
-    <div><img loading="lazy" src="img/t1-gold-25.png" alt="Gold box at a 25 percent target showing 118,018"></div>
+    <div><img src="img/t1-gold-25.png?v=2" width="1080" height="426" decoding="async" alt="Gold box at a 25 percent target showing 118,018"></div>
   </div>
 
   <div class="step">
@@ -264,7 +275,7 @@
       <div class="why"><b class="l">💡 Why it matters</b>If building costs go up to $165 and the sale price drops to $360, your margin falls from 20.5% to 7.2%. Always check the bad day before you buy.</div>
       <div class="eg"><b class="l">🍋 Example</b>It rains on your lemonade stand, so you drop your price to 90¢. The same week, lemons cost more, so a cup costs you 85¢ to make. Now you keep 5¢, not 20¢.</div>
     </div>
-    <div><img loading="lazy" src="img/t1-whatif.png" alt="What-if table for Maple Street"></div>
+    <div><img src="img/t1-whatif.png?v=2" width="1080" height="358" decoding="async" alt="What-if table for Maple Street"></div>
   </div>
 
   <div class="step">
@@ -275,7 +286,7 @@
       <div class="why"><b class="l">💡 Why it matters</b>The deal is saved on this device only. To open it again later, tap <b>Saved</b>, then <b>Load</b>.</div>
       <div class="eg"><b class="l">🍋 Example</b>It is like saving a game. You can turn it off, come back later, and pick up where you stopped. But the save is only on this one phone or computer.</div>
     </div>
-    <div><img loading="lazy" src="img/t1-saved.png" alt="Saved deals list with Maple Street practice"></div>
+    <div><img src="img/t1-saved.png?v=2" width="1120" height="426" decoding="async" alt="Saved deals list with Maple Street practice"></div>
   </div>
 
   <div class="tip">
@@ -300,7 +311,7 @@
       <div class="why"><b class="l">💡 Why it matters</b>You did not type this. The app did the math from lesson 1: $150 × 2,000 sqft = $300,000. Your numbers carry over.</div>
       <div class="eg"><b class="l">🍋 Example</b>You already told the app how big the house is and what each square foot costs. It is like a waiter who remembers your order. You do not have to say it again.</div>
     </div>
-    <div><img loading="lazy" src="img/t2-job.png" alt="The job block with cost of the work 300,000 from Spec Build"></div>
+    <div><img src="img/t2-job.png?v=2" width="1080" height="426" decoding="async" alt="The job block with cost of the work 300,000 from Spec Build"></div>
   </div>
 
   <div class="step">
@@ -311,7 +322,7 @@
       <div class="why"><b class="l">💡 Why it matters</b>These are sample numbers. On a real deal, you type what your builder quoted you.</div>
       <div class="eg"><b class="l">🍋 Example</b>A baker says, “I charge $10 on top of what the ingredients cost.” That $10 is the baker’s fee. A builder’s fee works the same way, as a percent.</div>
     </div>
-    <div><img loading="lazy" src="img/t2-terms.png" alt="The GC's terms block with sample numbers"></div>
+    <div><img src="img/t2-terms.png?v=2" width="1080" height="570" decoding="async" alt="The GC's terms block with sample numbers"></div>
   </div>
 
   <div class="step">
@@ -326,7 +337,7 @@
       <div class="why"><b class="l">💡 Why it matters</b>If the job goes as planned, cost-plus is the cheapest. But look at its line <b>Most you can be billed: No limit</b>.</div>
       <div class="eg"><b class="l">🍋 Example</b>You hire a baker to make a cake. Ingredients should cost $30.<br><b>Cost-plus:</b> you pay for the ingredients, plus $10. Today that is $40.<br><b>GMP:</b> the same, but never more than $45.<br><b>Lump sum:</b> the cake is $46, no matter what.<br><b>Design-build:</b> the baker also designs the cake. $48, no matter what.</div>
     </div>
-    <div><img loading="lazy" src="img/t2-card0-0.png" alt="Cost-plus card, costs you least, 397,750"></div>
+    <div><img src="img/t2-card0-0.png?v=2" width="1080" height="578" decoding="async" alt="Cost-plus card, costs you least, 397,750"></div>
   </div>
 
   <div class="step">
@@ -344,7 +355,7 @@
       <div class="why"><b class="l">💡 Why it matters</b>With cost-plus, <b>you</b> paid for the surprise. With GMP, the builder paid the part above the cap. Lump sum and design-build did not move at all. Cheapest is not always safest. Now tap <b>On budget</b>.</div>
       <div class="eg"><b class="l">🍋 Example</b>Eggs and butter go up. The ingredients now cost $40, not $30.<br><b>Cost-plus:</b> you now pay $50. The surprise was yours.<br><b>GMP:</b> you pay $45, the cap. The baker pays the other $5.<br><b>Lump sum:</b> still $46. <b>Design-build:</b> still $48.<br>The cheapest way changed from cost-plus to GMP.</div>
     </div>
-    <div><img loading="lazy" src="img/t2-whatif-10.png" alt="What if the job costs 10 percent more"><img loading="lazy" src="img/t2-card1-10.png" alt="GMP card is now the cheapest"></div>
+    <div><img src="img/t2-whatif-10.png?v=2" width="1080" height="324" decoding="async" alt="What if the job costs 10 percent more"><img src="img/t2-card1-10.png?v=2" width="1080" height="610" decoding="async" alt="GMP card is now the cheapest"></div>
   </div>
 
   <div class="step">
@@ -357,7 +368,7 @@
       <div class="why"><b class="l">💡 Why it matters</b>You can type over any linked box to use your own number. Erase it to go back.</div>
       <div class="eg"><b class="l">🍋 Example</b>A linked box is like a mirror. It shows what step 1 shows. When you type over it, you cover the mirror with your own picture. Erase it and the mirror is back.</div>
     </div>
-    <div><img loading="lazy" src="img/t2-job-yours.png" alt="Cost of the work typed over, tag says your number"></div>
+    <div><img src="img/t2-job-yours.png?v=2" width="1080" height="424" decoding="async" alt="Cost of the work typed over, tag says your number"></div>
   </div>
 
   <div class="tip blue">
@@ -386,7 +397,7 @@
       <div class="why"><b class="l">💡 Why it matters</b>The bank does not pay for everything. The gold part of the bar is your own money.</div>
       <div class="eg"><b class="l">🍋 Example</b>You want to build a $100 lemonade stand. The bank says, “We will lend you 80%.” The bank gives you $80. You bring the other $20.</div>
     </div>
-    <div><img loading="lazy" src="img/t3-loan.png" alt="Your loan 414,752, bank pays 73 percent, you pay 27 percent"></div>
+    <div><img src="img/t3-loan.png?v=2" width="1080" height="346" decoding="async" alt="Your loan 414,752, bank pays 73 percent, you pay 27 percent"></div>
   </div>
 
   <div class="step">
@@ -397,7 +408,7 @@
       <div class="why"><b class="l">💡 Why it matters</b>The bank runs two tests. One uses what the job costs. One uses what the finished house is worth (that is the ARV). The smaller answer wins.</div>
       <div class="eg"><b class="l">🍋 Example</b>The bank has two rules. Rule 1: “We lend up to 80% of what it costs.” The stand costs $100, so that is $80. Rule 2: “We lend up to 72% of what it will be worth.” It will be worth $150, so that is $108. The bank uses the smaller number: $80.</div>
     </div>
-    <div><img loading="lazy" src="img/t3-tests.png" alt="The bank's two tests"></div>
+    <div><img src="img/t3-tests.png?v=2" width="1080" height="344" decoding="async" alt="The bank's two tests"></div>
   </div>
 
   <div class="step">
@@ -413,7 +424,7 @@
       <div class="why"><b class="l">💡 Why it matters</b>Closing is the day you sign. You need $45,045 that day. You need $155,355 in all. Make sure you have it before you make an offer.</div>
       <div class="eg"><b class="l">🍋 Example</b>Borrowing is like renting money. The rent is called interest. Borrow $100 at 10% for one year and the rent is $10. A “point” is a fee you pay on day one. Two points on $100 is $2.</div>
     </div>
-    <div><img loading="lazy" src="img/t3-kpis.png" alt="Four loan tiles for Maple Street"><img loading="lazy" src="img/t3-grand.png" alt="Total cash you need 155,355"></div>
+    <div><img src="img/t3-kpis.png?v=2" width="1080" height="368" decoding="async" alt="Four loan tiles for Maple Street"><img src="img/t3-grand.png?v=2" width="1080" height="176" decoding="async" alt="Total cash you need 155,355"></div>
   </div>
 
   <div class="step">
@@ -424,7 +435,7 @@
       <div class="why"><b class="l">💡 Why it matters</b>With a reserve, the bank keeps the interest inside the loan and pays itself. You need less cash from your pocket. But the loan is bigger, so you pay more interest. Now tap the switch again to turn it off.</div>
       <div class="eg"><b class="l">🍋 Example</b>You owe the bank $10 in rent on your loan. With a reserve, the bank says, “We will lend you $10 more, and use it to pay ourselves.” You keep your $10 today. But now you owe $90, not $80.</div>
     </div>
-    <div><img loading="lazy" src="img/t3-switch-res.png" alt="Interest reserve switch turned on"><img loading="lazy" src="img/t3-grand-res.png" alt="Total cash you need 126,894 with the reserve on"></div>
+    <div><img src="img/t3-switch-res.png?v=2" width="1020" height="152" decoding="async" alt="Interest reserve switch turned on"><img src="img/t3-grand-res.png?v=2" width="1080" height="178" decoding="async" alt="Total cash you need 126,894 with the reserve on"></div>
   </div>
 
   <div class="tip green">
@@ -449,7 +460,7 @@
       <div class="why"><b class="l">💡 Why it matters</b>A letter needs 9 things before you send it. The app counts them for you.</div>
       <div class="eg"><b class="l">🍋 Example</b>You want to buy a friend’s bike. You hand them a note: “I would like to buy your bike for $50, if it passes a test ride.” That note is like an LOI. It is not the real sale yet.</div>
     </div>
-    <div><img loading="lazy" src="img/t4-check-a.png" alt="Letter checklist, 5 of 9 must-haves"><img loading="lazy" src="img/t4-money.png" alt="Offer price 150,000 linked, deposit 2,500 auto"></div>
+    <div><img src="img/t4-check-a.png?v=2" width="1080" height="196" decoding="async" alt="Letter checklist, 5 of 9 must-haves"><img src="img/t4-money.png?v=2" width="1080" height="278" decoding="async" alt="Offer price 150,000 linked, deposit 2,500 auto"></div>
   </div>
 
   <div class="step">
@@ -464,7 +475,7 @@
       <div class="see"><b class="l">👀 You should see</b>The checklist climbs to <b>9 of 9 must-haves</b>. Confetti falls.</div>
       <div class="eg"><b class="l">🍋 Example</b>A note that says “I will buy it” is not enough. It needs to say who is buying, who is selling, and which bike. A letter for land needs the same things.</div>
     </div>
-    <div><img loading="lazy" src="img/t4-who.png" alt="Who and what block filled in"><img loading="lazy" src="img/t4-check-b.png" alt="Letter checklist, 9 of 9 must-haves"></div>
+    <div><img src="img/t4-who.png?v=2" width="1080" height="572" decoding="async" alt="Who and what block filled in"><img src="img/t4-check-b.png?v=2" width="1080" height="196" decoding="async" alt="Letter checklist, 9 of 9 must-haves"></div>
   </div>
 
   <div class="step">
@@ -475,7 +486,7 @@
       <div class="why"><b class="l">💡 Why it matters</b>The letter wrote itself from the boxes you filled in. You can paste it into an email or a document.</div>
       <div class="eg"><b class="l">🍋 Example</b>It is like a fill-in-the-blank story. You gave the names and the numbers. The app put them in the right blanks.</div>
     </div>
-    <div><img loading="lazy" src="img/t4-letter.png" alt="The letter written by the app" class="crop"></div>
+    <div><img src="img/t4-letter.png?v=2" width="1080" height="1030" decoding="async" alt="The letter written by the app" class="crop"></div>
   </div>
 
   <div class="step">
@@ -490,7 +501,7 @@
       <div class="why"><b class="l">💡 Why it matters</b>“At risk” is money you can lose. Checking the land costs about $5,000 here. After your deposit is locked in (“goes hard”), you can lose the deposit too.</div>
       <div class="eg"><b class="l">🍋 Example</b>You give your friend $5 to hold the bike for you. That is like earnest money. You also pay a bike shop $10 to check the brakes. If you walk away during the test week, you get the $5 back. You do not get the $10 back.</div>
     </div>
-    <div><img loading="lazy" src="img/t4-kpis.png" alt="Four offer tiles for Maple Street"></div>
+    <div><img src="img/t4-kpis.png?v=2" width="1080" height="430" decoding="async" alt="Four offer tiles for Maple Street"></div>
   </div>
 
   <div class="step">
@@ -501,7 +512,7 @@
       <div class="why"><b class="l">💡 Why it matters</b>More days means more time to check the land before your deposit is locked in. Your dates will not match the picture. They count from the day you do this.</div>
       <div class="eg"><b class="l">🍋 Example</b>Your friend gives you one week to test the bike. You ask for two weeks. Now you have more time to find a problem before your $5 is locked in.</div>
     </div>
-    <div><img loading="lazy" src="img/t4-dates-90.png" alt="Key dates with a 90 day due diligence period"></div>
+    <div><img src="img/t4-dates-90.png?v=2" width="1080" height="548" decoding="async" alt="Key dates with a 90 day due diligence period"></div>
   </div>
 
   <div class="step">
@@ -512,7 +523,7 @@
       <div class="why"><b class="l">💡 Why it matters</b>There are 17 things to check before your deposit is locked in. On a real deal, tap each one only when you have really done it.</div>
       <div class="eg"><b class="l">🍋 Example</b>Before you buy the bike, you check the tires, the brakes and the chain. You tick each one off a list. The land checklist is the same idea, with 17 things to check.</div>
     </div>
-    <div><img loading="lazy" src="img/t4-dd.png" alt="First due diligence check ticked"></div>
+    <div><img src="img/t4-dd.png?v=2" width="1080" height="572" decoding="async" alt="First due diligence check ticked"></div>
   </div>
 
   <div class="two" style="break-inside:avoid;font-size:10.5pt">
