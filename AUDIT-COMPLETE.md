@@ -105,7 +105,7 @@ npm test
 git diff --check
 ```
 
-`package.json` includes both fresh audit suites. [.github/workflows/test.yml](.github/workflows/test.yml) runs clean installation and `npm test` for pull requests and pushes to master, with read-only contents permission and no persisted checkout credentials. Official [checkout v7.0.1](https://github.com/actions/checkout/releases/tag/v7.0.1) and [setup-node v7.1.0](https://github.com/actions/setup-node/releases/tag/v7.1.0) are pinned to full commit SHAs verified through GitHub's API. An isolated local clean-install replay succeeded; hosted CI execution awaits push/PR.
+`package.json` includes both fresh audit suites. [.github/workflows/test.yml](.github/workflows/test.yml) runs clean installation and `npm test` for pull requests and pushes to master, with read-only contents permission and no persisted checkout credentials. Official [checkout v7.0.1](https://github.com/actions/checkout/releases/tag/v7.0.1) and [setup-node v7.1.0](https://github.com/actions/setup-node/releases/tag/v7.1.0) are pinned to full commit SHAs verified through GitHub's API. An isolated local clean-install replay succeeded. Hosted PR and merged-master CI also passed; links are recorded below.
 
 Read-only baseline GitHub metadata showed HTTPS enforced, Pages built from master root, and a successful deployment at `c5458e4`. Master was unprotected. New regression CI does not itself prevent Pages from publishing a failed master push; requiring that check before merge remains repository-policy hardening. Branch protection was not changed.
 
@@ -113,4 +113,8 @@ Read-only baseline GitHub metadata showed HTTPS enforced, Pages built from maste
 
 Source and browser verification are complete: 68 passing Node tests, 600 existing financing scenarios, 599 new independent mathematical cases, the 61-field DOM suite, all 16 expanded responsive/axe combinations, conditional loan/partner states, multi-tab persistence, native downloads/uploads and four printable reports. Worker `/health` returned HTTP 200 with `{"ok":true}`. Worker source is unchanged, so no backend redeployment is required.
 
-Hosted CI, Pages publication and live source parity will be recorded here after the release check. Source HTML SHA-256: `c0f73d82358f827e5dc50e6084e6c2a3b02f09651ee1062a9f3411b9d5fde4f1`.
+[PR #2](https://github.com/richesmain-prog/mainmath/pull/2) merged at 21:59:56 UTC as `faa050727eafd013632056d91d74569ce2e058c5`. [Final PR CI](https://github.com/richesmain-prog/mainmath/actions/runs/43645633916), [merged-master CI](https://github.com/richesmain-prog/mainmath/actions/runs/43645714199), and [GitHub Pages publication](https://github.com/richesmain-prog/mainmath/actions/runs/43645714084) all succeeded.
+
+At 22:00 UTC, live HTML returned HTTP 200 and matched the tested source byte-for-byte: SHA-256 `c0f73d82358f827e5dc50e6084e6c2a3b02f09651ee1062a9f3411b9d5fde4f1`. Isolated Chrome loaded the actual published site without replacing its HTML. All 16 expanded tab/width states remained free of horizontal overflow; exact LOI cents, separate unnamed saves, a real downloaded JSON file and focused/selected manual-copy fallback passed. No page exceptions or POST requests occurred. [Live smoke evidence](audit-evidence/live-smoke.json) records the results.
+
+Final review also reproduced and fixed a queued-save/reset race before merging. An independently repeated native Web Lock test verifies that the original $100k save cannot rename a new $200k draft; both deals remain distinct. The updated browser results record that check separately with the final source hash. The earlier PDF/screenshot artifacts predate this two-line save guard; print/layout code did not change afterward.

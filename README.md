@@ -15,7 +15,7 @@ Tests cover all four calculation engines and local DOM workflows; signup is mock
 Save and Export include all four tools. Older exports restore Spec Build and reset other tools to defaults.
 GC and lender comparisons read linked Spec Build inputs; overrides do not change the Spec Build budget.
 
-Audit findings, formulas, evidence and remaining limits: [AUDIT.md](AUDIT.md).
+Audit findings, formulas, evidence and remaining limits: [original audit](AUDIT.md) and [complete second-pass audit](AUDIT-COMPLETE.md).
 
 Signup API: `https://math-api.therichmain.com/leads`. The app unlocks only after D1 confirms storage. Request IDs prevent duplicate writes and Google submissions on retries. Google Forms receives a secondary copy; a forwarding failure never deletes the durable lead. No deal inputs are sent. `/health` reports service availability without exposing leads.
 

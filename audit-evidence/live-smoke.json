@@ -1,0 +1,104 @@
+{
+  "time": "2026-11-14T22:00:46.960Z",
+  "errors": [],
+  "checks": [
+    {
+      "width": 320,
+      "tab": "spec",
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "tab": "contract",
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "tab": "lender",
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "tab": "loi",
+      "overflow": false
+    },
+    {
+      "width": 375,
+      "tab": "spec",
+      "overflow": false
+    },
+    {
+      "width": 375,
+      "tab": "contract",
+      "overflow": false
+    },
+    {
+      "width": 375,
+      "tab": "lender",
+      "overflow": false
+    },
+    {
+      "width": 375,
+      "tab": "loi",
+      "overflow": false
+    },
+    {
+      "width": 768,
+      "tab": "spec",
+      "overflow": false
+    },
+    {
+      "width": 768,
+      "tab": "contract",
+      "overflow": false
+    },
+    {
+      "width": 768,
+      "tab": "lender",
+      "overflow": false
+    },
+    {
+      "width": 768,
+      "tab": "loi",
+      "overflow": false
+    },
+    {
+      "width": 1440,
+      "tab": "spec",
+      "overflow": false
+    },
+    {
+      "width": 1440,
+      "tab": "contract",
+      "overflow": false
+    },
+    {
+      "width": 1440,
+      "tab": "lender",
+      "overflow": false
+    },
+    {
+      "width": 1440,
+      "tab": "loi",
+      "overflow": false
+    }
+  ],
+  "posts": [],
+  "status": 200,
+  "sha256": "c0f73d82358f827e5dc50e6084e6c2a3b02f09651ee1062a9f3411b9d5fde4f1",
+  "loiExactCents": true,
+  "unnamedSaved": [
+    "Deal 11/14/2026 (2)",
+    "Deal 11/14/2026"
+  ],
+  "download": {
+    "filename": "live-audit.json",
+    "price": 123456.78
+  },
+  "copyFallback": {
+    "focused": true,
+    "selected": 258,
+    "length": 258
+  },
+  "passed": true
+}
