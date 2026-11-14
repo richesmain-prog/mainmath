@@ -1,0 +1,574 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Main Math Tutorial: your first deal, step by step</title>
+<meta name="description" content="Learn the Main Math deal calculator by doing one practice deal. Four short lessons with pictures and everyday examples.">
+<style>
+      * { box-sizing: border-box; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { margin: 0; font: 12pt/1.45 -apple-system, "Avenir Next", "Helvetica Neue", Arial, sans-serif; color: #23211c; background: #fff; }
+  h1, h2, h3, h4, p { margin: 0; }
+  p + p { margin-top: 6pt; }
+  b { color: #111; }
+
+  /* cover */
+  .cover { height: 11in; padding: 1in 0.8in; background: #15140f; color: #f4efe2; display: flex; flex-direction: column; break-after: page; }
+  .cover .brand { font-size: 20pt; font-weight: 800; letter-spacing: -.3px; }
+  .cover .brand span { color: #F2B632; }
+  .cover h1 { font-size: 50pt; line-height: 1.02; font-weight: 800; letter-spacing: -1.5px; margin-top: .5in; }
+  .cover h1 em { font-style: normal; color: #F2B632; }
+  .cover .tag { font-size: 16pt; margin-top: .22in; color: #cfc8b6; max-width: 5.6in; }
+  .cover svg { margin-top: auto; width: 100%; height: auto; }
+  .cover .foot { margin-top: .25in; font-size: 11pt; color: #9c9584; }
+
+  /* sections */
+  .page { break-before: page; }
+  .banner { border-radius: 14px; padding: 14pt 18pt; color: #fff; margin-bottom: 12pt; }
+  .banner .st { font-size: 10.5pt; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; opacity: .9; }
+  .banner h2 { font-size: 24pt; line-height: 1.1; font-weight: 800; letter-spacing: -.5px; margin-top: 2pt; }
+  .banner p { font-size: 12.5pt; margin-top: 4pt; opacity: .96; }
+  .c-all { background: #2a2820; } .c-spec { background: #B47B00; } .c-gc { background: #0B76B3; } .c-ln { background: #0B8A5F; } .c-loi { background: #6A4BC9; }
+  h3 { font-size: 15pt; font-weight: 800; margin: 14pt 0 5pt; letter-spacing: -.2px; break-after: avoid; }
+  h3 small { font-weight: 600; font-size: 10.5pt; color: #7b7667; margin-left: 6pt; }
+  .lead { font-size: 13pt; }
+
+  /* picture + words rows */
+  .row { display: grid; grid-template-columns: 3.3in 1fr; gap: .24in; align-items: start; break-inside: avoid; margin: 9pt 0; padding-top: 9pt; border-top: 1px solid #e9e4d6; }
+  .row.tall { grid-template-columns: 2.5in 1fr; }
+  .row img, .solo img { width: 100%; border-radius: 9px; display: block; }
+  .solo { break-inside: avoid; margin: 8pt 0; }
+  .solo img { max-width: 5.6in; }
+  .row h4 { font-size: 13pt; font-weight: 800; margin-bottom: 3pt; }
+  .row p, .row li { font-size: 11pt; line-height: 1.4; }
+  ul { margin: 4pt 0 0; padding-left: 14pt; }
+  li { margin: 2.5pt 0; }
+  li::marker { color: #b5ae9b; }
+
+  /* callouts */
+  .tip { break-inside: avoid; border-radius: 12px; padding: 10pt 13pt; margin: 10pt 0; font-size: 11.5pt; background: #FFF6DC; border: 1.5px solid #F2B632; }
+  .tip.blue { background: #E8F5FD; border-color: #7DD3FC; } .tip.green { background: #E6F8F0; border-color: #34D399; } .tip.purple { background: #F1ECFE; border-color: #C4B5FD; } .tip.red { background: #FDECEC; border-color: #F3A3A3; }
+  .tip b.h { display: block; font-size: 12pt; margin-bottom: 2pt; }
+
+  .steps4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8pt; margin: 8pt 0; break-inside: avoid; }
+  .steps4 div { border-radius: 11px; padding: 9pt 10pt; font-size: 10.5pt; line-height: 1.35; background: #f6f3ea; }
+  .steps4 b { display: block; font-size: 11.5pt; margin-bottom: 2pt; }
+  .steps4 div > b ~ b { display: inline; font-size: inherit; }
+  .steps4 i { font-style: normal; display: inline-grid; place-items: center; width: 17pt; height: 17pt; border-radius: 50%; color: #fff; font-weight: 800; font-size: 10pt; margin-right: 5pt; }
+  .k-spec i { background: #B47B00; } .k-gc i { background: #0B76B3; } .k-ln i { background: #0B8A5F; } .k-loi i { background: #6A4BC9; }
+
+  table { border-collapse: collapse; width: 100%; font-size: 10.8pt; margin: 8pt 0; break-inside: avoid; }
+  th { text-align: left; font-size: 9.5pt; letter-spacing: .8px; text-transform: uppercase; color: #7b7667; padding: 5pt 7pt; border-bottom: 2px solid #d9d3c2; }
+  td { padding: 6pt 7pt; border-bottom: 1px solid #e9e4d6; vertical-align: top; }
+  td:first-child { font-weight: 800; white-space: nowrap; }
+
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 0 .3in; }
+  .words p { font-size: 10.8pt; margin: 0 0 5.5pt; break-inside: avoid; }
+  .fig { break-inside: avoid; margin: 8pt 0; }
+  .fig svg { width: 100%; height: auto; display: block; }
+  .cap { font-size: 10pt; color: #7b7667; text-align: center; margin-top: 3pt; }
+
+  .step { display: grid; grid-template-columns: 1fr 3.05in; gap: .24in; align-items: start; break-inside: avoid; margin: 7pt 0; padding-top: 7pt; border-top: 1px solid #e9e4d6; }
+  .step.nopic { grid-template-columns: 1fr; }
+  .step img { width: 100%; border-radius: 9px; display: block; }
+  .step img + img { margin-top: 6pt; }
+  .step img.crop { height: 2.2in; object-fit: cover; object-position: top; }
+  .step h4 { font-size: 13.5pt; font-weight: 800; margin-bottom: 2pt; }
+  .n { display: inline-grid; place-items: center; width: 20pt; height: 20pt; border-radius: 50%; color: #fff; font-weight: 800; font-size: 11pt; margin-right: 6pt; background: var(--c, #2a2820); }
+  .do, .see, .why { font-size: 10.8pt; line-height: 1.4; margin-top: 4pt; padding: 5pt 10pt; border-radius: 9px; break-inside: avoid; }
+  .do { background: #f4f1e7; } .see { background: #E6F8F0; } .why { background: #FFF6DC; } .eg { background: #F1ECFE; }
+  .do, .see, .why, .eg { font-size: 10.8pt; line-height: 1.4; margin-top: 4pt; padding: 5pt 10pt; border-radius: 9px; break-inside: avoid; }
+  b.l { display: block; font-size: 9pt; letter-spacing: .9px; text-transform: uppercase; color: #5d5849; margin-bottom: 1pt; }
+  .type { font: 700 10.5pt ui-monospace, Menlo, monospace; background: #fff; border: 1.5px solid #cfc8b6; border-radius: 6px; padding: 0 5pt; white-space: nowrap; }
+  .step table { font-size: 10.5pt; margin: 6pt 0 0; }
+  .deal { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8pt; margin: 6pt 0 8pt; break-inside: avoid; }
+  .deal div { border: 1.5px solid #d9d3c2; border-radius: 11px; padding: 8pt 10pt; font-size: 10pt; color: #5d5849; }
+  .deal span { display: block; font-size: 9.5pt; }
+  .deal b { display: block; font-size: 17pt; line-height: 1.2; }
+  .sheet { display: grid; grid-template-columns: 1fr 1fr; gap: 0 .35in; break-inside: avoid; }
+  .sheet div { display: flex; align-items: flex-end; gap: 6pt; font-size: 11pt; padding: 13pt 0 0; }
+  .sheet i { flex: 1; border-bottom: 1.5px solid #9c9584; min-width: .8in; }
+  .two .tip { font-size: 10.5pt; margin: 6pt 0 0; padding: 8pt 11pt; }
+
+  /* web layout: one centered reading column */
+  body { background: #fff; color: #23211c; }
+  .wrap { max-width: 780px; margin: 0 auto; padding: 16px max(16px, env(safe-area-inset-right, 0px)) 48px max(16px, env(safe-area-inset-left, 0px)); }
+  .top { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; font-size: 11pt; }
+  .top a, .cover .foot a { color: inherit; }
+  .top a.go { background: #F2B632; color: #15140f; font-weight: 800; text-decoration: none; border-radius: 10px; padding: 7px 13px; white-space: nowrap; }
+  img { max-width: 100%; height: auto; }
+  .step img.crop { height: 2.2in; }
+  .cover { height: auto; min-height: 0; padding: 40px 28px 24px; border-radius: 18px; }
+  .cover h1 { font-size: clamp(34pt, 11vw, 50pt); margin-top: 24px; }
+  .cover svg { margin-top: 28px; }
+  section + section { margin-top: 40px; }
+  .step > div, .row > div { min-width: 0; }
+  table { display: block; overflow-x: auto; }
+  @media (max-width: 720px) {
+    .step, .row, .two, .sheet { grid-template-columns: 1fr; }
+    .steps4, .deal { grid-template-columns: 1fr 1fr; }
+    .banner h2 { font-size: 20pt; }
+    td:first-child { white-space: normal; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="top"><a href="../">← Main Math</a><a class="go" href="../" target="_blank" rel="noopener">Open the calculator</a></div>
+<section class="cover">
+  <div class="brand">Main<span>Math</span></div>
+  <h1>The <em>Tutorial</em></h1>
+  <p class="tag">Your first deal, start to finish. Follow along, one step at a time.</p>
+  <svg viewBox="0 0 700 330" role="img" aria-label="A road with four stops leading to a finished house">
+    <path d="M40 270 C 150 270, 150 190, 250 190 S 350 120, 450 120 S 560 70, 640 70" fill="none" stroke="#3a372c" stroke-width="34" stroke-linecap="round"/>
+    <path d="M40 270 C 150 270, 150 190, 250 190 S 350 120, 450 120 S 560 70, 640 70" fill="none" stroke="#F2B632" stroke-width="3" stroke-dasharray="10 12" stroke-linecap="round"/>
+    <g font-family="-apple-system, Helvetica, Arial" font-weight="800" text-anchor="middle">
+      <circle cx="70" cy="270" r="26" fill="#B47B00"/><text x="70" y="279" font-size="24" fill="#fff">1</text>
+      <circle cx="250" cy="190" r="26" fill="#0B76B3"/><text x="250" y="199" font-size="24" fill="#fff">2</text>
+      <circle cx="450" cy="120" r="26" fill="#0B8A5F"/><text x="450" y="129" font-size="24" fill="#fff">3</text>
+      <circle cx="610" cy="74" r="26" fill="#6A4BC9"/><text x="610" y="83" font-size="24" fill="#fff">4</text>
+    </g>
+    <g font-family="-apple-system, Helvetica, Arial" font-size="15" fill="#cfc8b6" text-anchor="middle">
+      <text x="70" y="318">Good deal?</text>
+      <text x="250" y="240">Pay the builder</text>
+      <text x="450" y="170">The loan</text>
+      <text x="600" y="126">The offer</text>
+    </g>
+    <g transform="translate(596,-4)" fill="none" stroke="#F2B632" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+      <path d="M0 40 L32 12 L64 40"/><path d="M8 36 V66 H56 V36"/><path d="M26 66 V48 H38 V66"/>
+    </g>
+  </svg>
+  <div class="foot"><a href="../">math.therichmain.com</a> &nbsp;·&nbsp; by Rich Main</div>
+</section>
+<!-- ============ HOW IT WORKS ============ -->
+<section>
+  <div class="banner c-all">
+    <div class="st">Start here</div>
+    <h2>Learn Main Math by doing one deal</h2>
+    <p>You will type one practice deal and take it through all four steps. Plan on about 20 minutes.</p>
+  </div>
+
+  <p class="lead">Open the app on your phone or computer. Keep this page next to it. Do one numbered step, then check your screen against the picture.</p>
+
+  <h3>How to read each step</h3>
+  <div class="do"><b class="l">👉 Do this</b>What to tap or type. Things to type look like this: <span class="type">200000</span></div>
+  <div class="see"><b class="l">👀 You should see</b>What your screen shows when you did it right. If it matches, keep going.</div>
+  <div class="why"><b class="l">💡 Why it matters</b>The lesson behind the step.</div>
+  <div class="eg"><b class="l">🍋 Example</b>A small, everyday story that shows the same idea with easy numbers.</div>
+
+  <h3>The practice deal: Maple Street</h3>
+  <div class="deal">
+    <div><span>The seller wants</span><b>$200,000</b>for the empty lot</div>
+    <div><span>You will build</span><b>2,000 sqft</b>“sqft” means square feet</div>
+    <div><span>Building costs</span><b>$150</b>for each square foot</div>
+    <div><span>Homes nearby sell for</span><b>$400</b>for each square foot</div>
+  </div>
+  <p>This deal is made up. It is only for practice.</p>
+
+  <h3>Before you start</h3>
+  <div class="step nopic" style="border-top:0;padding-top:0;margin-top:0">
+    <div>
+      <div class="do"><b class="l">👉 Do this</b>
+        1. Go to <b><a href="../" target="_blank" rel="noopener">math.therichmain.com</a></b> and tap <b>Open the calculator</b>.<br>
+        2. Scroll down to the buttons under the boxes. Tap <b>Reset</b>.</div>
+      <div class="see"><b class="l">👀 You should see</b>A small message: <b>Reset to the sample deal</b>. Now your app starts from the same place as this tutorial, so your numbers will match.</div>
+    </div>
+  </div>
+
+</section>
+
+<!-- ============ LESSON 1 ============ -->
+<section class="page" style="--c:#B47B00">
+  <div class="banner c-spec">
+    <div class="st">Lesson 1 · Step 1 in the app · Spec Build</div>
+    <h2>Is it a good deal?</h2>
+    <p>You will find out if Maple Street makes money, and the most you should pay for the lot.</p>
+  </div>
+
+  <div class="step">
+    <div>
+      <h4><span class="n">1</span>Type the deal</h4>
+      <div class="do"><b class="l">👉 Do this</b>
+        In <b>Deal name</b>, type <span class="type">Maple Street practice</span><br>
+        In <b>Lot purchase price</b>, type <span class="type">200000</span><br>
+        In <b>Home size (sqft)</b>, type <span class="type">2000</span><br>
+        In <b>Build cost / sqft</b>, type <span class="type">150</span><br>
+        In <b>Sale price / sqft</b>, type <span class="type">400</span><br>
+        Leave <b>Build months</b> at 12 and <b>Months to sell</b> at 2.</div>
+      <div class="why"><b class="l">💡 Why it matters</b>These four numbers are all the app needs to judge a deal. It fills in the rest with sample numbers.</div>
+    </div>
+    <div><img loading="lazy" src="img/t1-land.png" alt="Lot price of 200,000 typed in"><img loading="lazy" src="img/t1-house.png" alt="Home size 2,000 and build cost 150 typed in"><img loading="lazy" src="img/t1-sale.png" alt="Sale price 400 typed in"></div>
+  </div>
+
+  <div class="step">
+    <div>
+      <h4><span class="n">2</span>Read the two big numbers</h4>
+      <div class="do"><b class="l">👉 Do this</b>Look at the top of the page.</div>
+      <div class="see"><b class="l">👀 You should see</b>Profit margin <b>13.4%</b>. The word <b>Tight</b>. Deal score <b>68</b>.</div>
+      <div class="why"><b class="l">💡 Why it matters</b>Margin is the part of the sale price you keep. Your goal is 20%. At $200,000 for the lot, you only keep 13.4%. That is not enough.</div>
+      <div class="eg"><b class="l">🍋 Example</b>You run a lemonade stand. You sell a cup for $1.00. The lemons, sugar and cup cost you 80¢. You keep 20¢. Your margin is 20%. If your costs were 87¢, you would keep only 13¢. That is a tight stand.</div>
+    </div>
+    <div><img loading="lazy" src="img/t1-hero-a.png" alt="13.4 percent margin, Tight, score 68"></div>
+  </div>
+
+  <div class="step">
+    <div>
+      <h4><span class="n">3</span>Read the gold box</h4>
+      <div class="do"><b class="l">👉 Do this</b>Scroll down to the gold box.</div>
+      <div class="see"><b class="l">👀 You should see</b><b>$153,448</b>. Under it: the asking price is <b>$46,552 above</b> the price that still hits 20%.</div>
+      <div class="why"><b class="l">💡 Why it matters</b>This is the most you should pay for the lot. The seller wants $200,000. That is too much. Now you know what to offer.</div>
+      <div class="eg"><b class="l">🍋 Example</b>You fix up old bikes and sell them for $100. The fixing costs $50. You want to keep $20. So the most you can pay for an old bike is $30. If the owner wants $45, it is too much.</div>
+    </div>
+    <div><img loading="lazy" src="img/t1-gold-a.png" alt="Gold box showing 153,448"></div>
+  </div>
+
+  <div class="step">
+    <div>
+      <h4><span class="n">4</span>Make a lower offer</h4>
+      <div class="do"><b class="l">👉 Do this</b>Change <b>Lot purchase price</b> to <span class="type">150000</span></div>
+      <div class="see"><b class="l">👀 You should see</b>Margin <b>20.5%</b>. The words <b>Strong Deal</b>. Score <b>🏆 80</b>. Confetti falls. Profit went from $107,443 to <b>$163,893</b>.</div>
+      <div class="why"><b class="l">💡 Why it matters</b>Nothing about the house changed. Only the land price changed. A lower land price turned a tight deal into a strong one.</div>
+      <div class="eg"><b class="l">🍋 Example</b>The bike owner wanted $45. You offered $30, and they said yes. The fixing still costs $50. The bike still sells for $100. But now you keep $20, not $5.</div>
+    </div>
+    <div><img loading="lazy" src="img/t1-hero-b.png" alt="20.5 percent margin, Strong Deal, trophy 80"></div>
+  </div>
+
+  <div class="step">
+    <div>
+      <h4><span class="n">5</span>See where the money goes</h4>
+      <div class="do"><b class="l">👉 Do this</b>Scroll to the block <b>🧾 Where the money goes</b>. Read it from top to bottom.</div>
+      <div class="see"><b class="l">👀 You should see</b>The top line is the sale: <b>$800,000</b>. That is $400 × 2,000 sqft. Each red line takes a cost away. The last line is <b>Net profit $163,893</b>.</div>
+      <div class="why"><b class="l">💡 Why it matters</b>The bar shows the slices. Land is 19%. Building is 46%. Your profit is 20%.</div>
+      <div class="eg"><b class="l">🍋 Example</b>Cut a pizza into 10 slices. About 2 slices pay for the land. Almost 5 pay for building. About 1 pays the bank and the bills while you wait. A little more than half a slice pays for selling. The 2 slices left are yours.</div>
+    </div>
+    <div><img loading="lazy" src="img/t1-money-b.png" alt="Where the money goes for Maple Street"></div>
+  </div>
+
+  <div class="step">
+    <div>
+      <h4><span class="n">6</span>Try a bigger goal</h4>
+      <div class="do"><b class="l">👉 Do this</b>In the gold box, tap <b>25%</b>.</div>
+      <div class="see"><b class="l">👀 You should see</b>The gold number drops to <b>$118,018</b>. The word at the top goes back to <b>Tight</b>.</div>
+      <div class="why"><b class="l">💡 Why it matters</b>If you want more profit, you must pay less for the land. Now tap <b>20%</b> to go back.</div>
+      <div class="eg"><b class="l">🍋 Example</b>Now you want to keep $25 on each bike, not $20. The bike still sells for $100 and fixing still costs $50. So the most you can pay drops from $30 to $25.</div>
+    </div>
+    <div><img loading="lazy" src="img/t1-gold-25.png" alt="Gold box at a 25 percent target showing 118,018"></div>
+  </div>
+
+  <div class="step">
+    <div>
+      <h4><span class="n">7</span>Test a bad day</h4>
+      <div class="do"><b class="l">👉 Do this</b>Tap <b>What if costs or prices change?</b> to open it. Find the row <b>$165</b> and the column <b>$360</b>.</div>
+      <div class="see"><b class="l">👀 You should see</b><b>7.2%</b> in that square. Your deal today is the middle square: <b>20.5%</b>.</div>
+      <div class="why"><b class="l">💡 Why it matters</b>If building costs go up to $165 and the sale price drops to $360, your margin falls from 20.5% to 7.2%. Always check the bad day before you buy.</div>
+      <div class="eg"><b class="l">🍋 Example</b>It rains on your lemonade stand, so you drop your price to 90¢. The same week, lemons cost more, so a cup costs you 85¢ to make. Now you keep 5¢, not 20¢.</div>
+    </div>
+    <div><img loading="lazy" src="img/t1-whatif.png" alt="What-if table for Maple Street"></div>
+  </div>
+
+  <div class="step">
+    <div>
+      <h4><span class="n">8</span>Save your deal</h4>
+      <div class="do"><b class="l">👉 Do this</b>Tap <b>Save deal</b>. Then tap <b>Saved</b> at the top of the page.</div>
+      <div class="see"><b class="l">👀 You should see</b>A message: <b>Saved “Maple Street practice”</b>. Your deal is in the list. Tap <b>Close</b>.</div>
+      <div class="why"><b class="l">💡 Why it matters</b>The deal is saved on this device only. To open it again later, tap <b>Saved</b>, then <b>Load</b>.</div>
+      <div class="eg"><b class="l">🍋 Example</b>It is like saving a game. You can turn it off, come back later, and pick up where you stopped. But the save is only on this one phone or computer.</div>
+    </div>
+    <div><img loading="lazy" src="img/t1-saved.png" alt="Saved deals list with Maple Street practice"></div>
+  </div>
+
+  <div class="tip">
+    <b class="h">✅ Lesson 1 done. You learned:</b>
+    How to type a deal. How to read the margin and the score. That the gold box tells you what to offer. That a lower land price can fix a deal.
+  </div>
+</section>
+
+<!-- ============ LESSON 2 ============ -->
+<section class="page" style="--c:#0B76B3">
+  <div class="banner c-gc">
+    <div class="st">Lesson 2 · Step 2 in the app · Hire a GC</div>
+    <h2>How do I pay my builder?</h2>
+    <p>A GC is a general contractor. That is the builder who runs the job. You will compare four ways to pay one.</p>
+  </div>
+
+  <div class="step">
+    <div>
+      <h4><span class="n">1</span>Go to step 2 and check the job</h4>
+      <div class="do"><b class="l">👉 Do this</b>Scroll to the bottom of step 1. Tap <b>Next: How do I pay my builder? →</b>. Look at the block <b>🧱 The job</b>.</div>
+      <div class="see"><b class="l">👀 You should see</b><b>Cost of the work: 300,000</b>, with a small tag that says <b>from Spec Build</b>.</div>
+      <div class="why"><b class="l">💡 Why it matters</b>You did not type this. The app did the math from lesson 1: $150 × 2,000 sqft = $300,000. Your numbers carry over.</div>
+      <div class="eg"><b class="l">🍋 Example</b>You already told the app how big the house is and what each square foot costs. It is like a waiter who remembers your order. You do not have to say it again.</div>
+    </div>
+    <div><img loading="lazy" src="img/t2-job.png" alt="The job block with cost of the work 300,000 from Spec Build"></div>
+  </div>
+
+  <div class="step">
+    <div>
+      <h4><span class="n">2</span>Look at the builder’s terms</h4>
+      <div class="do"><b class="l">👉 Do this</b>Look at the block <b>🤝 The GC’s terms</b>. Do not change anything yet.</div>
+      <div class="see"><b class="l">👀 You should see</b>GC fee <b>15</b>%. Markups of <b>20</b>%. A GMP cap of <b>396,175</b>.</div>
+      <div class="why"><b class="l">💡 Why it matters</b>These are sample numbers. On a real deal, you type what your builder quoted you.</div>
+      <div class="eg"><b class="l">🍋 Example</b>A baker says, “I charge $10 on top of what the ingredients cost.” That $10 is the baker’s fee. A builder’s fee works the same way, as a percent.</div>
+    </div>
+    <div><img loading="lazy" src="img/t2-terms.png" alt="The GC's terms block with sample numbers"></div>
+  </div>
+
+  <div class="step">
+    <div>
+      <h4><span class="n">3</span>Compare the four cards</h4>
+      <div class="do"><b class="l">👉 Do this</b>Look at the four cards on the answer side. Find the big <b>you pay</b> number on each one.</div>
+      <div class="see"><b class="l">👀 You should see</b>
+        🧾 Cost-plus: <b>$397,750</b> ⭐ costs you least<br>
+        🧢 GMP: <b>$408,963</b><br>
+        🔒 Lump sum: <b>$437,400</b><br>
+        📐 Design-build: <b>$442,200</b></div>
+      <div class="why"><b class="l">💡 Why it matters</b>If the job goes as planned, cost-plus is the cheapest. But look at its line <b>Most you can be billed: No limit</b>.</div>
+      <div class="eg"><b class="l">🍋 Example</b>You hire a baker to make a cake. Ingredients should cost $30.<br><b>Cost-plus:</b> you pay for the ingredients, plus $10. Today that is $40.<br><b>GMP:</b> the same, but never more than $45.<br><b>Lump sum:</b> the cake is $46, no matter what.<br><b>Design-build:</b> the baker also designs the cake. $48, no matter what.</div>
+    </div>
+    <div><img loading="lazy" src="img/t2-card0-0.png" alt="Cost-plus card, costs you least, 397,750"></div>
+  </div>
+
+  <div class="step">
+    <div>
+      <h4><span class="n">4</span>Test a surprise</h4>
+      <div class="do"><b class="l">👉 Do this</b>In the box <b>🤔 What if the job really costs</b>, tap <b>+10%</b>.</div>
+      <div class="see"><b class="l">👀 You should see</b>The job now costs <b>$357,500</b>. That is $32,500 over. The ⭐ jumps from cost-plus to <b>GMP</b>.</div>
+      <table>
+        <tr><th>Way to pay</th><th>On budget</th><th>Costs 10% more</th></tr>
+        <tr><td>Cost-plus</td><td>$397,750 ⭐</td><td>$435,125</td></tr>
+        <tr><td>GMP</td><td>$408,963</td><td>$420,175 ⭐</td></tr>
+        <tr><td>Lump sum</td><td>$437,400</td><td>$437,400</td></tr>
+        <tr><td>Design-build</td><td>$442,200</td><td>$442,200</td></tr>
+      </table>
+      <div class="why"><b class="l">💡 Why it matters</b>With cost-plus, <b>you</b> paid for the surprise. With GMP, the builder paid the part above the cap. Lump sum and design-build did not move at all. Cheapest is not always safest. Now tap <b>On budget</b>.</div>
+      <div class="eg"><b class="l">🍋 Example</b>Eggs and butter go up. The ingredients now cost $40, not $30.<br><b>Cost-plus:</b> you now pay $50. The surprise was yours.<br><b>GMP:</b> you pay $45, the cap. The baker pays the other $5.<br><b>Lump sum:</b> still $46. <b>Design-build:</b> still $48.<br>The cheapest way changed from cost-plus to GMP.</div>
+    </div>
+    <div><img loading="lazy" src="img/t2-whatif-10.png" alt="What if the job costs 10 percent more"><img loading="lazy" src="img/t2-card1-10.png" alt="GMP card is now the cheapest"></div>
+  </div>
+
+  <div class="step">
+    <div>
+      <h4><span class="n">5</span>Practice with a linked box</h4>
+      <div class="do"><b class="l">👉 Do this</b>In <b>Cost of the work</b>, type <span class="type">320000</span></div>
+      <div class="see"><b class="l">👀 You should see</b>The tag changes to <b>your number</b>. The cards change too.</div>
+      <div class="do"><b class="l">👉 Now do this</b>Erase everything in that box. Tap outside the box.</div>
+      <div class="see"><b class="l">👀 You should see</b>The box goes back to <b>300,000</b>. The tag says <b>from Spec Build</b> again.</div>
+      <div class="why"><b class="l">💡 Why it matters</b>You can type over any linked box to use your own number. Erase it to go back.</div>
+      <div class="eg"><b class="l">🍋 Example</b>A linked box is like a mirror. It shows what step 1 shows. When you type over it, you cover the mirror with your own picture. Erase it and the mirror is back.</div>
+    </div>
+    <div><img loading="lazy" src="img/t2-job-yours.png" alt="Cost of the work typed over, tag says your number"></div>
+  </div>
+
+  <div class="tip blue">
+    <b class="h">Did you notice the pink “over” on every card?</b>
+    Each card has a line called <b>Against your Spec Build budget</b>. On Maple Street they all say <b>over</b>. Why? In lesson 1, your build cost did not have a builder’s fee in it. This step only compares. It does not change step 1. When you pick a real builder, go back to step 1 and type the real cost there.
+  </div>
+  <div class="tip">
+    <b class="h">✅ Lesson 2 done. You learned:</b>
+    Your build cost carries over. There are four ways to pay a builder. The cheapest way can change when the job costs more. How linked boxes work.
+  </div>
+</section>
+
+<!-- ============ LESSON 3 ============ -->
+<section class="page" style="--c:#0B8A5F">
+  <div class="banner c-ln">
+    <div class="st">Lesson 3 · Step 3 in the app · Lender Terms</div>
+    <h2>What will my loan cost?</h2>
+    <p>A lender is a bank, or anyone who loans you money. You will see what the bank pays and what you pay.</p>
+  </div>
+
+  <div class="step">
+    <div>
+      <h4><span class="n">1</span>Go to step 3 and read your loan</h4>
+      <div class="do"><b class="l">👉 Do this</b>Scroll to the bottom of step 2. Tap <b>Next: What will my loan cost? →</b>. Leave <b>Build &amp; sell loan</b> picked. Look at <b>Your loan</b> on the answer side.</div>
+      <div class="see"><b class="l">👀 You should see</b>Your loan: <b>$414,752</b>. The bank pays <b>73%</b>. You pay <b>27%</b>.</div>
+      <div class="why"><b class="l">💡 Why it matters</b>The bank does not pay for everything. The gold part of the bar is your own money.</div>
+      <div class="eg"><b class="l">🍋 Example</b>You want to build a $100 lemonade stand. The bank says, “We will lend you 80%.” The bank gives you $80. You bring the other $20.</div>
+    </div>
+    <div><img loading="lazy" src="img/t3-loan.png" alt="Your loan 414,752, bank pays 73 percent, you pay 27 percent"></div>
+  </div>
+
+  <div class="step">
+    <div>
+      <h4><span class="n">2</span>See why the loan stops there</h4>
+      <div class="do"><b class="l">👉 Do this</b>Scroll to the block <b>✅ The bank’s two tests</b>.</div>
+      <div class="see"><b class="l">👀 You should see</b>Loan to cost: <b>$414,752</b>. Loan to ARV: <b>$576,000</b>. The smaller one is your limit: <b>$414,752</b>.</div>
+      <div class="why"><b class="l">💡 Why it matters</b>The bank runs two tests. One uses what the job costs. One uses what the finished house is worth (that is the ARV). The smaller answer wins.</div>
+      <div class="eg"><b class="l">🍋 Example</b>The bank has two rules. Rule 1: “We lend up to 80% of what it costs.” The stand costs $100, so that is $80. Rule 2: “We lend up to 72% of what it will be worth.” It will be worth $150, so that is $108. The bank uses the smaller number: $80.</div>
+    </div>
+    <div><img loading="lazy" src="img/t3-tests.png" alt="The bank's two tests"></div>
+  </div>
+
+  <div class="step">
+    <div>
+      <h4><span class="n">3</span>Read your cash</h4>
+      <div class="do"><b class="l">👉 Do this</b>Look at the four tiles. Then scroll to the last line, <b>Total cash you need</b>.</div>
+      <div class="see"><b class="l">👀 You should see</b>
+        Cash at closing: <b>$45,045</b><br>
+        You pay during the build: <b>$73,688</b><br>
+        Interest: <b>$36,622</b><br>
+        Cost of the money: <b>$49,417</b><br>
+        Total cash you need: <b>$155,355</b></div>
+      <div class="why"><b class="l">💡 Why it matters</b>Closing is the day you sign. You need $45,045 that day. You need $155,355 in all. Make sure you have it before you make an offer.</div>
+      <div class="eg"><b class="l">🍋 Example</b>Borrowing is like renting money. The rent is called interest. Borrow $100 at 10% for one year and the rent is $10. A “point” is a fee you pay on day one. Two points on $100 is $2.</div>
+    </div>
+    <div><img loading="lazy" src="img/t3-kpis.png" alt="Four loan tiles for Maple Street"><img loading="lazy" src="img/t3-grand.png" alt="Total cash you need 155,355"></div>
+  </div>
+
+  <div class="step">
+    <div>
+      <h4><span class="n">4</span>Flip one switch</h4>
+      <div class="do"><b class="l">👉 Do this</b>In the block <b>🏦 What the bank charges</b>, tap the switch <b>Interest reserve</b> to turn it on.</div>
+      <div class="see"><b class="l">👀 You should see</b>Total cash you need drops to <b>$126,894</b>. Your loan grows to <b>$444,976</b>. Interest goes up to <b>$37,780</b>.</div>
+      <div class="why"><b class="l">💡 Why it matters</b>With a reserve, the bank keeps the interest inside the loan and pays itself. You need less cash from your pocket. But the loan is bigger, so you pay more interest. Now tap the switch again to turn it off.</div>
+      <div class="eg"><b class="l">🍋 Example</b>You owe the bank $10 in rent on your loan. With a reserve, the bank says, “We will lend you $10 more, and use it to pay ourselves.” You keep your $10 today. But now you owe $90, not $80.</div>
+    </div>
+    <div><img loading="lazy" src="img/t3-switch-res.png" alt="Interest reserve switch turned on"><img loading="lazy" src="img/t3-grand-res.png" alt="Total cash you need 126,894 with the reserve on"></div>
+  </div>
+
+  <div class="tip green">
+    <b class="h">✅ Lesson 3 done. You learned:</b>
+    How much the bank lends, and why. How much cash you need on signing day and in all. That one switch can change your cash. On a real deal, type the numbers from your lender’s written quote.
+  </div>
+</section>
+
+<!-- ============ LESSON 4 ============ -->
+<section class="page" style="--c:#6A4BC9">
+  <div class="banner c-loi">
+    <div class="st">Lesson 4 · Step 4 in the app · LOI &amp; Due Diligence</div>
+    <h2>How do I make my offer?</h2>
+    <p>LOI means “letter of intent.” It is your offer letter. Due diligence means doing your homework on the land.</p>
+  </div>
+
+  <div class="step">
+    <div>
+      <h4><span class="n">1</span>Go to step 4 and look at the checklist</h4>
+      <div class="do"><b class="l">👉 Do this</b>Scroll to the bottom of step 3. Tap <b>Next: How do I make my offer? →</b>. Find the box <b>Letter checklist</b> on the answer side.</div>
+      <div class="see"><b class="l">👀 You should see</b><b>5 of 9 must-haves</b>. It lists what is missing. Also look at <b>Offer price</b>: it already says <b>150,000</b>, from lesson 1.</div>
+      <div class="why"><b class="l">💡 Why it matters</b>A letter needs 9 things before you send it. The app counts them for you.</div>
+      <div class="eg"><b class="l">🍋 Example</b>You want to buy a friend’s bike. You hand them a note: “I would like to buy your bike for $50, if it passes a test ride.” That note is like an LOI. It is not the real sale yet.</div>
+    </div>
+    <div><img loading="lazy" src="img/t4-check-a.png" alt="Letter checklist, 5 of 9 must-haves"><img loading="lazy" src="img/t4-money.png" alt="Offer price 150,000 linked, deposit 2,500 auto"></div>
+  </div>
+
+  <div class="step">
+    <div>
+      <h4><span class="n">2</span>Fill in who and what</h4>
+      <div class="do"><b class="l">👉 Do this</b>
+        In <b>Buyer</b>, type <span class="type">Maple Street Builders LLC</span><br>
+        In <b>Seller</b>, type <span class="type">Pat Seller</span><br>
+        In <b>Property</b>, type <span class="type">123 Maple Street</span><br>
+        In <b>What you plan to build</b>, type <span class="type">one single-family home</span><br>
+        In <b>Title / escrow company</b>, type <span class="type">Sample Title Company</span></div>
+      <div class="see"><b class="l">👀 You should see</b>The checklist climbs to <b>9 of 9 must-haves</b>. Confetti falls.</div>
+      <div class="eg"><b class="l">🍋 Example</b>A note that says “I will buy it” is not enough. It needs to say who is buying, who is selling, and which bike. A letter for land needs the same things.</div>
+    </div>
+    <div><img loading="lazy" src="img/t4-who.png" alt="Who and what block filled in"><img loading="lazy" src="img/t4-check-b.png" alt="Letter checklist, 9 of 9 must-haves"></div>
+  </div>
+
+  <div class="step">
+    <div>
+      <h4><span class="n">3</span>Read your letter</h4>
+      <div class="do"><b class="l">👉 Do this</b>Scroll to the block <b>✉️ Your letter</b>. Read the first few lines. Then tap <b>Copy letter</b>.</div>
+      <div class="see"><b class="l">👀 You should see</b>Your names, the property, and the price of <b>$150,000</b> are already in the letter. A message says <b>Letter copied</b>.</div>
+      <div class="why"><b class="l">💡 Why it matters</b>The letter wrote itself from the boxes you filled in. You can paste it into an email or a document.</div>
+      <div class="eg"><b class="l">🍋 Example</b>It is like a fill-in-the-blank story. You gave the names and the numbers. The app put them in the right blanks.</div>
+    </div>
+    <div><img loading="lazy" src="img/t4-letter.png" alt="The letter written by the app" class="crop"></div>
+  </div>
+
+  <div class="step">
+    <div>
+      <h4><span class="n">4</span>Read the four tiles</h4>
+      <div class="do"><b class="l">👉 Do this</b>Look at the four tiles above the letter.</div>
+      <div class="see"><b class="l">👀 You should see</b>
+        Deposit: <b>$2,500</b><br>
+        Land vs. finished value: <b>18.8%</b><br>
+        At risk before the deposit goes hard: <b>$5,000</b><br>
+        At risk after: <b>$7,500</b></div>
+      <div class="why"><b class="l">💡 Why it matters</b>“At risk” is money you can lose. Checking the land costs about $5,000 here. After your deposit is locked in (“goes hard”), you can lose the deposit too.</div>
+      <div class="eg"><b class="l">🍋 Example</b>You give your friend $5 to hold the bike for you. That is like earnest money. You also pay a bike shop $10 to check the brakes. If you walk away during the test week, you get the $5 back. You do not get the $10 back.</div>
+    </div>
+    <div><img loading="lazy" src="img/t4-kpis.png" alt="Four offer tiles for Maple Street"></div>
+  </div>
+
+  <div class="step">
+    <div>
+      <h4><span class="n">5</span>Give yourself more time</h4>
+      <div class="do"><b class="l">👉 Do this</b>Look at <b>📅 Key dates</b> and remember the date next to <b>Due diligence ends</b>. Then, in the block <b>📅 The dates</b>, change <b>Due diligence period</b> from 60 to <span class="type">90</span></div>
+      <div class="see"><b class="l">👀 You should see</b><b>Due diligence ends</b> moves 30 days later. <b>Closing</b> moves 30 days later too.</div>
+      <div class="why"><b class="l">💡 Why it matters</b>More days means more time to check the land before your deposit is locked in. Your dates will not match the picture. They count from the day you do this.</div>
+      <div class="eg"><b class="l">🍋 Example</b>Your friend gives you one week to test the bike. You ask for two weeks. Now you have more time to find a problem before your $5 is locked in.</div>
+    </div>
+    <div><img loading="lazy" src="img/t4-dates-90.png" alt="Key dates with a 90 day due diligence period"></div>
+  </div>
+
+  <div class="step">
+    <div>
+      <h4><span class="n">6</span>Start your homework list</h4>
+      <div class="do"><b class="l">👉 Do this</b>Scroll down to <b>3 · Due diligence checklist</b>. Tap the first line, <b>Sold comps and days on market</b>.</div>
+      <div class="see"><b class="l">👀 You should see</b>A check mark on that line. The count says <b>1 of 17 done</b>.</div>
+      <div class="why"><b class="l">💡 Why it matters</b>There are 17 things to check before your deposit is locked in. On a real deal, tap each one only when you have really done it.</div>
+      <div class="eg"><b class="l">🍋 Example</b>Before you buy the bike, you check the tires, the brakes and the chain. You tick each one off a list. The land checklist is the same idea, with 17 things to check.</div>
+    </div>
+    <div><img loading="lazy" src="img/t4-dd.png" alt="First due diligence check ticked"></div>
+  </div>
+
+  <div class="two" style="break-inside:avoid;font-size:10.5pt">
+  <div class="tip red">
+    <b class="h">This letter is for practice only</b>
+    Do not send it. On a real deal, have a real estate attorney read your letter first. The part where the seller stops taking other offers is a real promise once signed.
+  </div>
+  <div class="tip">
+    <b class="h">✅ Lesson 4 done. You learned:</b>
+    The price carries over. The letter needs 9 must-haves and writes itself. More days push your dates later. The checklist tracks your homework.
+  </div>
+  </div>
+</section>
+
+<!-- ============ YOUR TURN ============ -->
+<section class="page" style="--c:#2a2820">
+  <div class="banner c-all">
+    <div class="st">You did it</div>
+    <h2>Now try your own deal</h2>
+    <p>Go back to step 1. Tap Reset. Type the numbers for a real lot you are looking at.</p>
+  </div>
+
+  <h3>Your four numbers</h3>
+  <div class="sheet">
+    <div>Lot purchase price <i></i></div>
+    <div>Home size (sqft) <i></i></div>
+    <div>Build cost / sqft <i></i></div>
+    <div>Sale price / sqft <i></i></div>
+  </div>
+
+  <h3>What the app told you</h3>
+  <div class="sheet">
+    <div>Step 1 · Profit margin <i></i></div>
+    <div>Step 1 · Deal score <i></i></div>
+    <div>Step 1 · The most I should pay for the lot <i></i></div>
+    <div>Step 1 · Cash I need <i></i></div>
+    <div>Step 2 · Cheapest way to pay my builder <i></i></div>
+    <div>Step 2 · Cheapest way if the job costs 10% more <i></i></div>
+    <div>Step 3 · My loan <i></i></div>
+    <div>Step 3 · Total cash I need <i></i></div>
+    <div>Step 4 · Letter checklist (out of 9) <i></i></div>
+    <div>Step 4 · Homework checks done (out of 17) <i></i></div>
+  </div>
+
+  <div class="tip blue">
+    <b class="h">Stuck? Do these three things</b>
+    1. <b>Numbers do not match the tutorial?</b> A box was changed before. Go to step 1 and tap <b>Reset</b>, then start the lesson again. If they are still a little off, the app may have been updated since this was written. Look for the same idea.<br>
+    2. <b>Do not know what a box means?</b> Tap the gold <b>?</b> next to it. Or look it up in the <b>Main Math Easy Guide</b>.<br>
+    3. <b>Still stuck?</b> Take a screenshot of your screen, with your numbers showing, and send it to Rich. A picture makes it easy to answer.
+  </div>
+
+  <div class="tip red">
+    <b class="h">Please remember</b>
+    Main Math gives you <b>estimates</b>. It is a helper, not a promise. It is not legal, tax, lending or investment advice. Check your costs with real bids, your prices with homes that really sold, and your loan with a real lender. Have an attorney read any letter or contract before you sign.
+  </div>
+</section>
+</div>
+</body>
+</html>
