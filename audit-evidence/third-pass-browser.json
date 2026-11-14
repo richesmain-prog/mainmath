@@ -1,0 +1,39 @@
+{
+  "time": "2026-11-14T22:20:36.963Z",
+  "live": false,
+  "sourceSha256": "152db1261c717cea62e330e1fc13596cf4c7269b17f1672fa27584502b4a5358",
+  "errors": [],
+  "posts": [],
+  "checks": [
+    {
+      "workflow": "Spec acquisition → cost → profit → cash → max offer",
+      "profit": 115000,
+      "cash": 355000
+    },
+    {
+      "workflow": "GC linked costs → four owner bills → override → relink",
+      "ownerBills": [
+        249900.00000000003,
+        255647.50000000003,
+        283340,
+        287340
+      ]
+    },
+    {
+      "workflow": "Lender linked budget → loan/cash/interest → permanent payment",
+      "loan": 272000,
+      "cash": 102440,
+      "payment": 1809.622786887376
+    },
+    {
+      "workflow": "LOI linked offer → names → leap-year dates → usable letter",
+      "price": 100000,
+      "earnest": 1500
+    },
+    {
+      "workflow": "Four-tool deal → Save → Reset → Load → Export → Reset → Import → Reload",
+      "filename": "third-pass-complete-journey.json"
+    }
+  ],
+  "passed": true
+}
