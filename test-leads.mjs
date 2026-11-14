@@ -241,3 +241,41 @@ test('upstream timeout aborts the one attempt; status-write failure still preser
   assert.equal(statusFailure.records.get(lead.id).google_status, 'pending');
   await statusFailure.send(); assert.equal(statusFailure.calls.length, 1);
 });
+
+test('SQL-shaped names stay bound data and receipts expose neither contact details nor database errors', async () => {
+  const h = harness(), name = "Robert'); DROP TABLE leads;--", payload = { ...lead, name };
+  const response = await h.send(request(payload)), receipt = await response.text();
+  assert.equal(response.status, 200);
+  assert.deepEqual(JSON.parse(receipt), { ok: true, id: lead.id });
+  assert.equal(receipt.includes(name), false); assert.equal(receipt.includes(lead.email), false);
+  assert.equal(h.statements[0].sql.includes(name), false);
+  assert.equal(h.statements[0].args[1], name); assert.equal(h.records.get(lead.id).name, name);
+  await h.finish();
+  const failure = harness({ insertError: true });
+  const failed = await failure.send(request(payload));
+  assert.equal(failed.status, 503); assert.doesNotMatch(await failed.text(), /Private database error|DROP TABLE|builder@example/);
+});
+
+test('mass assignment and prototype properties are rejected; only edge IP selects the rate bucket', async () => {
+  const h = harness();
+  for (const extra of [{ google_status: 'confirmed' }, { created_at: '2000-01-01' }, { role: 'admin' },
+    JSON.parse('{"__proto__":{"polluted":true}}')]) {
+    const response = await h.send(request({ ...lead, ...extra }));
+    assert.equal(response.status, 400);
+  }
+  assert.equal({}.polluted, undefined); assert.equal(h.statements.length, 0);
+  await h.send(request(lead, { headers: { Origin: ORIGIN, 'Content-Type': 'application/json',
+    'CF-Connecting-IP': '192.0.2.2', 'X-Forwarded-For': '203.0.113.99' } }));
+  assert.equal(h.rateKeys.at(-1), '192.0.2.2'); await h.finish();
+  const missingEdge = harness();
+  await missingEdge.send(request(lead, { headers: { Origin: ORIGIN, 'Content-Type': 'application/json',
+    'X-Forwarded-For': '203.0.113.99' } }));
+  assert.deepEqual(missingEdge.rateKeys, ['unknown']); await missingEdge.finish();
+});
+
+test('oversized upstream HTML cannot consume unbounded body storage or lose the saved lead', async () => {
+  const h = harness({ html: ' '.repeat(256 * 1024 + 1) + confirmation });
+  assert.equal((await h.send()).status, 200); await h.finish();
+  assert.equal(h.records.get(lead.id).google_status, 'failed'); assert.equal(h.records.size, 1);
+  assert.equal((await h.send()).status, 200); assert.equal(h.calls.length, 1);
+});

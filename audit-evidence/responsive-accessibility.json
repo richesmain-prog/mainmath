@@ -1,0 +1,101 @@
+{
+  "environment": "Isolated hosted Chromium; latest local HTML preview on production origin; axe 4.10.3 WCAG2 A/AA,2.1AA,2.2AA,best-practice; all visible detail panels expanded",
+  "checks": [
+    {
+      "width": 320,
+      "tab": "spec",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "width": 320,
+      "tab": "contract",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "width": 320,
+      "tab": "lender",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "width": 320,
+      "tab": "loi",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "width": 375,
+      "tab": "spec",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "width": 375,
+      "tab": "contract",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "width": 375,
+      "tab": "lender",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "width": 375,
+      "tab": "loi",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "width": 768,
+      "tab": "spec",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "width": 768,
+      "tab": "contract",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "width": 768,
+      "tab": "lender",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "width": 768,
+      "tab": "loi",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "tab": "spec",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "tab": "contract",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "tab": "lender",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "tab": "loi",
+      "overflow": false,
+      "violations": []
+    }
+  ]
+}

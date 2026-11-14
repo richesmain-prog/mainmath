@@ -1,0 +1,1986 @@
+{
+  "controls": [
+    {
+      "tag": "button",
+      "id": "btnSaved",
+      "role": null,
+      "type": null,
+      "name": "Saved",
+      "tab": "shared",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": "btnPrint",
+      "role": null,
+      "type": null,
+      "name": "Print",
+      "tab": "shared",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": "heroOpen",
+      "role": null,
+      "type": null,
+      "name": "Open the calculator",
+      "tab": "shared",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": null,
+      "name": "1Is it a good deal?Spec Build. Type four numbers and find out if the lot is worth it.Start here →",
+      "tab": "shared",
+      "action": {
+        "go": "spec",
+        "c": "spec"
+      }
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": null,
+      "name": "2How do I pay my builder?Hire a GC. Compare four ways to pay and see which costs least.Open →",
+      "tab": "shared",
+      "action": {
+        "go": "contract",
+        "c": "contract"
+      }
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": null,
+      "name": "3What will my loan cost?Lender Terms. See how much the bank lends and what you bring.Open →",
+      "tab": "shared",
+      "action": {
+        "go": "lender",
+        "c": "lender"
+      }
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": null,
+      "name": "4How do I make my offer?LOI & Due Diligence. Write the letter and check the land.Open →",
+      "tab": "shared",
+      "action": {
+        "go": "loi",
+        "c": "loi"
+      }
+    },
+    {
+      "tag": "summary",
+      "id": null,
+      "role": null,
+      "type": null,
+      "name": "What the words mean ▾",
+      "tab": "shared",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": null,
+      "name": "Step 1 · Spec BuildIs it a good deal?Buy a lot, build a house, sell it.",
+      "tab": "shared",
+      "action": {
+        "tab": "spec"
+      }
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": null,
+      "name": "Step 2 · Hire a GCHow do I pay my builder?Four ways to pay. See which costs least.",
+      "tab": "shared",
+      "action": {
+        "tab": "contract"
+      }
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": null,
+      "name": "Step 3 · Lender TermsWhat will my loan cost?How much the bank lends, and what you bring.",
+      "tab": "shared",
+      "action": {
+        "tab": "lender"
+      }
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": null,
+      "name": "Step 4 · LOI & Due DiligenceHow do I make my offer?Write your offer letter. Check the land first.",
+      "tab": "shared",
+      "action": {
+        "tab": "loi"
+      }
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": null,
+      "name": "Quick LookSix boxes. We fill in the rest",
+      "tab": "specView",
+      "action": {
+        "mode": "quick"
+      }
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": null,
+      "name": "Full UnderwriteChange every number yourself",
+      "tab": "specView",
+      "action": {
+        "mode": "full"
+      }
+    },
+    {
+      "tag": "input",
+      "id": "dealName",
+      "role": null,
+      "type": "text",
+      "name": "Deal name for saving",
+      "tab": "specView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": null,
+      "name": "Empty LotGround-up build",
+      "tab": "specView",
+      "action": {
+        "type": "lot"
+      }
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": null,
+      "name": "Tear-DownDemo + rebuild",
+      "tab": "specView",
+      "action": {
+        "type": "teardown"
+      }
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": "button",
+      "name": "Explain Lot purchase price",
+      "tab": "specView",
+      "action": {}
+    },
+    {
+      "tag": "input",
+      "id": "purchasePrice",
+      "role": null,
+      "type": "text",
+      "name": "Lot purchase price?",
+      "tab": "specView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": "button",
+      "name": "Explain Buy closing costs",
+      "tab": "specView",
+      "action": {}
+    },
+    {
+      "tag": "input",
+      "id": "buyClosingPct",
+      "role": null,
+      "type": "text",
+      "name": "Buy closing costs?% of price",
+      "tab": "specView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": "button",
+      "name": "Explain Monthly carry",
+      "tab": "specView",
+      "action": {}
+    },
+    {
+      "tag": "input",
+      "id": "monthlyCarry",
+      "role": null,
+      "type": "text",
+      "name": "Monthly carry?tax, ins, utils",
+      "tab": "specView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": "button",
+      "name": "Explain Demolition cost",
+      "tab": "specView",
+      "action": {}
+    },
+    {
+      "tag": "input",
+      "id": "demoCost",
+      "role": null,
+      "type": "text",
+      "name": "Demolition cost?",
+      "tab": "specView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": "button",
+      "name": "Explain Home size (sqft)",
+      "tab": "specView",
+      "action": {}
+    },
+    {
+      "tag": "input",
+      "id": "buildableSqft",
+      "role": null,
+      "type": "text",
+      "name": "Home size (sqft)?heated area",
+      "tab": "specView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": "button",
+      "name": "Explain Build cost / sqft",
+      "tab": "specView",
+      "action": {}
+    },
+    {
+      "tag": "input",
+      "id": "buildCostPerSqft",
+      "role": null,
+      "type": "text",
+      "name": "Build cost / sqft?hard cost",
+      "tab": "specView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": "button",
+      "name": "Explain Build months",
+      "tab": "specView",
+      "action": {}
+    },
+    {
+      "tag": "input",
+      "id": "buildMonths",
+      "role": null,
+      "type": "text",
+      "name": "Build months?",
+      "tab": "specView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": "button",
+      "name": "Explain Soft costs",
+      "tab": "specView",
+      "action": {}
+    },
+    {
+      "tag": "input",
+      "id": "softCostPct",
+      "role": null,
+      "type": "text",
+      "name": "Soft costs?% of hard",
+      "tab": "specView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": "button",
+      "name": "Explain Contingency",
+      "tab": "specView",
+      "action": {}
+    },
+    {
+      "tag": "input",
+      "id": "contingencyPct",
+      "role": null,
+      "type": "text",
+      "name": "Contingency?",
+      "tab": "specView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": "button",
+      "name": "Explain Permits & fees",
+      "tab": "specView",
+      "action": {}
+    },
+    {
+      "tag": "input",
+      "id": "permitFees",
+      "role": null,
+      "type": "text",
+      "name": "Permits & fees?",
+      "tab": "specView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": "button",
+      "name": "Explain Sale price / sqft",
+      "tab": "specView",
+      "action": {}
+    },
+    {
+      "tag": "input",
+      "id": "salePerSqft",
+      "role": null,
+      "type": "text",
+      "name": "Sale price / sqft?from sold homes",
+      "tab": "specView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": "button",
+      "name": "Explain Months to sell after finish",
+      "tab": "specView",
+      "action": {}
+    },
+    {
+      "tag": "input",
+      "id": "sellMonths",
+      "role": null,
+      "type": "text",
+      "name": "Months to sell after finish?",
+      "tab": "specView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": "button",
+      "name": "Explain Selling costs",
+      "tab": "specView",
+      "action": {}
+    },
+    {
+      "tag": "input",
+      "id": "sellingCostPct",
+      "role": null,
+      "type": "text",
+      "name": "Selling costs?% of sale",
+      "tab": "specView",
+      "action": {}
+    },
+    {
+      "tag": "summary",
+      "id": null,
+      "role": null,
+      "type": null,
+      "name": "🏦 Loan and partner ▾",
+      "tab": "specView",
+      "action": {}
+    },
+    {
+      "tag": "div",
+      "id": "swLoan",
+      "role": "switch",
+      "type": null,
+      "name": "Use a loanOff = you pay all cash. No points, no interest",
+      "tab": "specView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": "button",
+      "name": "Explain Loan to cost",
+      "tab": "specView",
+      "action": {}
+    },
+    {
+      "tag": "input",
+      "id": "ltcPct",
+      "role": null,
+      "type": "text",
+      "name": "Loan to cost?",
+      "tab": "specView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": "button",
+      "name": "Explain Max loan to ARV",
+      "tab": "specView",
+      "action": {}
+    },
+    {
+      "tag": "input",
+      "id": "maxLtvPct",
+      "role": null,
+      "type": "text",
+      "name": "Max loan to ARV?",
+      "tab": "specView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": "button",
+      "name": "Explain Interest rate",
+      "tab": "specView",
+      "action": {}
+    },
+    {
+      "tag": "input",
+      "id": "ratePct",
+      "role": null,
+      "type": "text",
+      "name": "Interest rate?",
+      "tab": "specView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": "button",
+      "name": "Explain Points",
+      "tab": "specView",
+      "action": {}
+    },
+    {
+      "tag": "input",
+      "id": "pointsPct",
+      "role": null,
+      "type": "text",
+      "name": "Points?",
+      "tab": "specView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": "button",
+      "name": "Explain Lender fees",
+      "tab": "specView",
+      "action": {}
+    },
+    {
+      "tag": "input",
+      "id": "lenderFee",
+      "role": null,
+      "type": "text",
+      "name": "Lender fees?",
+      "tab": "specView",
+      "action": {}
+    },
+    {
+      "tag": "div",
+      "id": "swMethod",
+      "role": "switch",
+      "type": null,
+      "name": "Interest only on money you have drawnOff = interest on the whole loan from day one",
+      "tab": "specView",
+      "action": {}
+    },
+    {
+      "tag": "div",
+      "id": "swPartner",
+      "role": "switch",
+      "type": null,
+      "name": "Partner on the dealOff = you keep 100% of profit and cash",
+      "tab": "specView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": "button",
+      "name": "Explain My share of profit",
+      "tab": "specView",
+      "action": {}
+    },
+    {
+      "tag": "input",
+      "id": "myProfitShare",
+      "role": null,
+      "type": "text",
+      "name": "My share of profit?",
+      "tab": "specView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": "button",
+      "name": "Explain My share of cash in",
+      "tab": "specView",
+      "action": {}
+    },
+    {
+      "tag": "input",
+      "id": "myCashShare",
+      "role": null,
+      "type": "text",
+      "name": "My share of cash in?",
+      "tab": "specView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": "button",
+      "name": "Explain Target net margin",
+      "tab": "specView",
+      "action": {}
+    },
+    {
+      "tag": "input",
+      "id": "targetMarginPct",
+      "role": null,
+      "type": "text",
+      "name": "Target net margin?",
+      "tab": "specView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": "button",
+      "name": "Explain Target annual return",
+      "tab": "specView",
+      "action": {}
+    },
+    {
+      "tag": "input",
+      "id": "targetIrrPct",
+      "role": null,
+      "type": "text",
+      "name": "Target annual return?",
+      "tab": "specView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": "btnSave",
+      "role": null,
+      "type": null,
+      "name": "Save deal",
+      "tab": "specView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": "btnCopy",
+      "role": null,
+      "type": null,
+      "name": "Copy summary",
+      "tab": "specView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": "btnExport",
+      "role": null,
+      "type": null,
+      "name": "Export file",
+      "tab": "specView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": "btnImport",
+      "role": null,
+      "type": null,
+      "name": "Import file",
+      "tab": "specView",
+      "action": {}
+    },
+    {
+      "tag": "input",
+      "id": "importFile",
+      "role": null,
+      "type": "file",
+      "name": "",
+      "tab": "specView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": "btnReset",
+      "role": null,
+      "type": null,
+      "name": "Reset",
+      "tab": "specView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": null,
+      "name": "15%",
+      "tab": "specView",
+      "action": {
+        "t": "15"
+      }
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": null,
+      "name": "20%",
+      "tab": "specView",
+      "action": {
+        "t": "20"
+      }
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": null,
+      "name": "25%",
+      "tab": "specView",
+      "action": {
+        "t": "25"
+      }
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": null,
+      "name": "30%",
+      "tab": "specView",
+      "action": {
+        "t": "30"
+      }
+    },
+    {
+      "tag": "input",
+      "id": "targetInline",
+      "role": null,
+      "type": "text",
+      "name": "Profit target percent",
+      "tab": "specView",
+      "action": {}
+    },
+    {
+      "tag": "summary",
+      "id": null,
+      "role": null,
+      "type": null,
+      "name": "What if costs or prices change? ▾",
+      "tab": "specView",
+      "action": {}
+    },
+    {
+      "tag": "summary",
+      "id": null,
+      "role": null,
+      "type": null,
+      "name": "Month-by-month cash ▾",
+      "tab": "specView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": null,
+      "name": "Next: How do I pay my builder? →",
+      "tab": "specView",
+      "action": {
+        "go": "contract"
+      }
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": "button",
+      "name": "Explain Cost of the work",
+      "tab": "contractView",
+      "action": {}
+    },
+    {
+      "tag": "input",
+      "id": "cHard",
+      "role": null,
+      "type": "text",
+      "name": "Cost of the work?from Spec Build",
+      "tab": "contractView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": "button",
+      "name": "Explain Permits & fees",
+      "tab": "contractView",
+      "action": {}
+    },
+    {
+      "tag": "input",
+      "id": "cPermits",
+      "role": null,
+      "type": "text",
+      "name": "Permits & fees?from Spec Build",
+      "tab": "contractView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": "button",
+      "name": "Explain Contingency",
+      "tab": "contractView",
+      "action": {}
+    },
+    {
+      "tag": "input",
+      "id": "cContPct",
+      "role": null,
+      "type": "text",
+      "name": "Contingency?from Spec Build",
+      "tab": "contractView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": "button",
+      "name": "Explain Design & engineering",
+      "tab": "contractView",
+      "action": {}
+    },
+    {
+      "tag": "input",
+      "id": "cDesign",
+      "role": null,
+      "type": "text",
+      "name": "Design & engineering?from Spec Build",
+      "tab": "contractView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": "button",
+      "name": "Explain GC fee",
+      "tab": "contractView",
+      "action": {}
+    },
+    {
+      "tag": "input",
+      "id": "cFeePct",
+      "role": null,
+      "type": "text",
+      "name": "GC fee?cost-plus & GMP",
+      "tab": "contractView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": "button",
+      "name": "Explain GC’s share of savings",
+      "tab": "contractView",
+      "action": {}
+    },
+    {
+      "tag": "input",
+      "id": "cSharePct",
+      "role": null,
+      "type": "text",
+      "name": "GC’s share of savings?GMP",
+      "tab": "contractView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": "button",
+      "name": "Explain GMP cap",
+      "tab": "contractView",
+      "action": {}
+    },
+    {
+      "tag": "input",
+      "id": "cGmp",
+      "role": null,
+      "type": "text",
+      "name": "GMP cap?auto",
+      "tab": "contractView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": "button",
+      "name": "Explain GC markup, lump sum",
+      "tab": "contractView",
+      "action": {}
+    },
+    {
+      "tag": "input",
+      "id": "cLumpPct",
+      "role": null,
+      "type": "text",
+      "name": "GC markup, lump sum?",
+      "tab": "contractView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": "button",
+      "name": "Explain GC markup, design-build",
+      "tab": "contractView",
+      "action": {}
+    },
+    {
+      "tag": "input",
+      "id": "cDbPct",
+      "role": null,
+      "type": "text",
+      "name": "GC markup, design-build?",
+      "tab": "contractView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": "cRelink",
+      "role": null,
+      "type": null,
+      "name": "Use Spec Build numbers",
+      "tab": "contractView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": "cReset",
+      "role": null,
+      "type": null,
+      "name": "Reset terms",
+      "tab": "contractView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": null,
+      "name": "−10%",
+      "tab": "contractView",
+      "action": {
+        "v": "-10"
+      }
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": null,
+      "name": "−5%",
+      "tab": "contractView",
+      "action": {
+        "v": "-5"
+      }
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": null,
+      "name": "On budget",
+      "tab": "contractView",
+      "action": {
+        "v": "0"
+      }
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": null,
+      "name": "+5%",
+      "tab": "contractView",
+      "action": {
+        "v": "5"
+      }
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": null,
+      "name": "+10%",
+      "tab": "contractView",
+      "action": {
+        "v": "10"
+      }
+    },
+    {
+      "tag": "input",
+      "id": "cVar",
+      "role": null,
+      "type": "text",
+      "name": "Actual cost versus estimate, percent",
+      "tab": "contractView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": null,
+      "name": "Next: What will my loan cost? →",
+      "tab": "contractView",
+      "action": {
+        "go": "lender"
+      }
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": null,
+      "name": "Build & sell loanAcquisition + construction. Paid off when it sells",
+      "tab": "lenderView",
+      "action": {
+        "loan": "ac"
+      }
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": null,
+      "name": "Construction-to-permTurns into a long mortgage when the build is done",
+      "tab": "lenderView",
+      "action": {
+        "loan": "c2p"
+      }
+    },
+    {
+      "tag": "div",
+      "id": "swOwn",
+      "role": "switch",
+      "type": null,
+      "name": "I already own the lotOff = the loan helps you buy it",
+      "tab": "lenderView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": "button",
+      "name": "Explain Lot purchase price",
+      "tab": "lenderView",
+      "action": {}
+    },
+    {
+      "tag": "input",
+      "id": "lLot",
+      "role": null,
+      "type": "text",
+      "name": "Lot purchase price? linked",
+      "tab": "lenderView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": "button",
+      "name": "Explain What you still owe on the lot",
+      "tab": "lenderView",
+      "action": {}
+    },
+    {
+      "tag": "input",
+      "id": "lOwed",
+      "role": null,
+      "type": "text",
+      "name": "What you still owe on the lot?",
+      "tab": "lenderView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": "button",
+      "name": "Explain Construction budget",
+      "tab": "lenderView",
+      "action": {}
+    },
+    {
+      "tag": "input",
+      "id": "lBuild",
+      "role": null,
+      "type": "text",
+      "name": "Construction budget?linked",
+      "tab": "lenderView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": "button",
+      "name": "Explain Finished value (ARV)",
+      "tab": "lenderView",
+      "action": {}
+    },
+    {
+      "tag": "input",
+      "id": "lArv",
+      "role": null,
+      "type": "text",
+      "name": "Finished value (ARV)?linked",
+      "tab": "lenderView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": "button",
+      "name": "Explain Build months",
+      "tab": "lenderView",
+      "action": {}
+    },
+    {
+      "tag": "input",
+      "id": "lMonths",
+      "role": null,
+      "type": "text",
+      "name": "Build months?linked",
+      "tab": "lenderView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": "button",
+      "name": "Explain Months to sell after finish",
+      "tab": "lenderView",
+      "action": {}
+    },
+    {
+      "tag": "input",
+      "id": "lSell",
+      "role": null,
+      "type": "text",
+      "name": "Months to sell after finish?linked",
+      "tab": "lenderView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": "button",
+      "name": "Explain Loan to cost (LTC)",
+      "tab": "lenderView",
+      "action": {}
+    },
+    {
+      "tag": "input",
+      "id": "lLtc",
+      "role": null,
+      "type": "text",
+      "name": "Loan to cost (LTC)?linked",
+      "tab": "lenderView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": "button",
+      "name": "Explain Max loan to ARV",
+      "tab": "lenderView",
+      "action": {}
+    },
+    {
+      "tag": "input",
+      "id": "lLtv",
+      "role": null,
+      "type": "text",
+      "name": "Max loan to ARV?linked",
+      "tab": "lenderView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": "button",
+      "name": "Explain Lot funded at closing",
+      "tab": "lenderView",
+      "action": {}
+    },
+    {
+      "tag": "input",
+      "id": "lLandAdv",
+      "role": null,
+      "type": "text",
+      "name": "Lot funded at closing?auto",
+      "tab": "lenderView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": "button",
+      "name": "Explain Interest rate",
+      "tab": "lenderView",
+      "action": {}
+    },
+    {
+      "tag": "input",
+      "id": "lRate",
+      "role": null,
+      "type": "text",
+      "name": "Interest rate?linked",
+      "tab": "lenderView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": "button",
+      "name": "Explain Points",
+      "tab": "lenderView",
+      "action": {}
+    },
+    {
+      "tag": "input",
+      "id": "lPoints",
+      "role": null,
+      "type": "text",
+      "name": "Points?linked",
+      "tab": "lenderView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": "button",
+      "name": "Explain Lender fees",
+      "tab": "lenderView",
+      "action": {}
+    },
+    {
+      "tag": "input",
+      "id": "lFees",
+      "role": null,
+      "type": "text",
+      "name": "Lender fees?linked",
+      "tab": "lenderView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": "button",
+      "name": "Explain Closing costs",
+      "tab": "lenderView",
+      "action": {}
+    },
+    {
+      "tag": "input",
+      "id": "lClosing",
+      "role": null,
+      "type": "text",
+      "name": "Closing costs?linked",
+      "tab": "lenderView",
+      "action": {}
+    },
+    {
+      "tag": "div",
+      "id": "swDutch",
+      "role": "switch",
+      "type": null,
+      "name": "Interest on the full loan from day oneOff = interest only on the money you have drawn",
+      "tab": "lenderView",
+      "action": {}
+    },
+    {
+      "tag": "div",
+      "id": "swReserve",
+      "role": "switch",
+      "type": null,
+      "name": "Interest reserveOn = the lender holds the interest inside the loan and pays itself. Off = you pay interest monthly out of pocket",
+      "tab": "lenderView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": "button",
+      "name": "Explain Mortgage rate",
+      "tab": "lenderView",
+      "action": {}
+    },
+    {
+      "tag": "input",
+      "id": "lPermRate",
+      "role": null,
+      "type": "text",
+      "name": "Mortgage rate?",
+      "tab": "lenderView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": "button",
+      "name": "Explain Mortgage length",
+      "tab": "lenderView",
+      "action": {}
+    },
+    {
+      "tag": "input",
+      "id": "lPermYears",
+      "role": null,
+      "type": "text",
+      "name": "Mortgage length?",
+      "tab": "lenderView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": "lRelink",
+      "role": null,
+      "type": null,
+      "name": "Use Spec Build numbers",
+      "tab": "lenderView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": null,
+      "name": "Next: How do I make my offer? →",
+      "tab": "lenderView",
+      "action": {
+        "go": "loi"
+      }
+    },
+    {
+      "tag": "input",
+      "id": "oBuyer",
+      "role": null,
+      "type": "text",
+      "name": "Buyer",
+      "tab": "loiView",
+      "action": {}
+    },
+    {
+      "tag": "input",
+      "id": "oSeller",
+      "role": null,
+      "type": "text",
+      "name": "Seller",
+      "tab": "loiView",
+      "action": {}
+    },
+    {
+      "tag": "input",
+      "id": "oProp",
+      "role": null,
+      "type": "text",
+      "name": "Property",
+      "tab": "loiView",
+      "action": {}
+    },
+    {
+      "tag": "input",
+      "id": "oUse",
+      "role": null,
+      "type": "text",
+      "name": "What you plan to build",
+      "tab": "loiView",
+      "action": {}
+    },
+    {
+      "tag": "input",
+      "id": "oTitleCo",
+      "role": null,
+      "type": "text",
+      "name": "Title / escrow company",
+      "tab": "loiView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": "button",
+      "name": "Explain Offer price",
+      "tab": "loiView",
+      "action": {}
+    },
+    {
+      "tag": "input",
+      "id": "oPrice",
+      "role": null,
+      "type": "text",
+      "name": "Offer price?linked",
+      "tab": "loiView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": "button",
+      "name": "Explain Earnest money deposit",
+      "tab": "loiView",
+      "action": {}
+    },
+    {
+      "tag": "input",
+      "id": "oEarnest",
+      "role": null,
+      "type": "text",
+      "name": "Earnest money deposit?auto",
+      "tab": "loiView",
+      "action": {}
+    },
+    {
+      "tag": "input",
+      "id": "oDate",
+      "role": null,
+      "type": "date",
+      "name": "LOI date",
+      "tab": "loiView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": "button",
+      "name": "Explain Offer stays open",
+      "tab": "loiView",
+      "action": {}
+    },
+    {
+      "tag": "input",
+      "id": "oValid",
+      "role": null,
+      "type": "text",
+      "name": "Offer stays open?",
+      "tab": "loiView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": "button",
+      "name": "Explain Due diligence period",
+      "tab": "loiView",
+      "action": {}
+    },
+    {
+      "tag": "input",
+      "id": "oDD",
+      "role": null,
+      "type": "text",
+      "name": "Due diligence period?",
+      "tab": "loiView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": "button",
+      "name": "Explain Close after due diligence",
+      "tab": "loiView",
+      "action": {}
+    },
+    {
+      "tag": "input",
+      "id": "oClose",
+      "role": null,
+      "type": "text",
+      "name": "Close after due diligence?",
+      "tab": "loiView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": "kPermit",
+      "role": "checkbox",
+      "type": "button",
+      "name": "✓Permit-ready before closingYou close when the building permit is ready to pull. The usual out for one house.",
+      "tab": "loiView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": "kApprovals",
+      "role": "checkbox",
+      "type": "button",
+      "name": "✓All municipal approvalsThe word “all” covers zoning, public works, the fire marshal and the utility companies.",
+      "tab": "loiView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": "kDensity",
+      "role": "checkbox",
+      "type": "button",
+      "name": "✓Minimum number of unitsFor apartments or a lot split. No approval for your unit count, no deal.",
+      "tab": "loiView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": "kLoan",
+      "role": "checkbox",
+      "type": "button",
+      "name": "✓Construction loan commitmentNo loan, no purchase.",
+      "tab": "loiView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": "kTitle",
+      "role": "checkbox",
+      "type": "button",
+      "name": "✓Clear title and surveyNo surprise liens, easements or boundary problems.",
+      "tab": "loiView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": "kExt",
+      "role": "checkbox",
+      "type": "button",
+      "name": "✓Extensions if approvals run lateExtra time when the city is slow. You show the seller your progress.",
+      "tab": "loiView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": "kCoop",
+      "role": "checkbox",
+      "type": "button",
+      "name": "✓Seller lets you pursue permitsThe seller signs as owner on city, county and state paperwork while you seek approvals.",
+      "tab": "loiView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": "kDocs",
+      "role": "checkbox",
+      "type": "button",
+      "name": "✓Seller hands over all property documentsAny survey, title policy, soil or environmental reports, plans and permits they already have.",
+      "tab": "loiView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": "kAccess",
+      "role": "checkbox",
+      "type": "button",
+      "name": "✓Site access for testsYou can walk the land and bring in a surveyor and soil crew.",
+      "tab": "loiView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": "kAssign",
+      "role": "checkbox",
+      "type": "button",
+      "name": "✓Buyer “or assigns”Lets you close in a different company name.",
+      "tab": "loiView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": "button",
+      "name": "Explain Minimum units",
+      "tab": "loiView",
+      "action": {}
+    },
+    {
+      "tag": "input",
+      "id": "oUnits",
+      "role": null,
+      "type": "text",
+      "name": "Minimum units?",
+      "tab": "loiView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": "button",
+      "name": "Explain Extensions",
+      "tab": "loiView",
+      "action": {}
+    },
+    {
+      "tag": "input",
+      "id": "oExtN",
+      "role": null,
+      "type": "text",
+      "name": "Extensions?",
+      "tab": "loiView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": "button",
+      "name": "Explain Days per extension",
+      "tab": "loiView",
+      "action": {}
+    },
+    {
+      "tag": "input",
+      "id": "oExtDays",
+      "role": null,
+      "type": "text",
+      "name": "Days per extension?",
+      "tab": "loiView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": "button",
+      "name": "Explain Seller stops shopping it",
+      "tab": "loiView",
+      "action": {}
+    },
+    {
+      "tag": "input",
+      "id": "oExcl",
+      "role": null,
+      "type": "text",
+      "name": "Seller stops shopping it?",
+      "tab": "loiView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": "oRelink",
+      "role": null,
+      "type": null,
+      "name": "Use Spec Build price",
+      "tab": "loiView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": "oClear",
+      "role": null,
+      "type": null,
+      "name": "Clear the letter",
+      "tab": "loiView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": "oCopy",
+      "role": null,
+      "type": null,
+      "name": "Copy letter",
+      "tab": "loiView",
+      "action": {}
+    },
+    {
+      "tag": "summary",
+      "id": null,
+      "role": null,
+      "type": null,
+      "name": "How to play it ▾",
+      "tab": "loiView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": "dd-comps",
+      "role": "checkbox",
+      "type": "button",
+      "name": "✓Sold comps and days on marketBanks follow comps. Know what finished homes really sold for, and how fast.",
+      "tab": "loiView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": "dd-seller",
+      "role": "checkbox",
+      "type": "button",
+      "name": "✓Why is the seller selling?Ask the owner, not just the broker. If they need a fast close, find out why.",
+      "tab": "loiView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": "dd-stress",
+      "role": "checkbox",
+      "type": "button",
+      "name": "✓Stress-test the dealRun it with delays, higher costs and a lower sale price. The Spec Build tab has that table.",
+      "tab": "loiView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": "dd-city",
+      "role": "checkbox",
+      "type": "button",
+      "name": "✓Meet the city firstBring a map screenshot, the parcel number and the address. Ask: will you support what I want to build?",
+      "tab": "loiView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": "dd-zoning",
+      "role": "checkbox",
+      "type": "button",
+      "name": "✓Zoning is not enoughConfirm the use, unit count after parking, setbacks, height, fire rules, and any extra approval.",
+      "tab": "loiView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": "dd-fees",
+      "role": "checkbox",
+      "type": "button",
+      "name": "✓Impact fees, permits and metersRequest the municipality’s fee schedule for your use and unit count. Include impact fees, permits, meters and connections.",
+      "tab": "loiView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": "dd-hoa",
+      "role": "checkbox",
+      "type": "button",
+      "name": "✓HOA and deed restrictionsLook for rules on setbacks, height and what you can build.",
+      "tab": "loiView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": "dd-util",
+      "role": "checkbox",
+      "type": "button",
+      "name": "✓Utilities at the lot, not “down the road”Confirm power, water, sewer and gas availability. Get written connection, extension and well quotes for this parcel.",
+      "tab": "loiView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": "dd-sewer",
+      "role": "checkbox",
+      "type": "button",
+      "name": "✓Sewer or septicConfirm a sewer connection or approved septic design. Get a site-specific installation quote, including soil and pump requirements.",
+      "tab": "loiView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": "dd-flood",
+      "role": "checkbox",
+      "type": "button",
+      "name": "✓Flood zone and wetlandsThey add engineering and cost. New builders should avoid them.",
+      "tab": "loiView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": "dd-access",
+      "role": "checkbox",
+      "type": "button",
+      "name": "✓Road access and easementsIf the lot is not on a public road, get the access in writing. Look for easements nobody mentioned.",
+      "tab": "loiView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": "dd-soil",
+      "role": "checkbox",
+      "type": "button",
+      "name": "✓Soil and gradingGet a geotechnical scope and quote for this parcel. Rock, clay, slopes and drainage can change foundation and grading costs.",
+      "tab": "loiView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": "dd-enviro",
+      "role": "checkbox",
+      "type": "button",
+      "name": "✓EnvironmentalAsk an environmental professional which assessment the site and lender require. Budget the quoted scope and any follow-up testing.",
+      "tab": "loiView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": "dd-survey",
+      "role": "checkbox",
+      "type": "button",
+      "name": "✓SurveyAsk the seller for an existing survey. Confirm its scope and age are acceptable, then obtain a current quote if needed.",
+      "tab": "loiView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": "dd-title",
+      "role": "checkbox",
+      "type": "button",
+      "name": "✓Title reportRead the exceptions (Schedule B). They must be clean by closing.",
+      "tab": "loiView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": "dd-arch",
+      "role": "checkbox",
+      "type": "button",
+      "name": "✓Local architectHire one with projects in that city. Public permit records show who builds there.",
+      "tab": "loiView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": "dd-drive",
+      "role": "checkbox",
+      "type": "button",
+      "name": "✓Drive the lotBoots on the ground. Look at the neighbors, the slope, power lines and traffic.",
+      "tab": "loiView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": "button",
+      "name": "Explain Survey",
+      "tab": "loiView",
+      "action": {}
+    },
+    {
+      "tag": "input",
+      "id": "oSurvey",
+      "role": null,
+      "type": "text",
+      "name": "Survey?",
+      "tab": "loiView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": "button",
+      "name": "Explain Soil test",
+      "tab": "loiView",
+      "action": {}
+    },
+    {
+      "tag": "input",
+      "id": "oSoil",
+      "role": null,
+      "type": "text",
+      "name": "Soil test?",
+      "tab": "loiView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": "button",
+      "name": "Explain Environmental",
+      "tab": "loiView",
+      "action": {}
+    },
+    {
+      "tag": "input",
+      "id": "oEnviro",
+      "role": null,
+      "type": "text",
+      "name": "Environmental?",
+      "tab": "loiView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": "button",
+      "name": "Explain Other (architect sketch, civil, fees)",
+      "tab": "loiView",
+      "action": {}
+    },
+    {
+      "tag": "input",
+      "id": "oOther",
+      "role": null,
+      "type": "text",
+      "name": "Other (architect sketch, civil, fees)?",
+      "tab": "loiView",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": null,
+      "name": "← Back to step 1: Is it a good deal?",
+      "tab": "loiView",
+      "action": {
+        "go": "spec"
+      }
+    },
+    {
+      "tag": "button",
+      "id": "closeSaved",
+      "role": null,
+      "type": null,
+      "name": "Close",
+      "tab": "shared",
+      "action": {}
+    },
+    {
+      "tag": "textarea",
+      "id": "copyText",
+      "role": null,
+      "type": null,
+      "name": "Text to copy",
+      "tab": "shared",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": "submit",
+      "name": "Close",
+      "tab": "shared",
+      "action": {}
+    },
+    {
+      "tag": "input",
+      "id": "gName",
+      "role": null,
+      "type": null,
+      "name": "Your name",
+      "tab": "shared",
+      "action": {}
+    },
+    {
+      "tag": "input",
+      "id": "gEmail",
+      "role": null,
+      "type": "email",
+      "name": "Email",
+      "tab": "shared",
+      "action": {}
+    },
+    {
+      "tag": "button",
+      "id": null,
+      "role": null,
+      "type": "submit",
+      "name": "Show me the numbers",
+      "tab": "shared",
+      "action": {}
+    }
+  ],
+  "links": [
+    {
+      "text": "rich@themainbuild.com",
+      "href": "mailto:rich@themainbuild.com"
+    }
+  ],
+  "externalScripts": []
+}
