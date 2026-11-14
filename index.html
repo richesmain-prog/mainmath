@@ -1111,24 +1111,16 @@
     <p>This tool is free. Put your name and email in and it opens. I'll send deal notes and new tools — no spam, and I never sell your details.</p>
     <form id="gateForm" novalidate>
       <label for="gName">Your name</label>
-      <input id="gName" name="name" autocomplete="given-name" placeholder="Rich" />
+      <input id="gName" name="name" autocomplete="given-name" maxlength="120" placeholder="Rich" />
       <label for="gEmail">Email</label>
-      <input id="gEmail" name="email" type="email" inputmode="email" autocomplete="email" placeholder="you@company.com" />
+      <input id="gEmail" name="email" type="email" inputmode="email" autocomplete="email" maxlength="254" placeholder="you@company.com" />
       <div class="err" id="gErr" role="alert">Add your name and a real email.</div>
       <button type="submit">Show me the numbers</button>
     </form>
-    <p class="fine">Rich Main collects your name and email using Google Forms. Your details are never sold.<br>
+    <p class="fine">Rich Main stores your name and email with Cloudflare and forwards them to Google Forms. Your details are never sold.<br>
       Prefer email? <a href="mailto:rich@themainbuild.com" style="color:#B9B4A6">rich@themainbuild.com</a></p>
   </div>
 </div>
-<iframe name="lead_sink" id="lead_sink" style="display:none;width:0;height:0;border:0" title="lead"></iframe>
-<form id="leadRelay" method="POST"
-      action="https://docs.google.com/forms/d/e/1FAIpQLSfxLUhlAtO-GgRuLUBJytS20Zcj5Sq3-tmNhHQ-AQpZwS-BCQ/formResponse"
-      target="lead_sink" style="display:none">
-  <input type="hidden" name="entry.2063287317" id="relaySource" value="MainMath website" />
-  <input type="hidden" name="entry.525677922" id="relayName" />
-  <input type="hidden" name="entry.940776747" id="relayEmail" />
-</form>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
@@ -2995,26 +2987,38 @@
     if(unlocked()){$('segTab').scrollIntoView({behavior:'smooth',block:'start'});}
     else openGate();
   });
-  $('gateForm').addEventListener('submit',function(e){
+  var sending=false, attempt=null;
+  $('gateForm').addEventListener('submit',async function(e){
     e.preventDefault();
+    if(sending)return;
     var name=$('gName').value.trim();
     var email=$('gEmail').value.trim();
     var err=$('gErr');
-    if(name.length<2||!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){err.textContent='Add your name and a real email.';err.style.display='block';return;}
+    if(name.length<2||name.length>120||email.length>254||!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){err.textContent='Add your name and a real email.';err.style.display='block';return;}
     if(navigator.onLine===false){err.textContent='You are offline. Reconnect and try again; your details have not been sent.';err.style.display='block';return;}
     err.style.display='none';
-    var lead={name:name,email:email,ts:new Date().toISOString()};
-    // The cross-origin iframe cannot confirm that Google stored the response.
-    $('relayName').value=name; $('relayEmail').value=email;
-    $('relaySource').value='MainMath website';
-    try{$('leadRelay').submit();}catch(e3){err.textContent='Could not send your details. Please try again.';err.style.display='block';return;}
-    saved=lead;
-    try{localStorage.setItem(KEY,JSON.stringify(lead));}catch(e2){}
-    closeGate();
-    paintTrial();
-    $('segTab').scrollIntoView({behavior:'smooth',block:'start'});
-    var t=$('toast');t.textContent='You are in. Your numbers are live below.';
-    t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2800);
+    var button=$('gateForm').querySelector('button[type="submit"]');
+    sending=true;button.disabled=true;button.textContent='Saving your details…';
+    var controller=new AbortController(), timer=setTimeout(function(){controller.abort();},15000);
+    try{
+      if(!attempt||attempt.name!==name||attempt.email!==email)attempt={id:crypto.randomUUID(),name:name,email:email};
+      var response=await fetch('https://math-api.therichmain.com/leads',{
+        method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(attempt),signal:controller.signal
+      });
+      var receipt=await response.json();
+      if(!response.ok||receipt.ok!==true||receipt.id!==attempt.id)throw new Error('Unconfirmed receipt');
+      var lead={id:receipt.id,name:name,email:email,ts:new Date().toISOString()};
+      saved=lead;
+      try{localStorage.setItem(KEY,JSON.stringify(lead));}catch(e2){}
+      closeGate();paintTrial();
+      $('segTab').scrollIntoView({behavior:'smooth',block:'start'});
+      var t=$('toast');t.textContent='You are in. Your numbers are live below.';
+      t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2800);
+    }catch(e3){
+      err.textContent='Could not confirm your signup. Your details are still here; please try again.';err.style.display='block';
+    }finally{
+      clearTimeout(timer);sending=false;button.disabled=false;button.textContent='Show me the numbers';
+    }
   });
   document.addEventListener('keydown',function(e){
     if(e.key!=='Tab'||!gate.classList.contains('show'))return;

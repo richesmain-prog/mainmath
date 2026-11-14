@@ -3,9 +3,9 @@
 Date: November 14, 2026. Target: https://math.therichmain.com/. Baseline: `813537e`.
 Source: `richesmain-prog/mainmath`, sibling folder `mainmath-app`; the starting `mainmath` workspace contains a separate sales funnel.
 
-Verdict: production had material financial and workflow defects. Fixes are implemented and tested in this checkout. Production deployment is a separate step; browser preview verification used request interception and did not publish files.
+Verdict: baseline production had material financial and workflow defects. This release corrects the identified defects and adds repeatable calculation, workflow and signup tests. Browser preview checks used request interception; the lead API was separately deployed and verified with a synthetic submission before frontend publication.
 
-Skills used: browser-qa, ai-regression-testing, and Chisle efficiency guidance. Three independent agents checked deal math, contract/lender/offer math, and UI workflows. No production lead submissions, emails, purchases, or customer data changes occurred.
+Skills used: browser-qa, ai-regression-testing, and Chisle efficiency guidance. Three independent agents checked deal math, contract/lender/offer math, and UI workflows. One clearly labeled synthetic lead with a reserved `.invalid` email was submitted to verify the new capture service. No real-user emails, purchases, or existing customer data changes occurred.
 
 ## Corrected defects
 
@@ -23,7 +23,7 @@ Skills used: browser-qa, ai-regression-testing, and Chisle efficiency guidance. 
 | Medium | Automatic deposit could exceed price | $100 purchase produced $1,000 earnest. Automatic earnest is capped at price; manually excessive deposits are flagged. |
 | Medium | Linked lender method ignored Spec interest selection | New linked state follows Spec's drawn/full-loan method. An explicit override, including false, persists. Relink restores inheritance. |
 | Medium | Corrupt saved data crashed actions | Invalid storage now yields an error without overwriting the stored data. Import errors preserve existing inputs. |
-| Medium | Known signup failures silently unlocked | Offline or thrown submission now leaves signup open with an error. Private deal names no longer accompany lead submissions. Receipt remains unconfirmed; see limits. |
+| High | Signup unlocked without confirmed lead capture | Signup now waits for a matching receipt from durable Cloudflare D1 storage. Failures retain inputs, retries reuse an ID, and duplicate clicks are blocked. Google forwarding is tracked separately; failure preserves the stored lead. Private deal names are excluded. |
 | Medium | Accessibility and print issues | Added six LOI labels, main landmark, contextual help names, keyboard-scrollable letter, disabled inactive contingency boxes, readable muted colors, mobile label wrapping and black-on-white print styles. |
 | Low | Missing returns produced misleading score; small-dollar IRR failed | Undefined return now produces F/0. $1 resale at 25% return can solve the correct $0.80 purchase price. |
 | Low | Unsupported information sounded authoritative | Removed unverified late-2026 lending ranges and generic utility/septic/permit/study cost claims. Starting values are illustrative; copy requests written quotes and local fee schedules. Removed assurance that an offer price makes a buyer “protected.” |
@@ -90,23 +90,27 @@ Calendar arithmetic uses UTC. Expiration = LOI date + validity days. Projected d
 
 Navigation, next/back buttons, Quick/Full, lot/teardown, help, target/stress chips, keyboard switches, name, Save/Load/Delete, Export/Import, Reset, copy, print and reload state were traced. Version-2 save/export includes inputs, mode and all tool state. Old exports reset unrelated tools to avoid carrying terms from another project. Storage is local to the device; there is no server account or cloud sync.
 
-Signup uses a seven-day local trial and Google Forms. Invalid/offline/failed invocation paths were tested with a stub. Public form configuration was read and the three required entry IDs match. No live submission or email-delivery test was made.
+Signup uses a seven-day local trial. After expiration, the app posts only a UUID, name and email to `math-api.therichmain.com/leads`, then unlocks on the matching durable-storage acknowledgment. The Worker validates origin, size, fields and request rate; D1's unique key makes retries idempotent. Each new lead forwards once to the existing Google Form with a bounded timeout. Ambiguous/failed forwarding remains recoverable in D1. No deal math or saved projects leave the browser. This is lead capture, not an email-sending service.
+
+Live synthetic receipt: `ccbb3daf-ee4e-4b3a-8788-ceb1af9ef724`, November 14, 2026 at 21:19:31 UTC. Preview UI using the production API received HTTP 200, persisted the matching receipt and unlocked; authenticated D1 lookup confirmed storage and `google_status = confirmed`. Google confirmation establishes acceptance, not follow-up-email delivery. Repeated-ID tests do not post another Google response.
 
 ## Validation evidence
 
 - `npm test`: contract/lender/offer regressions; 600 deterministic lender scenarios; 17 underwriting suites including 96 financing/timing combinations and all 25 stress cells; DOM checks for 61 numeric controls, six keyboard switches, 27 checklist/contingency controls, navigation, help, persistence, import/export, copy/print dispatch and signup failures.
 - Independent cash-event reconstruction: 512 combinations confirmed project and partner peaks without double-counting settlement losses.
+- Independent final review: 4,000 additional adversarial lender scenarios and reload/blocked-storage workflows passed.
+- Signup API: 14 test groups cover durable acknowledgment, duplicate/concurrent IDs, conflicting IDs, stream limits, validation, CORS, rate limits, database failure and Google failure/confirmation classification. UI tests cover HTTP/network/abort failures, malformed/mismatched receipts, duplicate clicks, retry IDs and private-data exclusion. Real browser preview verifies failure retention and successful unlock.
 - Live baseline: all four tabs loaded at 375, 768 and 1440px without horizontal overflow, page errors or HTTP failures observed during the audit.
-- Corrected browser preview: all 12 tab/width combinations passed the same checks and axe WCAG A/AA plus best-practice checks with zero reported violations, including contrast. Mobile screenshot and print-media screenshot reviewed. This does not replace screen-reader testing or establish field Core Web Vitals.
+- Corrected browser preview: all 12 tab/width combinations and the expired-trial signup dialog passed overflow and axe WCAG A/AA plus best-practice checks with zero reported violations, including contrast. Mobile screenshot and print-media screenshot reviewed. This does not replace screen-reader testing or establish field Core Web Vitals.
 - No historical screenshots exist: visual regression comparison is inconclusive. Current-layout and interaction checks pass.
 - `git diff --check` and executable inline-script syntax checks pass. Static app has no build step.
 
 ## Remaining limits and critique
 
-1. **Lead receipt is not acknowledged.** Cross-origin Google Forms iframe cannot confirm a response was stored. Offline/synchronous errors are fixed, but rejection after navigation remains invisible. A same-origin endpoint returning a verified result is needed for reliable lead delivery; receipt and follow-up email remain unverified.
+1. **Google forwarding needs operational review.** Durable lead capture and a live Google confirmation were verified. Failed, unconfirmed or interrupted forwarding remains in D1 for owner review; see README. Automatic retry could duplicate a response after an ambiguous result. Follow-up email is outside this capture service and was not tested.
 2. **Four tools share starting inputs, not a two-way budget.** A GC quote, custom loan or diligence spending does not automatically change Spec profit. Copy now makes this explicit. A future explicit “apply agreed quote” action would reduce manual transfer mistakes; silent synchronization would risk double-counting fees/design/diligence.
 3. **Models are estimates.** Uniform monthly draws, closing-month carry, reserve priority, unchanged design during overruns, fixed-price design-build, and loss sharing are deliberate simplifications. Real contracts/lender draw policies can differ. Grade and land-value bands are internal screening heuristics, not market validation or loan approval.
 4. **LOI remains a draft.** Some provisions, including exclusivity, may be binding. Actual signed agreement dates and negotiated deposit/contingency terms control. Automated field completeness cannot certify enforceability.
-5. **Coverage is bounded.** No live Google Form submission, email delivery, screen-reader session, historical visual comparison or real-user performance study was performed. Print CSS was visually checked; a physical printer was not tested.
+5. **Coverage is bounded.** No email-delivery test, screen-reader session, historical visual comparison or real-user performance study was performed. Print CSS was visually checked; a physical printer was not tested.
 
 Primary references consulted: [CFPB construction-loan disclosure guidance](https://www.consumerfinance.gov/rules-policy/regulations/1026/37/) supports interest-only construction phases; [OCC commercial real-estate lending handbook](https://www.occ.gov/publications-and-resources/publications/comptrollers-handbook/files/commercial-real-estate-lending/pub-ch-commercial-real-estate.pdf) describes interest reserves and underwriting constraints; [AIA A102 instructions](https://help.aiacontracts.com/hc/en-us/articles/1500009828181-instructions-a102-2017-standard-form-of-agreement-between-owner-and-contractor-where-the-basis-of-payment-is-the-cost-of-the-work-plus-a-fee-wi) identify contract-specific savings participation. These support the stated modeling concepts, not a guarantee that any particular deal or agreement is acceptable.

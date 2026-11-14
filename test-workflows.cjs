@@ -7,7 +7,8 @@ const { JSDOM, VirtualConsole } = require('jsdom');
 const html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
 const sessions = [];
 function boot(storage = {}) {
-  const errors = [], blobs = [], copied = [], calls = [];
+  const errors = [], blobs = [], copied = [], calls = [], requests = [];
+  let fetchReply = async () => { throw new Error('Unexpected network request'); };
   const console = new VirtualConsole();
   console.on('jsdomError', error => errors.push(error.message));
   const dom = new JSDOM(html, { url: 'https://math.therichmain.com/', runScripts: 'dangerously',
@@ -16,7 +17,11 @@ function boot(storage = {}) {
       w.HTMLElement.prototype.scrollIntoView = function() {};
       w.HTMLCanvasElement.prototype.getContext = () => null;
       w.HTMLAnchorElement.prototype.click = function() {};
-      w.HTMLFormElement.prototype.submit = function() { calls.push('relay'); };
+      w.HTMLFormElement.prototype.submit = function() { throw new Error('Unexpected form relay'); };
+      w.fetch = (url, options) => {
+        const request = { url, options, body: JSON.parse(options.body) };
+        requests.push(request); return fetchReply(request);
+      };
       w.URL.createObjectURL = blob => { blobs.push(blob); return 'blob:local-test'; };
       w.URL.revokeObjectURL = () => {};
       w.print = () => calls.push('print');
@@ -43,7 +48,8 @@ function boot(storage = {}) {
       reader.onload = () => resolve(JSON.parse(reader.result)); reader.readAsText(blobs.at(-1));
     });
   };
-  return { w, doc, get, input, click, imported, exported, errors, copied, calls };
+  return { w, doc, get, input, click, imported, exported, errors, copied, calls, requests,
+    setFetch: handler => { fetchReply = handler; } };
 }
 
 (async () => {
@@ -156,20 +162,64 @@ function boot(storage = {}) {
 
   const gate = boot({ mm_trial_v1: Date.now() - 8 * 864e5 });
   const submit = () => gate.get('gateForm').dispatchEvent(new gate.w.Event('submit', { cancelable: true, bubbles: true }));
+  const settle = () => new Promise(resolve => gate.w.setTimeout(resolve, 0));
+  const button = gate.get('gateForm').querySelector('button[type=submit]');
+  const response = (body, status = 200) => new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
+  const stillLocked = message => {
+    assert.equal(gate.w.localStorage.getItem('mm_lead_v1'), null, message);
+    assert.ok(gate.get('gate').classList.contains('show'), message);
+    assert.equal(gate.get('gName').value, 'Test Buyer', 'name survives failure');
+    assert.equal(gate.get('gEmail').value, 'test@example.invalid', 'email survives failure');
+    assert.equal(gate.get('gErr').style.display, 'block', 'failure is visible');
+    assert.equal(button.disabled, false, 'submit reenabled after failure');
+  };
   assert.ok(gate.get('gate').classList.contains('show'), 'expired trial opens signup');
-  gate.input('gName', 'A'); gate.input('gEmail', 'bad'); submit();
-  assert.equal(gate.calls.includes('relay'), false, 'invalid lead is rejected');
+  gate.input('gName', 'A'); gate.input('gEmail', 'bad'); submit(); await settle();
+  assert.equal(gate.requests.length, 0, 'invalid lead is rejected');
   gate.input('gName', 'Test Buyer'); gate.input('gEmail', 'test@example.invalid');
-  Object.defineProperty(gate.w.navigator, 'onLine', { configurable: true, value: false }); submit();
-  assert.equal(gate.calls.includes('relay'), false, 'offline signup is not submitted');
-  assert.equal(gate.w.localStorage.getItem('mm_lead_v1'), null, 'offline signup does not silently unlock');
+  Object.defineProperty(gate.w.navigator, 'onLine', { configurable: true, value: false }); submit(); await settle();
+  assert.equal(gate.requests.length, 0, 'offline signup is not submitted');
+  stillLocked('offline signup does not silently unlock');
   Object.defineProperty(gate.w.navigator, 'onLine', { configurable: true, value: true });
-  gate.get('leadRelay').submit = () => { throw new Error('Submission unavailable'); }; submit();
-  assert.equal(gate.w.localStorage.getItem('mm_lead_v1'), null, 'failed submission does not silently unlock');
-  assert.ok(gate.get('gate').classList.contains('show'));
-  gate.get('leadRelay').submit = () => gate.calls.push('relay'); gate.input('dealName', 'Private address'); submit();
-  assert.ok(gate.calls.includes('relay')); assert.equal(gate.get('relaySource').value, 'MainMath website', 'signup excludes private deal names');
-  assert.equal(gate.get('gate').classList.contains('show'), false); assert.deepEqual(gate.errors, []);
+
+  gate.setFetch(async () => { throw new Error('Network unavailable'); }); submit(); await settle();
+  assert.equal(gate.requests.length, 1); stillLocked('network failure does not silently unlock');
+  const firstId = gate.requests[0].body.id;
+  assert.match(firstId, /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i, 'attempt uses a UUID');
+  for (const [label, reply] of [
+    ['HTTP rejection', request => response({ ok: true, id: request.body.id }, 503)],
+    ['malformed JSON', () => new Response('not JSON', { status: 200 })],
+    ['false acknowledgement', request => response({ ok: false, id: request.body.id })],
+    ['truthy nonboolean acknowledgement', request => response({ ok: 'true', id: request.body.id })],
+    ['missing receipt ID', () => response({ ok: true })],
+    ['mismatched receipt ID', () => response({ ok: true, id: 'different-id' })],
+    ['aborted request', () => Promise.reject(new gate.w.DOMException('Aborted', 'AbortError'))]
+  ]) {
+    gate.setFetch(reply); submit(); await settle();
+    assert.equal(gate.requests.at(-1).body.id, firstId, label + ' retries the same attempt ID');
+    stillLocked(label + ' does not silently unlock');
+  }
+
+  let acknowledge;
+  gate.setFetch(request => new Promise(resolve => { acknowledge = () => resolve(response({ ok: true, id: request.body.id })); }));
+  gate.input('dealName', 'Private address'); gate.input('gName', 'Edited Buyer');
+  const beforePending = gate.requests.length;
+  submit(); submit();
+  assert.equal(gate.requests.length, beforePending + 1, 'duplicate pending submits send one request');
+  assert.equal(button.disabled, true, 'submit disabled while receipt is pending');
+  assert.equal(gate.w.localStorage.getItem('mm_lead_v1'), null, 'pending request cannot unlock');
+  const finalRequest = gate.requests.at(-1), finalId = finalRequest.body.id;
+  assert.notEqual(finalId, firstId, 'edited identity starts a new attempt');
+  assert.equal(finalRequest.url, 'https://math-api.therichmain.com/leads');
+  assert.equal(finalRequest.options.method, 'POST');
+  assert.equal(new Headers(finalRequest.options.headers).get('Content-Type'), 'application/json');
+  assert.deepEqual(finalRequest.body, { id: finalId, name: 'Edited Buyer', email: 'test@example.invalid' }, 'request sends no private deal details');
+  acknowledge(); await settle();
+  const savedLead = JSON.parse(gate.w.localStorage.getItem('mm_lead_v1'));
+  assert.equal(savedLead.id, finalId, 'confirmed receipt ID persisted');
+  assert.equal(savedLead.name, 'Edited Buyer'); assert.equal(savedLead.email, 'test@example.invalid');
+  assert.equal(gate.get('gate').classList.contains('show'), false, 'matching success receipt unlocks');
+  assert.equal(button.disabled, false); assert.deepEqual(gate.errors, []);
   console.log('workflow DOM checks passed: ' + numeric.length + ' numeric fields, navigation, help, checklists, keyboard switches, linked tools, persistence, import/export, copy, print, corrupt storage, signup failure handling');
 })().catch(error => { console.error(error); process.exitCode = 1; })
   .finally(() => sessions.forEach(dom => dom.window.close()));
