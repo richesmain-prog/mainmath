@@ -1,0 +1,42 @@
+[
+  {
+    "template": "costplus",
+    "pages": 2,
+    "charactersPerPage": [
+      3097,
+      2854
+    ],
+    "draftAndBothSignatures": true,
+    "blankPages": false
+  },
+  {
+    "template": "gmp",
+    "pages": 2,
+    "charactersPerPage": [
+      3204,
+      2992
+    ],
+    "draftAndBothSignatures": true,
+    "blankPages": false
+  },
+  {
+    "template": "lump",
+    "pages": 2,
+    "charactersPerPage": [
+      3039,
+      2613
+    ],
+    "draftAndBothSignatures": true,
+    "blankPages": false
+  },
+  {
+    "template": "db",
+    "pages": 2,
+    "charactersPerPage": [
+      3227,
+      2643
+    ],
+    "draftAndBothSignatures": true,
+    "blankPages": false
+  }
+]

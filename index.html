@@ -244,6 +244,9 @@
   .mgrid .row{font-size:12px}
   .mgrid .row .v{font-size:13px;font-weight:600;letter-spacing:0;margin-top:0;color:var(--txt)}
   .mgrid .row .v.pos{color:var(--green)} .mgrid .row .v.neg{color:#F0A0A0}
+  #cAgreementPanel{margin-top:14px}
+  #cAgreementText,.agreement-print{overflow-wrap:anywhere}
+  .agreement-print{display:none}
   .trow .inp{width:78px}
   .trow input{padding:7px 10px;font-size:13.5px;border-radius:9px}
   .trow .suf{right:9px;font-size:12px}
@@ -350,10 +353,15 @@
     body *{color:#000!important;background:transparent!important;box-shadow:none!important;text-shadow:none!important}
     .card{break-inside:auto;border-color:#ddd}
     .cols{grid-template-columns:1fr}
+    #cAgreementPanel{display:none!important}
+    body.print-agreement{padding:0}
+    body.print-agreement > *{display:none!important}
+    body.print-agreement > #agreementPrint{display:block!important;white-space:pre-wrap;font:11pt/1.4 Georgia,serif;margin:0}
   }
 </style>
 </head>
 <body>
+<pre id="agreementPrint" class="agreement-print"></pre>
 
 <header>
   <div class="wrap hd">
@@ -692,7 +700,7 @@
     <div><b><i>1</i>Check the job cost</b>It comes from Spec Build. Type over it if you have a real number.</div>
     <div><b><i>2</i>Type the GC’s terms</b>Their fee, their markup, and the price cap if they gave one.</div>
     <div><b><i>3</i>Test a surprise</b>Tap +10% to see what happens if the job costs more.</div>
-    <div><b><i>4</i>Compare “You pay”</b>Gold is cheapest. Check the most you could be billed.</div>
+    <div><b><i>4</i>Compare “You pay”</b>Gold is cheapest. Check the GC billing limit and separate design budget.</div>
   </div>
   <div class="cols">
     <div class="card" id="cInputs">
@@ -791,6 +799,26 @@
       </div>
     </div>
   </div>
+  <section class="card" id="cAgreementPanel" aria-labelledby="cAgreementHeading">
+    <h3 id="cAgreementHeading">3 · Start with an agreement template</h3>
+    <p class="hint">Choose a model below, or use the template button on a comparison card. The draft uses your job estimate and GC terms. The what-if overrun does not change its price or cap.</p>
+    <div class="field">
+      <label for="cAgreementType">Agreement type</label>
+      <select id="cAgreementType" aria-describedby="cAgreementNote">
+        <option value="costplus">Cost-plus</option>
+        <option value="gmp">GMP with shared savings</option>
+        <option value="lump">Lump sum</option>
+        <option value="db">Fixed-price design-build</option>
+      </select>
+    </div>
+    <p class="note" id="cAgreementNote">Working templates, not ready to sign. Replace every [bracket], attach the scope and payment schedule, and have local construction counsel review required notices and terms. Copy or download to edit in your document editor. Numbers update when you change the calculator.</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0">
+      <button class="btn gold" id="cAgreementCopy">Copy template</button>
+      <button class="btn" id="cAgreementDownload">Download .txt</button>
+      <button class="btn ghost" id="cAgreementPrint">Print / Save PDF</button>
+    </div>
+    <pre class="letter" id="cAgreementText" tabindex="0" role="region" aria-label="GC agreement template preview"></pre>
+  </section>
   <div class="nextstep"><button class="btn gold" data-go="lender">Next: What will my loan cost? →</button><span>Step 3 · Lender Terms. Your lot, budget and sale price carry over.</span></div>
   </div><!-- /contractView -->
 
@@ -1758,7 +1786,7 @@
   // contract pricing tab: null = linked (follows the Spec Build numbers, or auto for the GMP cap)
   var CFIELDS = ['cHard','cPermits','cContPct','cDesign','cFeePct','cSharePct','cGmp','cLumpPct','cDbPct','cVar'];
   var CDEF = { cHard:null, cPermits:null, cContPct:null, cDesign:null, cGmp:null,
-               cFeePct:15, cSharePct:50, cLumpPct:20, cDbPct:20, cVar:0 };
+               cFeePct:15, cSharePct:50, cLumpPct:20, cDbPct:20, cVar:0, agreementType:'costplus' };
   var CLIM = { cHard:[0,1e13 + 1e9], cPermits:[0,1e9], cDesign:[0,1e13], cGmp:[0,4e13 + 8e9], cContPct:[0,100],
                cFeePct:[0,100], cSharePct:[0,100], cLumpPct:[0,100], cDbPct:[0,100], cVar:[-90,300] };
   var CKEY = 'mm_contract_v1';
@@ -1841,6 +1869,7 @@
         if (f === 'cGmp' && st[f] <= 0) st[f] = null;
       });
       if ('type' in def && raw.type === 'c2p') st.type = 'c2p';
+      if ('agreementType' in def && ['costplus','gmp','lump','db'].indexOf(raw.agreementType) !== -1) st.agreementType = raw.agreementType;
       ['own','dutch','reserve'].forEach(function(k){
         if (k in def && typeof raw[k] === 'boolean') st[k] = raw[k];
       });
@@ -2427,7 +2456,7 @@
     rd.readAsText(f);
     e.target.value = '';
   });
-  $('btnPrint').addEventListener('click', function(){ window.print(); });
+  $('btnPrint').addEventListener('click', function(){ clearAgreementPrint(); window.print(); });
   $('btnReset').addEventListener('click', function(){
     state = E.normalize({}); mode = 'quick'; try { localStorage.setItem('dmp_mode_v1','quick'); } catch(e){}
     restoreTools();
@@ -2594,6 +2623,57 @@
     db: { name: '📐 Design-build', c: '251,146,180', risk: 'the GC pays an overrun',
       desc: 'One fixed price for design and construction, and one company to call. The GC carries both.' }
   };
+  function contractAgreement(res){
+    var type = cs.agreementType;
+    var names = { costplus:'COST-PLUS CONSTRUCTION AGREEMENT', gmp:'GMP CONSTRUCTION AGREEMENT WITH SHARED SAVINGS',
+      lump:'LUMP-SUM CONSTRUCTION AGREEMENT', db:'FIXED-PRICE DESIGN-BUILD AGREEMENT' };
+    var model = res.list.filter(function(m){ return m.key === type; })[0];
+    var money = function(n){ return money2.format(E.roundCents(n)); };
+    var fee = prettyNum(cs.cFeePct) + '%', share = prettyNum(cs.cSharePct) + '%';
+    var pricing;
+    if (type === 'costplus') {
+      pricing = 'Owner pays documented allowable Cost of Work plus a GC fee of ' + fee + ' of that cost. The fee covers the overhead and profit identified in Schedule A; the same expense may not be charged again as a reimbursable cost.\n' +
+        'Estimated Cost of Work: ' + money(res.cost) + '. Estimated GC compensation including fee: ' + money(model.price) + '. These are estimates, not a fixed price or guaranteed maximum. Actual allowable cost determines the bill, so Owner bears overruns and benefits from lower costs. A contingency budget is not itself a charge.\n' +
+        'Define allowable labor, materials, subcontractor, equipment, permit and other costs in Schedule A. Identify exclusions and any prior-approval requirements; credit refunds, discounts and returns. Itemize costs and fee separately.';
+    } else if (type === 'gmp') {
+      pricing = 'Proposed guaranteed maximum GC compensation: ' + money(model.price) + ', including the fee and any savings award. This cap covers only the defined construction scope and changes only by signed adjustment.\n' +
+        'GC fee: ' + fee + ' of final allowable Cost of Work. GC share of savings: ' + share + '; Owner retains the balance. Let C be final allowable Cost of Work, F = C × ' + fee + ', and G be the agreed cap. Savings = max(0, G − C − F). Final GC compensation = min(G, C + F + savings × ' + share + '), less prior payments. No fee or savings award is added above the cap. GC bears overruns for unchanged scope.\n' +
+        'Reconcile documented costs, credits, remaining obligations and approved changes before awarding savings. Identify allowable costs, exclusions, contingency uses and approval/record requirements in Schedule A. Contingency is inside the cap, not a separate charge; unused contingency flows through the savings calculation. Adjust the cap for agreed deleted scope before computing savings.';
+    } else if (type === 'lump') {
+      pricing = 'Proposed fixed construction price: ' + money(model.price) + '. It includes the construction contingency and ' + prettyNum(cs.cLumpPct) + '% markup used in this draft. Do not add the cost-plus fee or another contingency charge.\n' +
+        'For the unchanged scope, GC retains cost savings and bears cost overruns. Actual cost does not automatically change the fixed price. Adjustments require the change procedure below. Define allowances and any permitted allowance adjustments in Schedule A.';
+    } else {
+      pricing = 'Proposed fixed design-build price: ' + money(model.price) + '. It includes the listed design/engineering services, construction contingency and ' + prettyNum(cs.cDbPct) + '% markup used in this draft. Do not add the design budget, cost-plus fee or another contingency charge again.\n' +
+        'For the unchanged scope, Design-Builder retains cost savings and bears cost overruns. Design-Builder coordinates design and construction through appropriately licensed providers. Schedule A must identify Owner’s Criteria, design deliverables, review milestones, professional responsibilities and permitted use of design documents. Owner review does not transfer professional responsibility.\n' +
+        'This is the fixed-price version of design-build; other design-build pricing arrangements require different terms.';
+    }
+    var design = type === 'db'
+      ? 'Design and engineering budget ' + money(res.design) + ' is already included in the design-build price. List the included services and exclusions in Schedule A.'
+      : 'Owner separately engages and pays design professionals. Design and engineering budget: ' + money(res.design) + '. This is an estimate outside GC compensation' + (type === 'gmp' ? ' and outside the GMP cap' : '') + ', not a guaranteed design price. Identify design agreements and coordination duties in Schedule A.';
+    return [
+      names[type],
+      'DRAFT TEMPLATE — NOT READY TO SIGN\nOriginal MainMath starting template; not an AIA form or legal advice. Complete every [bracket], settle the business terms, attach schedules and required local notices, and obtain project-specific construction-law review before signing. Copying plain text does not preserve any legally required notice formatting.',
+      '1. PARTIES AND PROJECT\nAgreement date: [date]\nOwner: [full legal name, address, phone and authorized representative]\n' +
+        (type === 'db' ? 'Design-Builder' : 'Contractor / GC') + ': [full legal name, business address, phone, license number/class and authorized representative]\nProject reference: ' + (($('dealName').value || '').trim() || '[project name]') +
+        '\nProject address / legal description: [complete]\nProject type and governing state: [complete]',
+      '2. SCOPE AND CONTRACT DOCUMENTS\nProvide the work described in signed Schedule A, with drawings/specifications identified by title, revision and date. List inclusions, exclusions, allowances, owner-supplied items and responsibility for permits, inspections, utilities, site access, safety, subcontractors and cleanup. Use qualified and properly licensed providers where required.\n' +
+        'Attach: A — scope, plans, cost definitions and allowances; B — schedule and milestones; C — payments and applicable taxes; D — insurance, warranties, required notices and other agreed terms. Order of precedence for conflicting documents: [agree]. Resolve scope conflicts before the affected work.',
+      '3. COMPENSATION\n' + pricing + '\n' + design + '\n' +
+        'Calculator basis: work including contractor-paid permits ' + money(res.cost) + '; construction budget with contingency ' + money(res.budget) + '. Amounts are rounded to cents. The what-if cost variation is a comparison only and is not a contract term. Reconcile tax treatment and any rounding in Schedule C before agreeing to a price.\n' +
+        'Taxes already included / additional applicable taxes and responsible payer: [itemize]. Final tax-inclusive price, cap or legally required cost-plus price disclosure: [complete for the project and jurisdiction without inventing a cost-plus cap].',
+      '4. TIME AND OWNER DECISIONS\nStart authorization and prerequisites: [complete]. Estimated start: [date]. Estimated substantial completion: [date]. Final completion: [date]. Schedule B lists milestones, selection/approval deadlines and dependencies. Delay notice, documentation and time-adjustment procedure: [agree]. Calculator build/sale months are not binding completion dates.',
+      '5. PAYMENT\nDeposit: $[amount]; due [date/condition]; credited toward compensation. Schedule C must state each progress dollar amount or agreed calculation method, corresponding earned stage, supporting documents, review and payment deadlines, retainage and release conditions, consistent with applicable law.\n' +
+        'Credit prior payments and approved credits. For reimbursable work, provide itemized costs, fee and supporting records; Owner may review project records under [access/retention procedure]. Final payment conditions: [inspections, punch list, final cost/savings reconciliation if applicable, warranties, manuals and legally appropriate lien releases].',
+      '6. CHANGES AND UNFORESEEN CONDITIONS\nBefore changed work proceeds, authorized representatives sign a change order identifying changed scope, price or cap adjustment, fee/savings treatment, and schedule effect. Do not charge the same fee twice. Verbal requests do not by themselves establish the adjustment.\n' +
+        'Emergency-work authorization, concealed/hazardous conditions, notice and stop-work procedures: [agree]. Define who may approve changes and how allowance substitutions affect price and time.',
+      '7. INSURANCE, QUALITY AND CLOSEOUT\nRequired insurance, limits, certificates, builder’s risk, bonds and responsible parties: [agree in Schedule D]. Work must meet the agreed documents and applicable requirements. Inspection, defect-correction and warranty terms, including any mandatory rights: [complete]. Identify design-professional coverage for design-build.\n' +
+        'Closeout deliverables and acceptance procedure: [complete]. Use jurisdiction-appropriate conditional/unconditional lien-release forms and preserve rights that cannot legally be waived.',
+      '8. NOTICES, DEFAULT AND DISPUTES\nNotice recipients, addresses and permitted delivery methods: [complete]. Default notice, cure periods, suspension/termination rights, payment reconciliation and protection of unfinished work: [agree]. Governing law, venue and dispute-resolution process: [agree]. No arbitration, damages waiver or indemnity provision is selected by this template.',
+      '9. REQUIRED LOCAL TERMS AND SIGNATURES\nAttach required licensing, consumer, cancellation, lien and complaint notices and all project-specific statutory terms in their required format. Complete every blank and schedule; obtain review before execution. Each party receives the signed agreement and signed changes.\n' +
+        'Owner legal name: [complete]\nAuthorized signature: ____________________  Title: __________  Date: __________\n\n' +
+        (type === 'db' ? 'Design-Builder' : 'Contractor') + ' legal name: [complete]\nAuthorized signature: ____________________  Title: __________  Date: __________'
+    ].join('\n\n');
+  }
   function renderContract(){
     var d = window._last; if (!d || !$('cCards')) return;
     var src = { cHard: d.r.lines.hard + d.r.lines.demo, cPermits: d.input.permitFees, cContPct: d.input.contingencyPct,
@@ -2637,16 +2717,19 @@
         '<div class="v">' + fmtM(m.ownerAllIn) + ' <small>you pay</small></div>' +
         '<div class="s">' + T.desc + '</div>' +
         row('To the GC', fmtM(m.pays), '', gcNote) +
-        row('Design', isDb ? 'Inside the price' : fmtM(res.design), '', isDb ? '' : 'you hire the architect') +
-        row('Most you can be billed', m.key === 'costplus' ? 'No limit' : fmtM(m.price + (isDb ? 0 : res.design)),
+        row('Design', isDb ? 'Inside the price' : fmtM(res.design), '', isDb ? '' : 'separate estimate · you hire the architect') +
+        row('GC billing limit', m.key === 'costplus' ? 'No limit' : fmtM(m.price),
             m.key === 'costplus' ? 'neg' : '', T.risk) +
         row('More than the cheapest', cheapest ? '—' : '+' + fmtM(m.ownerAllIn - low.ownerAllIn)) +
         row('Against your Spec Build budget', Math.abs(vs) < 0.5 ? 'Even' : fmtM(Math.abs(vs)) + (vs > 0 ? ' over' : ' under'),
             vs > 0.5 ? 'neg' : 'pos', fmtM(specBudget)) +
         row('The GC makes', fmtM(m.profit), m.profit < 0 ? 'neg' : '', pct(m.margin) + ' margin') +
+        '<button class="btn" data-template="' + m.key + '" aria-label="Use ' + (m.key === 'db' ? 'fixed-price design-build' : m.key === 'costplus' ? 'cost-plus' : m.key === 'gmp' ? 'GMP' : 'lump sum') + ' agreement template">Use agreement template →</button>' +
         '</div>';
     });
     $('cCards').innerHTML = html;
+    $('cAgreementType').value = cs.agreementType;
+    $('cAgreementText').textContent = contractAgreement(res);
     celebrate('gc', 'contract', specBudget > 0 && low.ownerAllIn <= specBudget + 0.5, '🎉 Your builder’s price fits your budget');
     try { localStorage.setItem(CKEY, JSON.stringify(cs)); } catch(e){}
   }
@@ -2661,6 +2744,35 @@
   $('cReset').addEventListener('click', function(){
     ['cFeePct','cSharePct','cGmp','cLumpPct','cDbPct','cVar'].forEach(function(f){ cs[f] = CDEF[f]; });
     renderContract(); toast('Terms reset');
+  });
+  $('cAgreementType').addEventListener('change', function(){
+    if (['costplus','gmp','lump','db'].indexOf(this.value) !== -1) cs.agreementType = this.value;
+    renderContract();
+  });
+  $('cCards').addEventListener('click', function(e){
+    var b = e.target.closest('[data-template]'); if (!b) return;
+    cs.agreementType = b.dataset.template; renderContract();
+    $('cAgreementPanel').scrollIntoView({ block:'start', behavior:'smooth' });
+    $('cAgreementText').focus({ preventScroll:true });
+  });
+  $('cAgreementCopy').addEventListener('click', function(){
+    var txt = $('cAgreementText').textContent, fallback = function(){ showCopyText(txt); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(function(){ toast('Agreement template copied'); }, fallback);
+    else fallback();
+  });
+  $('cAgreementDownload').addEventListener('click', function(){
+    var blob = new Blob([$('cAgreementText').textContent], { type:'text/plain;charset=utf-8' });
+    var a = document.createElement('a'), url = URL.createObjectURL(blob);
+    var name = ($('dealName').value || '').replace(/[^a-z0-9\-_ ]/gi,'').trim().replace(/\s+/g,'-').toLowerCase().slice(0,100) || 'mainmath';
+    a.href = url; a.download = name + '-' + cs.agreementType + '-agreement-draft.txt';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1000); toast('Agreement template downloaded');
+  });
+  function clearAgreementPrint(){ document.body.classList.remove('print-agreement'); $('agreementPrint').textContent = ''; }
+  window.addEventListener('afterprint', clearAgreementPrint);
+  $('cAgreementPrint').addEventListener('click', function(){
+    $('agreementPrint').textContent = $('cAgreementText').textContent; document.body.classList.add('print-agreement');
+    try { window.print(); } catch(e) { clearAgreementPrint(); toast('Print unavailable — copy or download the template'); }
   });
   /* ---------- lender terms tab ---------- */
   function renderLender(){
@@ -2976,6 +3088,7 @@
   function setTab(t){
     if (!VIEWS[t]) t = 'spec';
     Object.keys(VIEWS).forEach(function(k){ $(VIEWS[k]).hidden = k !== t; });
+    if (t === 'contract') renderContract(); // refresh the project name after editing or saving in Spec Build
     [].forEach.call($('segTab').children, function(c){ c.classList.toggle('on', c.dataset.tab === t); });
     try { localStorage.setItem('mm_tab_v1', t); } catch(e){}
     paintPressed();
