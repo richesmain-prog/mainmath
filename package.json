@@ -2,7 +2,7 @@
   "name": "mainmath",
   "private": true,
   "scripts": {
-    "test": "node test-contracts.js && node --test test-underwriting.js test-leads.mjs test-audit-math.cjs test-audit-workflows.cjs test-third-spec.cjs test-third-financing.cjs test-third-workflows.cjs && node test-workflows.cjs"
+    "test": "node test-contracts.js && node --test test-underwriting.js test-leads.mjs test-audit-math.cjs test-audit-workflows.cjs test-third-spec.cjs test-third-financing.cjs test-third-workflows.cjs test-gc-agreements.cjs && node test-workflows.cjs"
   },
   "devDependencies": {
     "jsdom": "31.0.1"

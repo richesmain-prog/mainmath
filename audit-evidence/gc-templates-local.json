@@ -1,0 +1,43 @@
+{
+  "time": "2026-11-25T18:42:57.624Z",
+  "live": false,
+  "sourceSha256": "c86a2ed24edcb703856848b91b6ddca17ca6a497de7cb2cfd0c979307f150d68",
+  "errors": [],
+  "posts": [],
+  "types": [
+    {
+      "type": "costplus",
+      "price": "Estimated GC compensation including fee: $126,500.00",
+      "characters": 5966,
+      "download": "gc-template-qa-costplus-agreement-draft.txt",
+      "printOnly": true
+    },
+    {
+      "type": "gmp",
+      "price": "Proposed guaranteed maximum GC compensation: $139,150.00",
+      "characters": 6211,
+      "download": "gc-template-qa-gmp-agreement-draft.txt",
+      "printOnly": true
+    },
+    {
+      "type": "lump",
+      "price": "Proposed fixed construction price: $145,200.00",
+      "characters": 5667,
+      "download": "gc-template-qa-lump-agreement-draft.txt",
+      "printOnly": true
+    },
+    {
+      "type": "db",
+      "price": "Proposed fixed design-build price: $176,250.00",
+      "characters": 5885,
+      "download": "gc-template-qa-db-agreement-draft.txt",
+      "printOnly": true
+    }
+  ],
+  "widths": [
+    375,
+    768,
+    1440
+  ],
+  "passed": true
+}

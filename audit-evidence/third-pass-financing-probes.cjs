@@ -33,13 +33,13 @@ const row = (root, label) => [...root.querySelectorAll('.row')]
     const actual = 110000*(1+variation/100), gmp = cap || 132000*(1+fee/100), bill = actual*(1+fee/100);
     const gp = Math.min(gmp, bill + Math.max(0,gmp-bill)*share/100), pays = [bill,gp,158400,182400];
     const owner = pays.map((amount,i) => amount+(i===3?0:20000)), lowest = Math.min(...owner);
-    const maximum = ['No limit',money(gmp+20000),money(178400),money(182400)];
+    const maximum = ['No limit',money(gmp),money(158400),money(182400)];
     const spec = p.w._last.r.lines.buildTotal+p.w._last.r.lines.demo;
     assert.equal(p.get('cActual').textContent,money(actual));
     [...p.get('cCards').children].forEach((card,i) => {
       assert.equal(card.querySelector(':scope > .v').firstChild.textContent.trim(),money(owner[i]));
       assert.equal(row(card,'To the GC'),money(pays[i])); assert.equal(row(card,'Design'),i===3?'Inside the price':money(20000));
-      assert.equal(row(card,'Most you can be billed'),maximum[i]);
+      assert.equal(row(card,'GC billing limit'),maximum[i]);
       assert.equal(row(card,'The GC makes'),money(pays[i]-actual-(i===3?20000:0)));
       assert.equal(row(card,'More than the cheapest'),i===owner.indexOf(lowest)?'—':'+'+money(owner[i]-lowest));
       const difference = owner[i]-spec;
